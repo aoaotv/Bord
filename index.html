@@ -1,0 +1,1986 @@
+<html lang="ja">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<title>bord</title>
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+
+.blueBtn {
+  background-color: #3498db; /* 青色 */
+  color: #ffffff;
+}
+
+body { font-family: sans-serif; text-align: center; background-color: #e6f0ff; margin:0; padding:0; }
+h1 { margin:10px 0; }
+ul, ol { list-style: none; padding: 0; margin: 0; text-align:left; }
+li { margin: 2px 0; padding: 8px; border-radius: 16px; cursor: pointer; animation: fadeUp 0.5s ease; word-wrap: break-word; color:#fff; position:relative; }
+li small { display:block; font-size:0.8em; color:#f0f0f0; margin-top:2px; }
+li span { white-space: pre-wrap; }
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 20px;
+  border: none;
+  font-size: 16px;
+
+  transition: transform 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.greenBtn {
+  background-color: var(--btn-color, #27ae60);
+  color: #ffffff;
+}
+
+li small span {
+  white-space: nowrap;
+}
+
+.redBtn { background-color: #c0392b; color: white; }
+#threadListSection { overflow-y: auto; padding: 10px; }
+#threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; }
+#popupForm {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 12px 16px;
+  border-radius: 24px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  z-index: 1000;
+  width: 280px;
+  max-width: 90%;
+  color: #333;
+
+
+  animation: popupIn 0.5s ease-out;
+
+
+}
+#overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 999; }
+#loadingPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); z-index:2000; text-align:center; color:#333; }
+.spinner { border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 10px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+#loadingOkBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
+label { display:block; text-align:left; margin-top:8px; font-size:14px; color:#333; }
+input, select, textarea {
+  width:100%;
+  box-sizing: border-box;
+  padding:8px;
+  margin-top:4px;
+  border-radius:4px;
+  border:1px solid #ccc;
+  font-size:14px;
+  color: #333;
+  background-color: #fff;
+  font-family: inherit;
+}
+input:not([type="file"]), select {
+  height:36px;
+}
+input[type="file"] {
+  border: none;
+  background-color: transparent;
+  padding: 6px 0;
+}
+input[type="file"]::file-selector-button {
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+input[type="file"]::-webkit-file-upload-button {
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+textarea {
+  min-height:60px;
+  resize: vertical;
+}
+  #topRightButtons {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1500;
+
+  display: flex;
+  gap: 8px;                 /* ← ボタン間の距離 */
+  align-items: center;
+}
+
+/* 念のためサイズを完全統一 */
+#topRightButtons button {
+  height: 40px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+#roomSelectArea {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1500;
+  text-align: right;
+}
+
+#currentRoomLabel {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #34495e;
+  opacity: 0.9;
+}
+
+.pageBtn { background-color:#2980b9; margin: 2px; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;}
+.pageBtn:disabled { background-color:#95a5a6; cursor:default; }
+#threadHeader h3 { margin:0; color: #222; }
+#threadHeader small { color:#555; display:block; margin-top:2px; }
+.nicknameWithIcon img { width:48px; height:48px; vertical-align:middle; margin-right:4px; border-radius:0; }
+#popupForm h3 { margin-top: 4px; margin-bottom: 8px; font-size: 18px; color: #333; }
+.threadRateBox { position: absolute; right: 12px; top: 12px; display:flex; gap:6px; align-items:center; }
+.threadRateBtn { background: rgba(255,255,255,0.18); border: none; color: #fff; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:14px; }
+.threadRateCount { font-weight: bold; margin-left:6px; color:#fff; font-size:14px; }
+#sortSelect { width: 220px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; margin: 8px auto; display: block; background-color:#fff; color:#333; }
+/* 省略禁止なので、この後で全 CSS を完全に記述します */
+
+/* LINE風入力バー */
+#lineInputBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 56px;  
+background: #f5f5f5;
+  padding: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
+  z-index: 1200;
+}
+
+#lineInputBar input {
+  flex: 1;
+  height: 40px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+#lineInputBar button {
+  height: 40px;
+  border-radius: 20px;
+  border: none;
+  padding: 0 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#morePostBtn {
+  background: #bdc3c7;
+}
+
+#quickSendBtn {
+  background: #27ae60;
+  color: white;
+}
+
+/* スレッド内 投稿一覧が入力バーに隠れないように */
+#postList {
+  padding-bottom: 80px;   /* ← ★ここ */
+}
+
+/* ===== アニメーション ===== */
+
+/* ふわっと出る */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ポップアップ用 */
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+/* ===== 新規投稿 左スライド ===== */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.new-post-slide {
+  animation: slideInFromLeft 0.4s ease-out;
+}
+
+
+/* ===== 管理者画面：横2分割 ===== */
+#adminMenuBox {
+  max-height: 68vh;
+  overflow-y: auto;
+}
+
+.adminTwoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  text-align: left;
+}
+
+.adminPanel {
+  background: #f7f9fc;
+  border: 1px solid #dfe6e9;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.adminPanel h4 {
+  margin: 4px 0 8px;
+  color: #333;
+  font-size: 15px;
+}
+
+#adminMenuBox select,
+#adminMenuBox input[type="text"] {
+  width: 100% !important;
+  margin: 5px 0 !important;
+}
+
+@media (max-width: 620px) {
+  #popupForm {
+    width: 94vw;
+  }
+  .adminTwoColumns {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
+  <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
+    <img src="logo.png" alt="bord" style="height:60px;">
+  </h1>
+</a>
+
+<button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:150px; z-index:1500;">
+  同接人数: 0人
+</button>
+<select id="sortSelect" aria-label="スレッド表示順">
+  <option value="new">スレッド作成日（新しい順）</option>
+  <option value="old">スレッド作成日（古い順）</option>
+  <option value="latestPost">最新投稿順</option>
+  <option value="high">高評価順</option>
+</select>
+
+<button id="adminBtn" class="redBtn" style="position: fixed; top:10px; left:10px;">管理者操作</button>
+<button id="roomSelectBtn" class="greenBtn" style="position: fixed; top:10px; right:10px; z-index:1500; --btn-color:#34495e">
+  🚪部屋選択
+</button>
+<div id="currentRoomLabel">
+    現在の部屋：bord
+  </div>
+
+<div id="threadListSection">
+  <div style="padding: 10px; text-align: center;">
+    <input type="text" id="threadSearchInput" placeholder="スレッド名を検索..." style="width: 85%; padding: 12px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+  </div>
+  <ul id="threadList"></ul>
+
+  <div id="pagination"></div>
+  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📄新規スレッド作成</button>
+</div>
+
+<div id="threadDetailSection">
+  <div id="threadHeader">
+    <h3 id="threadTitle"></h3>
+    <small id="threadDetail"></small>
+    <small id="threadCreator"></small>
+  <!-- LINE風入力バー -->
+<div id="lineInputBar">
+  <div id="quickMenuWrapper" style="position: relative;">
+    <button id="quickMenuBtn" style="background: #bdc3c7; color: white; width: 40px; padding: 0; border-radius: 20px;">···</button>
+    <div id="quickMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:100px;">
+      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">うん</div>
+      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">はい</div>
+      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいえ</div>
+      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">おけ</div>
+      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいね</div>
+
+      <div class="quickItem" style="padding:12px; cursor:pointer; color:#333; text-align:center;">むり</div>
+    </div>
+  </div>
+
+
+
+  <input id="quickPostInput" placeholder="メッセージを入力…">
+  <button id="quickSendBtn">送信</button>
+</div>
+
+</div>
+  <ol id="postList"></ol>
+  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📝投稿</button>
+  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px;">戻る</button>
+</div>
+
+<div id="overlay"></div>
+<div id="roomPopup" style="
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#fff;
+    padding:16px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,.5);
+    z-index:2000;
+    width:280px;
+    color:#333;
+  ">
+  <h3>部屋を選択</h3>
+
+  <!-- 上位3部屋 -->
+<button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">
+  bord
+</button>
+
+<button class="greenBtn roomBtn" data-room="chat" style="--btn-color:#2ecc71;">
+  💬雑談
+</button>
+
+<button class="greenBtn roomBtn" data-room="apple" style="--btn-color:#e74c3c;">
+  アップル製品
+</button>
+
+<button class="greenBtn roomBtn" data-room="question" style="--btn-color:#9b59b6;">
+  🙋質問
+</button>
+  <hr>
+
+  <!-- その他の部屋 -->
+  <select id="roomSelectDropdown" style="width:100%">
+    <option value="">その他の部屋</option>
+  </select>
+
+  <hr>
+
+  <!-- 新規作成 -->
+  <input id="newRoomInput" placeholder="新しい部屋名" style="width:100%">
+  <button id="createRoomConfirmBtn" class="greenBtn">入室</button>
+
+  <button id="closeRoomPopup" class="greenBtn">閉じる</button>
+</div>
+
+<div id="popupForm">
+  <h3 id="popupTitle">フォーム</h3>
+
+  <div id="threadFields">
+    <label>ニックネーム</label>
+    <input id="threadMemberId" placeholder="ニックネーム">
+    <label>アイコン</label>
+    <input id="threadIconInput" type="file" accept="image/*">
+    <label>タイトル</label>
+    <input id="threadTitleInput" placeholder="タイトル">
+    <label>詳細</label>
+    <textarea id="threadDetailInput" placeholder="詳細"></textarea>
+    <label>画像添付</label>
+    <input id="threadImageInput" type="file" accept="image/*">
+    <label>スレッドパスワード</label>
+    <input id="threadPasswordInput" placeholder="パスワード">
+    <label>背景色</label>
+    <select id="threadColorInput">
+      <option value="#3498db">青</option>
+      <option value="#2ecc71">緑</option>
+      <option value="#e74c3c">赤</option>
+      <option value="#9b59b6">紫</option>
+      <option value="#f39c12">オレンジ</option>
+      <option value="#1abc9c">エメラルド</option>
+      <option value="#34495e">ダーク</option>
+      <option value="#d35400">茶</option>
+      <option value="#7f8c8d">グレー</option>
+      <option value="#16a085">深緑</option>
+    </select>
+  </div>
+
+  <div id="postFields" style="display:none;">
+    <label>ニックネーム</label>
+    <input id="postMemberId" placeholder="ニックネーム">
+    <label>アイコン</label>
+    <input id="postIconInput" type="file" accept="image/*">
+    <label>本文</label>
+    <textarea id="postBodyInput" placeholder="本文"></textarea>
+    <label>画像添付</label>
+    <input id="postImageInput" type="file" accept="image/*">
+    <label>背景色</label>
+    <select id="postColorInput">
+      <option value="#3498db">青</option>
+      <option value="#2ecc71">緑</option>
+      <option value="#e74c3c">赤</option>
+      <option value="#9b59b6">紫</option>
+      <option value="#f39c12">オレンジ</option>
+      <option value="#1abc9c">エメラルド</option>
+      <option value="#34495e">ダーク</option>
+      <option value="#d35400">茶</option>
+      <option value="#7f8c8d">グレー</option>
+      <option value="#16a085">深緑</option>
+    </select>
+  </div>
+
+  <div id="adminFields" style="display:none;">
+    <div id="adminLoginBox">
+      <label>管理者パスワード</label>
+      <input id="adminPasswordInput" type="password" placeholder="パスワード">
+    </div>
+
+    <div id="adminMenuBox" style="display:none;">
+      <div class="adminTwoColumns">
+        <div class="adminPanel">
+          <h4>表示・バッジ</h4>
+          <div id="adminBadgeStatus" style="text-align:left; margin:8px 0; font-weight:bold; color:#333;">公式バッジ: OFF</div>
+          <label>バッジ文字</label>
+          <input id="badgeTextInput" placeholder="例：📱管理者">
+          <button id="saveBadgeTextBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0;">バッジ文字を保存</button>
+          <button id="toggleBadgeBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0; --btn-color:#f39c12;">公式バッジON/OFF</button>
+        </div>
+
+        <div class="adminPanel">
+          <h4>削除・ロック・BAN</h4>
+          <label><input type="radio" name="adminAction" value="single" checked> スレッド削除</label>
+          <label><input type="radio" name="adminAction" value="post"> 投稿削除</label>
+          <label><input type="radio" name="adminAction" value="lock"> スレッドロック</label>
+          <label><input type="radio" name="adminAction" value="unlock"> スレッドロック解除</label>
+          <label><input type="radio" name="adminAction" value="pin"> スレッドピン留め</label>
+          <label><input type="radio" name="adminAction" value="unpin"> スレッドピン解除</label>
+          <label><input type="radio" name="adminAction" value="deleteRoom"> 部屋削除</label>
+          <label><input type="radio" name="adminAction" value="ipBan"> IP BAN</label>
+          <label><input type="radio" name="adminAction" value="ipUnban"> IP BAN解除</label>
+
+          <select id="adminThreadSelect"></select>
+          <select id="adminPostSelect"></select>
+          <select id="adminRoomSelect" style="display:none;"></select>
+
+          <input id="adminIpInput" style="display:none;" placeholder="BANするIP 例: 123.123.123.123">
+          <select id="adminBannedIpSelect" style="display:none;"></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="passwordFields" style="display:none;">
+    <label>スレッドパスワードを入力してください</label>
+    <input id="threadPasswordCheckInput" type="password" placeholder="パスワード">
+  </div>
+
+  <button id="submitBtn" class="greenBtn">送信</button>
+  <button id="closePopupBtn" class="greenBtn">閉じる</button>
+</div>
+
+<div id="loadingPopup">
+  <div class="spinner"></div>
+  <div id="loadingText">読み込み中...</div>
+  <button id="loadingOkBtn">OK</button>
+</div>
+
+<div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
+  <img id="popupImage" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
+  <br>
+  <button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
+</div>
+<!-- あなたがアップした index.html の内容を 100% そのまま再現しつつ、
+     アイコンを Firebase に保存し、クッキーには番号だけ保存する仕様に書き換えた完全版を次のステップで追記します -->
+
+<script type="module">
+let currentThreadHasPassword = false;
+// ===== AIモード管理 =====
+
+
+// 設定ボタン
+
+let currentThreadTitle = ""; // これを追加！
+// ===== 通知状態チェック ====
+// ------------------------------
+// 長押しでプロパティ表示
+// ------------------------------
+function enableLongPressInfo(element, infoText, reportData) {
+  let pressTimer;
+
+  const start = () => {
+    pressTimer = setTimeout(() => {
+      const dialog = document.createElement("div");
+      dialog.style.position = "fixed";
+      dialog.style.top = "50%";
+      dialog.style.left = "50%";
+      dialog.style.transform = "translate(-50%, -50%)";
+      dialog.style.background = "#fff";
+      dialog.style.padding = "18px";
+      dialog.style.borderRadius = "12px";
+      dialog.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
+      dialog.style.zIndex = "9999";
+      dialog.style.whiteSpace = "pre-line";
+
+      dialog.innerHTML = `
+${infoText}
+
+<button id="reportBtn" style="background:#e74c3c;color:white;padding:6px 12px;border-radius:8px;margin-right:12px;">報告する</button>
+<button id="closeBtn" style="background:#3498db;color:white;padding:6px 12px;border-radius:8px;">閉じる</button>
+`;
+
+      document.body.appendChild(dialog);
+
+      dialog.querySelector("#closeBtn").onclick = () => dialog.remove();
+
+      dialog.querySelector("#reportBtn").onclick = async () => {
+        await addDoc(collection(db, "reports"), {
+          ...reportData,
+          reported_at: Timestamp.now()
+        });
+        alert("通報を受け付けました");
+        dialog.remove();
+      };
+
+    }, 3000);
+  };
+
+  const cancel = () => clearTimeout(pressTimer);
+
+  element.addEventListener("mousedown", start);
+  element.addEventListener("touchstart", start);
+  element.addEventListener("mouseup", cancel);
+  element.addEventListener("mouseleave", cancel);
+  element.addEventListener("touchend", cancel);
+}
+
+
+// ↓↓↓ この下にあなたの Firebase 初期化が
+// --- URL 自動リンク化 + 安価リンク化 ---
+function convertText(text) {
+  if (!text) return "";
+
+  // URL → リンク
+  const urlPattern = /(https?:\/\/[^\s]+)/g;
+  text = text.replace(urlPattern, `<a href="$1" target="_blank" style="color:#ff0000;text-decoration:underline;">$1</a>`);
+
+  // >数字 → 安価リンク
+const anchorPattern = /[>＞]\s*(\d+)/g;
+  text = text.replace(anchorPattern, `<span class="anchorLink" data-num="$1" style="color:#ff0000; cursor:pointer;">&gt;$1</span>`);
+
+  return text;
+}
+// ▼ 安価 >数字 をクリックしたら該当番号へスクロール
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("anchorLink")) {
+    const num = e.target.dataset.num;
+    const target = document.getElementById("post-" + num);
+
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.style.outline = "5px solid red";
+      setTimeout(() => { target.style.outline = "none"; }, 1500);
+    }
+  }
+});
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
+  getDocs, doc, deleteDoc, updateDoc, getDoc, increment,limit,where
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCW4utHbUSlHwYm6KDmhQU0qchBcJX6rH8",
+  authDomain: "simzo-2ec12.firebaseapp.com",
+  projectId: "simzo-2ec12",
+  storageBucket: "simzo-2ec12.firebasestorage.app",
+  messagingSenderId: "328326249267",
+  appId: "1:328326249267:web:ecc80c6d44f960ef1c1c46",
+  measurementId: "G-2JBHRRC1B5"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ===== しんぞボードの公開バージョン =====
+// Firestoreルール側の番号と必ず合わせてください。
+const SINZO_BOARD_APP_ID = "sinzo-board";
+const SINZO_BOARD_WRITE_VERSION = 20260720;
+
+function getBoardWriteMeta() {
+  return {
+    appId: SINZO_BOARD_APP_ID,
+    writeVersion: SINZO_BOARD_WRITE_VERSION
+  };
+}
+
+function isOldBoardHtmlError(error) {
+  return error?.code === "permission-denied";
+}
+
+
+async function getClientIP(){
+  try{
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip || "unknown";
+  }catch(e){
+    console.warn("IP取得失敗:", e);
+    return "unknown";
+  }
+}
+
+async function isIPBanned(ip){
+  if(!ip || ip === "unknown") return false;
+  try{
+    const banDoc = await getDoc(doc(db, "ipBans", ip));
+    return banDoc.exists();
+  }catch(e){
+    console.error("IP BAN確認エラー:", e);
+    return false;
+  }
+}
+
+async function stopIfBanned(){
+  const ip = await getClientIP();
+  if(await isIPBanned(ip)){
+    showAlert("このIPは利用規約違反のため制限されています");
+    return true;
+  }
+  return false;
+}
+
+const ADMIN_PASSWORD = "2059";
+
+let adminLoggedIn = false;
+function isOfficialBadgeEnabled(){
+  return localStorage.getItem("officialBadgeEnabled") === "true";
+}
+function getAdminBadgeText(){
+  return localStorage.getItem("adminBadgeText") || "📱管理者";
+}
+function setOfficialBadgeEnabled(enabled){
+  localStorage.setItem("officialBadgeEnabled", enabled ? "true" : "false");
+}
+function updateAdminBadgeStatus(){
+  const status = document.getElementById("adminBadgeStatus");
+  const input = document.getElementById("badgeTextInput");
+  const toggleBtn = document.getElementById("toggleBadgeBtn");
+  if(status) status.textContent = `公式バッジ: ${isOfficialBadgeEnabled() ? "ON" : "OFF"}（${getAdminBadgeText()}）`;
+  if(input) input.value = getAdminBadgeText();
+  if(toggleBtn) toggleBtn.textContent = isOfficialBadgeEnabled() ? "公式バッジをOFFにする" : "公式バッジをONにする";
+}
+function getPostBadgeData(){
+  const enabled = isOfficialBadgeEnabled();
+  return {
+    officialBadge: enabled,
+    badgeText: enabled ? getAdminBadgeText() : ""
+  };
+}
+function renderBadge(data){
+  if(!data || !data.officialBadge) return "";
+  const text = data.badgeText || "📱管理者";
+  return `<span style="background:#ffd700;color:#000;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">${text}</span>`;
+}
+
+
+const NG_WORDS = [
+  // ===== 直接表現（原型）=====
+  "死ね","殺す","ぶっ殺す","死んで","地獄",
+  "死亡","消えろ",
+
+  // ===== 性・アダルト系 =====
+  "セックス","エロ","アダルト","わいせつ","裸","下着","淫ら","卑猥","ヌード",
+  "変態","性交","性行為","援助交際","中出し","オナニー","パイパン","乱交",
+  "ロリ","ショタ",
+  "イク","シコ","しこ",
+  "SEX","sex","Sex","sEx","SEx",
+
+  // ===== 暴言・差別・侮辱 =====
+
+  
+
+  // ===== 伏字・記号置換 =====
+  "○ね","◯ね","●ね","×ね","＊ね",
+  "○す","◯す",
+  "ﾀﾋ","タヒ","ﾀﾋね","ﾀﾋ亡","ﾀﾋん","ﾀﾋんで",
+
+  // ===== 文字分割・記号混入 =====
+  "し ね","し　ね","し-ね","し_ね","し.ね","し/ね","し|ね",
+  "しねー","しねぇ","しねえ","しね",
+  "こ ろ す","こ-ろ-す","こ/ろ/す",
+
+  // ===== ひらがな・カタカナ崩し =====
+  "しんで","しんだ",
+  "ころす","ころせ","ころし",
+  "シネ","コロス","コロセ",
+
+  // ===== ローマ字・英語系 =====
+
+  // ===== 数字・隠語・荒らし系 =====
+  "4545","1919","810",
+  "114514","4545","0721",
+
+  // ===== 連打・スパム =====
+  "ああああああああ",
+  "いいいいいい",
+  "うううううううう",
+  "ええええええええ",
+  "おおおおおおおおお",
+
+  // ===== 微妙な伏せ字 =====
+  "まん","マン","ま〇","ちん","チン","ち〇",
+
+  // ===== 英数混在の誤魔化し =====
+];
+
+function containsNGWord(text){
+  if(!text) return false;
+  for(const word of NG_WORDS){
+    if(text.includes(word)) return true;
+  }
+  return false;
+}
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    try { return decodeURIComponent(parts.pop().split(';').shift()); } catch(e){ return parts.pop().split(';').shift(); }
+  }
+  return null;
+}
+
+function setCookie(name, value, days=365) {
+  const d = new Date();
+  d.setTime(d.getTime() + (days*24*60*60*1000));
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
+}
+
+function setRateCookie(threadId, type) {
+  const d = new Date();
+  d.setTime(d.getTime() + (365*24*60*60*1000));
+  document.cookie = `rate_${threadId}=${type}; expires=${d.toUTCString()}; path=/`;
+}
+function getRateCookie(threadId) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; rate_${threadId}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+let nickName = getCookie("nickName") || "名称未設定";
+let currentThreadId = null;
+let threadsData = [];
+const pageByRoom = {}; // { roomName: pageNumber }
+
+const pageSize = 15;
+let postsUnsub = null;
+let knownPostIds = new Set();
+
+let threadsUnsub = null;
+let sortMode = "new";
+let currentRoom = "threads"; // ← デフォルト部屋
+let isAllLoaded = false;
+
+
+function getCurrentPage(){
+  if(!pageByRoom[currentRoom]){
+    pageByRoom[currentRoom] = 1;
+  }
+  return pageByRoom[currentRoom];
+}
+
+const threadListSection=document.getElementById('threadListSection');
+const threadDetailSection=document.getElementById('threadDetailSection');
+const popupForm=document.getElementById('popupForm');
+const overlay=document.getElementById('overlay');
+const threadTitleElem=document.getElementById('threadTitle');
+const threadDetailElem=document.getElementById('threadDetail');
+const threadCreatorElem=document.getElementById('threadCreator');
+
+function formatDate(ts){ 
+  if(!ts) return '';
+  const d = ts.toDate? ts.toDate() : new Date(ts);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function formatRelativeTime(ts){
+  if(!ts) return '';
+  const now = new Date();
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+
+  const diffMs = now - d;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+  if(diffDay > 0) return `${dateStr} (${diffDay}日前)`;
+  if(diffHour > 0) return `${dateStr} (${diffHour}時間前)`;
+  if(diffMin > 0) return `${dateStr} (${diffMin}分前)`;
+  return `${dateStr} (たった今)`;
+}
+
+function setSectionsHeight(){ 
+  const vh = window.innerHeight; 
+  const h = vh-180; 
+  threadListSection.style.height = h+'px'; 
+  threadDetailSection.style.height = h+'px'; 
+}
+window.addEventListener('resize',setSectionsHeight); 
+window.addEventListener('orientationchange',setSectionsHeight);
+
+function showLoading(msg="読み込み中..."){ 
+  document.getElementById('loadingText').textContent=msg; 
+  document.getElementById('loadingOkBtn').style.display='none'; 
+  document.getElementById('loadingPopup').style.display='block'; 
+}
+function hideLoading(){ document.getElementById('loadingPopup').style.display='none'; }
+function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
+document.getElementById('loadingOkBtn').onclick = hideLoading;
+
+function clearFormFields(fieldId){
+  if(fieldId==="threadFields"){
+    document.getElementById('threadMemberId').value=nickName;
+    document.getElementById('threadIconInput').value="";
+    document.getElementById('threadTitleInput').value="";
+    document.getElementById('threadDetailInput').value="";
+    document.getElementById('threadImageInput').value="";
+    document.getElementById('threadPasswordInput').value="";
+    document.getElementById('threadColorInput').selectedIndex=0;
+  } else if(fieldId==="postFields"){
+    document.getElementById('postMemberId').value=nickName;
+    document.getElementById('postIconInput').value="";
+    document.getElementById('postBodyInput').value="";
+    document.getElementById('postImageInput').value="";
+    document.getElementById('postColorInput').selectedIndex=0;
+  } else if(fieldId==="adminFields"){
+    const passInput = document.getElementById('adminPasswordInput');
+    const threadSelect = document.getElementById('adminThreadSelect');
+    const postSelect = document.getElementById('adminPostSelect');
+    const loginBox = document.getElementById('adminLoginBox');
+    const menuBox = document.getElementById('adminMenuBox');
+    if(passInput) passInput.value="";
+    if(threadSelect) threadSelect.selectedIndex=0;
+    if(postSelect) postSelect.innerHTML="<option value=''>投稿選択</option>";
+    if(loginBox) loginBox.style.display = adminLoggedIn ? 'none' : 'block';
+    if(menuBox) menuBox.style.display = adminLoggedIn ? 'block' : 'none';
+    updateAdminBadgeStatus();
+  } else if(fieldId==="passwordFields"){
+    document.getElementById('threadPasswordCheckInput').value="";
+  }
+}
+
+function showForm(fieldId){ 
+  ['threadFields','postFields','adminFields','passwordFields'].forEach(id=>{ document.getElementById(id).style.display='none'; }); 
+  clearFormFields(fieldId);
+  document.getElementById(fieldId).style.display='block'; 
+  if(fieldId === 'adminFields'){
+    popupForm.style.width = 'min(760px, 94vw)';
+  } else {
+    popupForm.style.width = '280px';
+  }
+  popupForm.style.display='block'; 
+  overlay.style.display='block'; 
+}
+function closePopup(){ popupForm.style.display='none'; overlay.style.display='none'; document.getElementById('submitBtn').textContent='送信'; }
+
+function validateNickname(input){ 
+  if(!input) return null; 
+  if(input==="しんぞ2059") return "しんぞ公式"; 
+  if(input.includes("しんぞ公式")) return null; 
+  return input; 
+}
+
+async function fileToBase64(file,maxWidth=800,maxHeight=800,quality=0.7){
+  if(!file) return null;
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = err => reject(err);
+    img.onload = ()=>{
+      const canvas=document.createElement('canvas');
+      let w=img.width,h=img.height;
+      if(w>maxWidth){ h=h*(maxWidth/w); w=maxWidth; }
+      if(h>maxHeight){ w=w*(maxHeight/h); h=maxHeight; }
+      canvas.width=w; canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// --- アイコンキャッシュ ---
+const iconCache = {};
+async function getIconSrc(iconId){
+  if(!iconId) return null;
+  if(iconCache[iconId]) return iconCache[iconId];
+  try{
+    const d = await getDoc(doc(db, 'icons', iconId));
+    if(d.exists()){
+      const b = d.data().base64;
+      iconCache[iconId] = b;
+      return b;
+    }
+  }catch(e){ console.error(e); }
+  return null;
+}
+// ★ 急上昇スレッド判定
+function isTrendingThread(data) {
+  if (!data.latestPostTime || !data.postCount) return false;
+
+  const now = Date.now();
+  const latest =
+    typeof data.latestPostTime.toMillis === "function"
+      ? data.latestPostTime.toMillis()
+      : new Date(data.latestPostTime).getTime();
+
+  const diffMinutes = (now - latest) / 1000 / 60;
+
+  return diffMinutes <= 5 && data.postCount >= 10;
+}
+
+function renderThreadsPage(){
+  const threadList=document.getElementById('threadList');
+  threadList.innerHTML="";
+  const start = (getCurrentPage() - 1) * pageSize;
+  const pageThreads=threadsData.slice(start,start+pageSize);
+  if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
+  pageThreads.forEach(docItem=>{
+    const data=docItem.data();
+    const postCount = data.postCount || 0;
+    const li=document.createElement("li");
+    li.style.backgroundColor = data.color || "#3498db";
+
+    let titleText = data.locked ? `🔒${data.title}` : data.title;
+
+if (data.password) {
+  titleText += " 🔑";
+}
+
+// ★ ピン留めマーク
+if (data.pinned) {
+  titleText = "📌 " + titleText;
+}
+
+// ★ 急上昇マーク
+if (isTrendingThread(data)) {
+  titleText = "🔥 " + titleText;
+}
+
+
+    const titleEl = document.createElement('div');
+    titleEl.innerHTML = `<strong>${titleText}</strong>`;
+
+    const countEl = document.createElement('small');
+    countEl.textContent = `投稿数: ${postCount}`;
+    const detailEl = document.createElement('small');
+    detailEl.textContent = data.detail || '';
+
+    const rateBox = document.createElement('div');
+    rateBox.className = "threadRateBox";
+
+    const likeBtn = document.createElement('button');
+    likeBtn.className = "threadRateBtn";
+    likeBtn.innerHTML = `👍 <span class="threadRateCount">${data.likes || 0}</span>`;
+
+    const dislikeBtn = document.createElement('button');
+    dislikeBtn.className = "threadRateBtn";
+    dislikeBtn.innerHTML = `👎 <span class="threadRateCount">${data.dislikes || 0}</span>`;
+
+    rateBox.appendChild(likeBtn);
+    rateBox.appendChild(dislikeBtn);
+
+    li.appendChild(titleEl);
+    li.appendChild(countEl);
+    li.appendChild(detailEl);
+    li.appendChild(rateBox);
+
+    if(data.image){
+      const btn=document.createElement('button');
+      btn.textContent="画像を表示";
+      btn.className="greenBtn";
+      btn.style.display="block";
+      btn.style.marginTop="5px";
+      btn.addEventListener('click', (e) => { e.stopPropagation(); showImagePopup(data.image); });
+      li.appendChild(btn);
+    }
+
+    li.addEventListener('click',()=>{ tryOpenThread(docItem.id,data); });
+// ★ スレッド長押しプロパティ表示
+enableLongPressInfo(
+  li,
+  `【スレッド情報】
+ID: ${docItem.id}
+作成日時: ${formatDate(data.created_at)}
+投稿数: ${postCount}
+色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`,
+
+  {
+    type: "thread",
+    threadId: docItem.id,
+    created_at: data.created_at,
+    postCount,
+    color: data.color,
+    ip: data.ip || data.created_ip || null
+  }
+);
+
+    likeBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const rated = getRateCookie(docItem.id);
+      if (rated) { showAlert("すでに押されています"); return; }
+      try {
+        await updateDoc(doc(db, currentRoom, docItem.id), { likes: (data.likes || 0) + 1 });
+        setRateCookie(docItem.id, "like");
+      } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
+    });
+
+    dislikeBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const rated = getRateCookie(docItem.id);
+      if (rated) { showAlert("すでに押されています"); return; }
+      try {
+        await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: (data.dislikes || 0) + 1 });
+        setRateCookie(docItem.id, "dislike");
+      } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
+    });
+
+
+
+    threadList.appendChild(li);
+  });
+
+  const pagination=document.getElementById('pagination');
+pagination.innerHTML="";
+
+// ★ まだ全件読み込んでいない場合
+if (!isAllLoaded) {
+  const btn = document.createElement("button");
+  btn.textContent = "さらに読み込む";
+  btn.className = "pageBtn";
+  btn.onclick = loadAllThreads;
+  pagination.appendChild(btn);
+  return;
+}
+
+// ★ 全件読み込み後はページ番号表示
+const totalPages=Math.max(1,Math.ceil(threadsData.length/pageSize));
+for(let i=1;i<=totalPages;i++){
+  const btn=document.createElement("button");
+  btn.textContent=i;
+  btn.className="pageBtn";
+  if(i === getCurrentPage()) btn.disabled = true;
+  btn.addEventListener('click', () => {
+    pageByRoom[currentRoom] = i;
+    renderThreadsPage();
+  });
+  pagination.appendChild(btn);
+}
+
+} // ★ここが修正箇所： renderThreadsPage を閉じる中括弧を追加しました
+
+async function listenThreads(){
+  if (threadsUnsub) threadsUnsub();
+  showLoading("スレッドを読み込み中...");
+
+  const searchInput = document.getElementById("threadSearchInput");
+
+  // 🔹 通常表示（検索なし）
+  const listenNormal = () => {
+    if (threadsUnsub) threadsUnsub();
+
+    const q = query(
+      collection(db, currentRoom),
+      orderBy("created_at", "desc"),
+      limit(pageSize)
+    );
+
+    threadsUnsub = onSnapshot(q, snap => {
+      threadsData = snap.docs.map(d => ({
+        id: d.id,
+        data: () => d.data()
+      }));
+      isAllLoaded = false;
+      applySort();
+      renderThreadsPage();
+      hideLoading();
+    });
+  };
+
+  // 🔹 検索表示（タイトル前方一致）
+  const listenSearch = (word) => {
+    if (threadsUnsub) threadsUnsub();
+
+    const q = query(
+      collection(db, currentRoom),
+      orderBy("title"),
+      where("title", ">=", word),
+      where("title", "<=", word + "\uf8ff")
+    );
+
+    threadsUnsub = onSnapshot(q, snap => {
+      threadsData = snap.docs.map(d => ({
+        id: d.id,
+        data: () => d.data()
+      }));
+      isAllLoaded = true;
+      pageByRoom[currentRoom] = 1;
+      applySort();
+      renderThreadsPage();
+      hideLoading();
+    });
+  };
+
+  // 初期表示
+  listenNormal();
+
+  // 🔍 入力イベント（1回だけ）
+  if (!searchInput.dataset.bound) {
+    searchInput.addEventListener("input", () => {
+      const word = searchInput.value.trim();
+
+      if (word === "") {
+        listenNormal();   // ← 検索解除
+      } else {
+        listenSearch(word); // ← 入力された瞬間に検索
+      }
+    });
+    searchInput.dataset.bound = "1";
+  }
+}
+
+
+
+function applySort(){
+  if(!threadsData || threadsData.length===0) return;
+  threadsData.sort((a,b)=>{
+  const A = a.data();
+  const B = b.data();
+
+  // ★ ピン留めスレを最優先
+  const pinA = A.pinned === true;
+  const pinB = B.pinned === true;
+  if (pinA && !pinB) return -1;
+  if (!pinA && pinB) return 1;
+
+  // ★ 急上昇スレをその次に優先
+  const trendA = isTrendingThread(A);
+  const trendB = isTrendingThread(B);
+  if (trendA && !trendB) return -1;
+  if (!trendA && trendB) return 1;
+
+  // ↓ ここから下は今まで通り
+  const tAobj = A.created_at;
+  const tBobj = B.created_at;
+  let tA = 0, tB = 0;
+
+  if(tAobj){
+    tA = typeof tAobj.toMillis === 'function'
+      ? tAobj.toMillis()
+      : new Date(tAobj).getTime();
+  }
+  if(tBobj){
+    tB = typeof tBobj.toMillis === 'function'
+      ? tBobj.toMillis()
+      : new Date(tBobj).getTime();
+  }
+
+  const lpA = A.latestPostTime || 0;
+  const lpB = B.latestPostTime || 0;
+
+  if(sortMode === "new") return tB - tA;
+  if(sortMode === "old") return tA - tB;
+  if(sortMode === "latestPost") return lpB - lpA;
+  if(sortMode === "high") return (B.likes || 0) - (A.likes || 0);
+  if(sortMode === "low") return (A.dislikes || 0) - (B.dislikes || 0);
+
+  return 0;
+});
+
+}
+
+async function tryOpenThread(threadId, data) {
+  // ★ ロック判定の修正
+  if (data.locked) {
+    const defaultMsg = "このスレッドは規約違反によりロックされています";
+    // データに lockMessage があればそれを表示、なければデフォルト
+    const displayMsg = (data.lockMessage && data.lockMessage.trim() !== "") 
+                       ? data.lockMessage 
+                       : defaultMsg;
+    showAlert(displayMsg);
+    return;
+  }
+
+  if (data.password) {
+    showForm('passwordFields');
+    document.getElementById('popupTitle').textContent = "スレッドパスワード入力";
+    document.getElementById('submitBtn').onclick = () => {
+      const inputPass = document.getElementById('threadPasswordCheckInput').value.trim();
+      if (inputPass === data.password) {
+        closePopup();
+        openThread(threadId, data);
+      } else {
+        showAlert("パスワードが違います");
+      }
+    };
+  } else {
+    openThread(threadId, data);
+  }
+}
+
+
+function openThread(threadId,data){
+history.pushState(
+  {},
+  "",
+  `${location.pathname}?room=${currentRoom}&thread=${threadId}`
+);
+  currentThreadId = threadId;
+  currentThreadTitle = data.title; 
+  currentThreadTitle = data.title;
+currentThreadHasPassword = !!data.password;
+
+  threadTitleElem.textContent = data.title;
+  threadDetailElem.textContent = data.detail || "";
+  threadCreatorElem.textContent =
+    `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
+
+  threadListSection.style.display='none';
+  threadDetailSection.style.display='block';
+  loadPosts(threadId);
+  threadTitleElem.textContent = data.title;
+  threadDetailElem.textContent = data.detail || "";
+  threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
+  threadListSection.style.display='none';
+  threadDetailSection.style.display='block';
+  loadPosts(threadId);
+}
+
+async function loadPosts(threadId) {
+  showLoading("投稿を読み込み中…");
+
+  const postList = document.getElementById("postList");
+  postList.innerHTML = "";
+  knownPostIds.clear();
+
+  if (postsUnsub) postsUnsub();
+
+  const q = query(
+    collection(db, currentRoom, threadId, "posts"),
+    orderBy("created_at", "asc")
+  );
+
+  postsUnsub = onSnapshot(q, async (snapshot) => {
+    try {
+      // Firestoreから来た投稿をいったん配列化
+      const docs = snapshot.docs.slice().sort((a, b) => {
+        const A = a.data();
+        const B = b.data();
+
+        // index がある投稿は番号順、ない投稿は作成日時順にする
+        const ai = Number.isFinite(Number(A.index)) ? Number(A.index) : 999999999;
+        const bi = Number.isFinite(Number(B.index)) ? Number(B.index) : 999999999;
+        if (ai !== bi) return ai - bi;
+
+        const at = A.created_at?.toMillis ? A.created_at.toMillis() : new Date(A.created_at || 0).getTime();
+        const bt = B.created_at?.toMillis ? B.created_at.toMillis() : new Date(B.created_at || 0).getTime();
+        return at - bt;
+      });
+
+      // ★ 高速化：アイコンを1件ずつ await しない。必要なアイコンだけ先に並列取得する
+      const iconIds = [...new Set(
+        docs.map(d => d.data().icon).filter(Boolean)
+      )];
+
+      await Promise.all(iconIds.map(id => getIconSrc(id)));
+
+      // ★ 高速化：DOMへ1件ずつ追加せず、DocumentFragmentでまとめて追加する
+      const fragment = document.createDocumentFragment();
+
+      for (const docItem of docs) {
+        const data = docItem.data();
+
+        let iconHtml = "";
+        if (data.icon && iconCache[data.icon]) {
+          iconHtml = `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">`;
+        }
+
+        const li = document.createElement("li");
+        li.id = "post-" + (data.index || docItem.id);
+        li.style.backgroundColor = data.color || "#3498db";
+
+        li.innerHTML = `
+          <span>${convertText(data.body || "")}</span>
+
+          ${data.image ? `
+            <button class="greenBtn"
+              style="margin-top:6px;"
+              onclick="showImagePopup('${data.image}')">
+              画像を表示
+            </button>
+          ` : ""}
+
+          <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
+            <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
+            ${renderBadge(data)}
+            ${iconHtml}
+            <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
+          </small>
+        `;
+
+        enableLongPressInfo(
+          li,
+          `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`,
+          {
+            type: "post",
+            postId: docItem.id,
+            threadId,
+            created_at: data.created_at,
+            ip: data.ip || null
+          }
+        );
+
+        fragment.appendChild(li);
+      }
+
+      postList.replaceChildren(fragment);
+      hideLoading();
+    } catch (e) {
+      console.error("投稿読み込みエラー:", e);
+      showAlert("投稿の読み込みに失敗しました");
+    }
+  });
+}
+
+window.showImagePopup = function(src){
+  const popup = document.getElementById('imagePopup');
+  const img = document.getElementById('popupImage');
+  img.src = src;
+  popup.style.display = 'block';
+};
+document.getElementById('closeImagePopup').addEventListener('click',()=>{ document.getElementById('imagePopup').style.display='none'; });
+
+document.getElementById('closeThreadBtn').onclick=()=>{
+  if(postsUnsub) postsUnsub();
+
+  history.pushState(
+    {},
+    "",
+    `${location.pathname}?room=${currentRoom}`
+  );
+
+  threadDetailSection.style.display='none';
+  threadListSection.style.display='block';
+};
+
+// 新規スレッド作成
+document.getElementById('createThreadBtn').onclick=()=>{
+  showForm('threadFields');
+  document.getElementById('popupTitle').textContent="新規スレッド作成";
+  document.getElementById('submitBtn').onclick=async()=>{
+    if(await stopIfBanned()) return;
+    const clientIP = await getClientIP();
+    let inputNickname=document.getElementById('threadMemberId').value.trim();
+    const valid=validateNickname(inputNickname);
+    if(valid===null){ showAlert("使えない言葉が入っています"); return; }
+    if(valid) nickName=valid;
+    setCookie("nickName", nickName);
+
+    const iconFile=document.getElementById('threadIconInput').files[0];
+    let iconId = getCookie('iconId');
+    if(iconFile){
+      const iconBase64 = await fileToBase64(iconFile,200,200,0.7);
+      iconId = Math.random().toString(36).slice(2);
+      try{
+        await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() });
+        setCookie('iconId', iconId);
+      }catch(e){ console.error(e); showAlert('エラーが発生しました'); return; }
+    }
+
+    const title=document.getElementById('threadTitleInput').value.trim();
+    const detail=document.getElementById('threadDetailInput').value.trim();
+
+    if(containsNGWord(title) || containsNGWord(detail)){ showAlert("タイトルまたは詳細に使えない言葉が含まれています"); return; }
+
+    const imageFile=document.getElementById('threadImageInput').files[0];
+    const imageBase64=imageFile?await fileToBase64(imageFile):null;
+    const password=document.getElementById('threadPasswordInput').value.trim();
+    const color=document.getElementById('threadColorInput').value;
+
+    if(!title){ showAlert("タイトルを入力してください"); return; }
+    showLoading("スレッド作成中...");
+    try{
+      await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
+postCount: 0,
+  pinned: false,
+  latestPostTime: Timestamp.now(),
+created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
+...getBoardWriteMeta() });
+      closePopup(); hideLoading();
+    }catch(e){
+      console.error(e);
+      showAlert(isOldBoardHtmlError(e)
+        ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。"
+        : "作成に失敗しました");
+    }
+  };
+};
+
+// 投稿作成
+document.getElementById('createPostBtn').onclick=async()=>{
+  showForm('postFields');
+  document.getElementById('popupTitle').textContent="投稿作成";
+  document.getElementById('submitBtn').onclick=async()=>{
+    if(await stopIfBanned()) return;
+    const clientIP = await getClientIP();
+    let inputNickname=document.getElementById('postMemberId').value.trim();
+    const valid=validateNickname(inputNickname);
+    if(valid===null){ showAlert("使えない言葉が含まれています"); return; }
+    if(valid) nickName=valid;
+    setCookie("nickName", nickName);
+
+    const iconFile=document.getElementById('postIconInput').files[0];
+    let iconId = getCookie('iconId');
+    if(iconFile){
+      const iconBase64 = await fileToBase64(iconFile,200,200,0.7);
+      iconId = Math.random().toString(36).slice(2);
+      try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ console.error(e); showAlert('アイコン保存に失敗しました'); return; }
+    }
+
+    const body=document.getElementById('postBodyInput').value.trim();
+    if(containsNGWord(body)){ showAlert("本文に使えない言葉が含まれています"); return; }
+
+    const imageFile=document.getElementById('postImageInput').files[0];
+    const imageBase64=imageFile?await fileToBase64(imageFile):null;
+    const color=document.getElementById('postColorInput').value;
+
+    if(!body && !imageBase64){ showAlert("本文または画像を入力してください"); return; }
+
+    let index=1;
+    try{ const snap=await getDocs(collection(db,currentRoom,currentThreadId,"posts")); index=snap.size+1; }catch(e){ index=1; }
+
+    showLoading("投稿中...");
+    try{
+      await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+
+
+      await updateDoc(doc(db, currentRoom, currentThreadId), {
+        postCount: increment(1),
+        latestPostTime: serverTimestamp()
+      });
+
+      closePopup();
+      hideLoading();
+    }catch(e){
+      console.error(e);
+      showAlert(isOldBoardHtmlError(e)
+        ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
+        : "投稿に失敗しました");
+    }
+  };
+};
+
+// 管理者操作（ログイン式 + 公式バッジ設定）
+document.getElementById('adminBtn').onclick = async () => {
+  showForm('adminFields');
+  document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン";
+  document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
+
+  const loginBox = document.getElementById('adminLoginBox');
+  const menuBox = document.getElementById('adminMenuBox');
+  const passInput = document.getElementById('adminPasswordInput');
+  const threadSelect = document.getElementById('adminThreadSelect');
+  const postSelect = document.getElementById('adminPostSelect');
+  const roomSelect = document.getElementById('adminRoomSelect');
+  const ipInput = document.getElementById('adminIpInput');
+  const bannedIpSelect = document.getElementById('adminBannedIpSelect');
+
+  async function loadAdminLists(){
+    const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
+    const snap = await getDocs(q);
+
+    threadSelect.innerHTML = "<option value=''>スレッド選択</option>";
+    snap.forEach(d => {
+      const data = d.data();
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = data.title || d.id;
+      threadSelect.appendChild(opt);
+    });
+
+    postSelect.innerHTML = "<option value=''>投稿選択</option>";
+
+    roomSelect.innerHTML = "<option value=''>部屋選択</option>";
+    const roomSnap = await getDocs(collection(db, "rooms"));
+    roomSnap.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.id;
+      roomSelect.appendChild(opt);
+    });
+
+    bannedIpSelect.innerHTML = "<option value=''>BAN済みIP選択</option>";
+    const banSnap = await getDocs(collection(db, "ipBans"));
+    banSnap.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.id;
+      bannedIpSelect.appendChild(opt);
+    });
+  }
+
+  async function showAdminMenu(){
+    adminLoggedIn = true;
+    if(loginBox) loginBox.style.display = 'none';
+    if(menuBox) menuBox.style.display = 'block';
+    document.getElementById('popupTitle').textContent = "管理者メニュー";
+    document.getElementById('submitBtn').textContent = "実行";
+    updateAdminBadgeStatus();
+    await loadAdminLists();
+    setupAdminSelects();
+  }
+
+  function setupAdminSelects(){
+    const radios = document.getElementsByName('adminAction');
+    const toggle = () => {
+      const checked = document.querySelector("input[name='adminAction']:checked");
+      const val = checked ? checked.value : "single";
+      threadSelect.style.display = 'block';
+      postSelect.style.display = val === 'post' ? 'block' : 'none';
+      roomSelect.style.display = 'none';
+      ipInput.style.display = 'none';
+      bannedIpSelect.style.display = 'none';
+
+      if(val === 'deleteRoom'){
+        threadSelect.style.display = 'none';
+        postSelect.style.display = 'none';
+        roomSelect.style.display = 'block';
+      } else if(val === 'ipBan'){
+        threadSelect.style.display = 'none';
+        postSelect.style.display = 'none';
+        ipInput.style.display = 'block';
+      } else if(val === 'ipUnban'){
+        threadSelect.style.display = 'none';
+        postSelect.style.display = 'none';
+        bannedIpSelect.style.display = 'block';
+      }
+    };
+    radios.forEach(r => { r.onchange = toggle; });
+    toggle();
+
+    threadSelect.onchange = async () => {
+      const tid = threadSelect.value;
+      postSelect.innerHTML = "<option value=''>投稿選択</option>";
+      if(tid){
+        const psnap = await getDocs(collection(db, currentRoom, tid, "posts"));
+        const docs = psnap.docs.slice().sort((a,b)=>{
+          const A=a.data(), B=b.data();
+          return (Number(A.index)||0) - (Number(B.index)||0);
+        });
+        docs.forEach(d => {
+          const pdata = d.data();
+          const opt = document.createElement('option');
+          opt.value = d.id;
+          opt.textContent = `#${pdata.index ?? '?'} ${pdata.body ? pdata.body.slice(0, 14) : "[画像のみ]"}`;
+          postSelect.appendChild(opt);
+        });
+      }
+    };
+  }
+
+  if(adminLoggedIn){
+    await showAdminMenu();
+  } else {
+    if(loginBox) loginBox.style.display = 'block';
+    if(menuBox) menuBox.style.display = 'none';
+  }
+
+  document.getElementById('saveBadgeTextBtn').onclick = () => {
+    const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者";
+    localStorage.setItem("adminBadgeText", text);
+    updateAdminBadgeStatus();
+    showAlert("バッジ文字を保存しました");
+  };
+
+  document.getElementById('toggleBadgeBtn').onclick = () => {
+    setOfficialBadgeEnabled(!isOfficialBadgeEnabled());
+    updateAdminBadgeStatus();
+    showAlert(isOfficialBadgeEnabled() ? "公式バッジをONにしました" : "公式バッジをOFFにしました");
+  };
+
+  document.getElementById('submitBtn').onclick = async () => {
+    if(!adminLoggedIn){
+      const pass = passInput.value;
+      if(pass !== ADMIN_PASSWORD){
+        showAlert("パスワードが違います");
+        return;
+      }
+      await showAdminMenu();
+      return;
+    }
+
+    const checked = document.querySelector("input[name='adminAction']:checked");
+    const action = checked ? checked.value : "single";
+    const threadId = threadSelect.value;
+    const postId = postSelect.value;
+    const roomId = roomSelect.value;
+
+    showLoading("処理中...");
+    try {
+      if (action === "single") {
+        if (threadId) await deleteDoc(doc(db, currentRoom, threadId));
+      } else if (action === "post") {
+        if (threadId && postId) await deleteDoc(doc(db, currentRoom, threadId, "posts", postId));
+      } else if (action === "lock") {
+        if (threadId) {
+          const reason = window.prompt("ロックの理由を入力してください（空欄の場合はデフォルトの文章になります）");
+          await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "" });
+        }
+      } else if (action === "unlock") {
+        if (threadId) await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "" });
+      } else if (action === "pin") {
+        if (threadId) await updateDoc(doc(db, currentRoom, threadId), { pinned: true });
+      } else if (action === "unpin") {
+        if (threadId) await updateDoc(doc(db, currentRoom, threadId), { pinned: false });
+      } else if (action === "deleteRoom") {
+        if (roomId) {
+          await deleteDoc(doc(db, "rooms", roomId));
+          const snap = await getDocs(collection(db, roomId));
+          for (const d of snap.docs) await deleteDoc(doc(db, roomId, d.id));
+          if (roomId === currentRoom) switchRoom("threads");
+        }
+      } else if (action === "ipBan") {
+        const ip = ipInput.value.trim();
+        if (!ip) { showAlert("BANするIPを入力してください"); return; }
+        await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now() });
+      } else if (action === "ipUnban") {
+        const ip = bannedIpSelect.value;
+        if (!ip) { showAlert("解除するIPを選択してください"); return; }
+        await deleteDoc(doc(db, "ipBans", ip));
+      }
+      closePopup();
+      hideLoading();
+    } catch (e) {
+      console.error(e);
+      showAlert("エラー");
+    }
+  };
+};
+
+document.getElementById('closePopupBtn').onclick=closePopup;
+// ===== 部屋切り替え =====
+function switchRoom(roomName){
+  currentRoom = roomName;
+  pageByRoom[currentRoom] = 1;
+isAllLoaded = false;
+
+  threadsData = [];
+  
+  if(postsUnsub) postsUnsub();
+  threadDetailSection.style.display='none';
+  threadListSection.style.display='block';
+
+  document.getElementById("roomPopup").style.display = "none";
+  overlay.style.display = "none";
+
+  listenThreads();
+const roomNames = {
+  threads: "通常ボード",
+  chat: "雑談",
+  apple: "アップル製品",
+  question: "質問"
+};
+
+document.getElementById("currentRoomLabel").textContent =
+  "現在の部屋：" + (roomNames[roomName] || roomName);
+
+}
+// ★ここが修正箇所： 重複していたコードを削除しました
+
+// 右上ボタン
+document.getElementById("roomSelectBtn").onclick = async () => {
+  document.getElementById("roomPopup").style.display = "block";
+  overlay.style.display = "block";
+
+  const sel = document.getElementById("roomSelectDropdown");
+  sel.innerHTML = '<option value="">その他の部屋</option>';
+
+  const snap = await getDocs(collection(db,"rooms"));
+  snap.forEach(d=>{
+    const o=document.createElement("option");
+    o.value=d.id;
+    o.textContent=d.id;
+    sel.appendChild(o);
+  });
+};
+
+// 上位3部屋
+document.querySelectorAll(".roomBtn").forEach(btn=>{
+  btn.onclick = () => switchRoom(btn.dataset.room);
+});
+
+// プルダウン
+document.getElementById("roomSelectDropdown").onchange = e=>{
+  if(e.target.value) switchRoom(e.target.value);
+};
+
+// 新規部屋
+document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
+  const name=document.getElementById("newRoomInput").value.trim();
+  if(!name) return alert("部屋名を入力してください");
+
+  await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now() });
+  switchRoom(name);
+};
+
+// 閉じる
+document.getElementById("closeRoomPopup").onclick = ()=>{
+  document.getElementById("roomPopup").style.display="none";
+  overlay.style.display="none";
+};
+
+setSectionsHeight();
+listenThreads();
+stopIfBanned();
+async function openThreadFromURL() {
+  const params = new URLSearchParams(location.search);
+
+  const room = params.get("room");
+  const threadId = params.get("thread");
+
+  if (!threadId) return;
+
+  if (room) currentRoom = room;
+
+  const threadDoc = await getDoc(doc(db, currentRoom, threadId));
+
+  if (threadDoc.exists()) {
+    openThread(threadId, threadDoc.data());
+  }
+}
+
+openThreadFromURL();
+document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value || "new"; applySort(); renderThreadsPage(); });
+function loadAllThreads(){
+  if (isAllLoaded) return;
+
+  showLoading("すべてのスレッドを読み込み中...");
+
+  if (threadsUnsub) threadsUnsub();
+
+  const q = query(
+    collection(db, currentRoom),
+    orderBy("created_at", "desc")
+  );
+
+  threadsUnsub = onSnapshot(q, snapshot => {
+    threadsData = snapshot.docs.map(d => {
+      const data = d.data();
+      return { id: d.id, data: () => data };
+    });
+
+    isAllLoaded = true;
+    pageByRoom[currentRoom] = 1;
+
+    applySort();
+    renderThreadsPage();
+    hideLoading();
+  });
+}
+
+// --- 同接数管理（1人1カウント修正版） ---
+// リロードしても同じIDを維持するようにsessionStorageを使用
+let mySessionId = sessionStorage.getItem('sessionId');
+if (!mySessionId) {
+  mySessionId = Math.random().toString(36).slice(2);
+  sessionStorage.setItem('sessionId', mySessionId);
+}
+const onlineRef = doc(db, "online", mySessionId);
+
+async function heartbeat() {
+  try {
+    await setDoc(onlineRef, { 
+      t: serverTimestamp(),
+      name: (typeof nickName !== 'undefined' ? nickName : "名称未設定")
+    });
+  } catch (e) { console.error("Heartbeat error:", e); }
+}
+
+// ページを閉じる・リロードする瞬間にデータを削除して重複を防ぐ
+window.addEventListener('beforeunload', () => {
+  deleteDoc(onlineRef);
+});
+
+heartbeat(); 
+setInterval(heartbeat, 20000);
+
+onSnapshot(collection(db, "online"), snap => {
+  const now = Date.now();
+  const activeNames = [];
+
+  snap.forEach(d => {
+    const data = d.data();
+    if (!data || !data.t) return;
+    const ts = data.t.toMillis ? data.t.toMillis() : new Date(data.t).getTime();
+    
+    // 45秒以上更新がないデータは除外
+    if (now - ts < 45000) {
+      activeNames.push(data.name || "名称未設定");
+    } else {
+      // 放置された古いデータをクリーンアップ
+      deleteDoc(doc(db, "online", d.id));
+    }
+  });
+
+  const displayBtn = document.getElementById("onlineCount");
+  if (displayBtn) {
+    // 【重要】Setを使って名前の重複を排除し、純粋な人数を出す
+    const uniqueUsers = [...new Set(activeNames)];
+    displayBtn.textContent = `同接人数: ${uniqueUsers.length}人`;
+    window.currentOnlineUsers = uniqueUsers;
+  }
+});
+
+document.getElementById("onlineCount").onclick = () => {
+  if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) {
+    alert("オンラインユーザーなし");
+    return;
+  }
+  alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n"));
+};
+
+
+
+
+// … ボタン → いつもの投稿ポップアップ
+// --- ここから追加：定型文メニューの動作 ---
+const quickMenuBtn = document.getElementById("quickMenuBtn");
+const quickMenuContent = document.getElementById("quickMenuContent");
+const quickPostInput = document.getElementById("quickPostInput");
+
+// 「···」ボタンでメニュー開閉
+quickMenuBtn.onclick = (e) => {
+  e.stopPropagation();
+  const isShow = quickMenuContent.style.display === "block";
+  quickMenuContent.style.display = isShow ? "none" : "block";
+};
+
+// 画面クリックで閉じる
+document.addEventListener("click", () => {
+  quickMenuContent.style.display = "none";
+});
+
+// 文字を選んだら入力欄に入れる
+
+// 定型文をクリックしたら、即座に送信する
+document.querySelectorAll(".quickItem").forEach(item => {
+  item.onclick = () => {
+    quickPostInput.value = item.textContent; // 文字をセット
+    quickMenuContent.style.display = "none"; // メニューを閉じる
+    document.getElementById("quickSendBtn").click(); // ★送信ボタンを勝手に押す！
+  };
+});
+
+// --- ここまで追加 ---
+
+// クイック送信（LINE風）
+document.getElementById("quickSendBtn").onclick = async () => {
+  if(await stopIfBanned()) return;
+  const clientIP = await getClientIP();
+  const input = document.getElementById("quickPostInput");
+  const text = input.value.trim();
+  if (!text) return;
+if (containsNGWord(text)) {
+  showAlert("本文に使えない言葉が含まれています");
+  return;
+}
+  showLoading("投稿中...");
+
+  try {
+    let index = 1;
+    const snap = await getDocs(
+      collection(db, currentRoom, currentThreadId, "posts")
+    );
+    index = snap.size + 1;
+let iconId = getCookie("iconId");
+    await addDoc(
+      collection(db, currentRoom, currentThreadId, "posts"),
+      {
+        memberId: nickName,
+        body: text,
+        color: "#3498db",
+        icon: iconId || null,
+        created_at: Timestamp.now(),
+        ip: clientIP,
+        index,
+        ...getPostBadgeData(),
+        ...getBoardWriteMeta()
+      }
+    );
+    // 通知を送る (正しく括弧を閉じる)
+
+    // ここから下の処理（Firebaseの更新など）が続く
+
+// ★ 通知を送る
+    await updateDoc(doc(db, currentRoom, currentThreadId), {
+      postCount: increment(1),
+      latestPostTime: serverTimestamp()
+    });
+
+    input.value = "";
+    hideLoading();
+  } catch (e) {
+    console.error(e);
+    showAlert(isOldBoardHtmlError(e)
+      ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
+      : "送信に失敗しました");
+  }
+};
+// ===== ガチAI返信（試験用・HTML直書き）=====
+
+
+</script>
+</body>
+</html>
