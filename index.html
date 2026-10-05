@@ -633,12 +633,15 @@ document.addEventListener("click", (e) => {
 const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
 
+// 変更後
 function getBoardWriteMeta() {
   return {
     appId: SINZO_BOARD_APP_ID,
-    writeVersion: SINZO_BOARD_WRITE_VERSION
+    writeVersion: SINZO_BOARD_WRITE_VERSION,
+    secretKey: "sinzo_secret" // ルールの検証を通過させるキーを追加
   };
 }
+
 
 function isOldBoardHtmlError(error) {
   return error?.code === "permission-denied";
