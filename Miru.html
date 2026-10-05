@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2059 入力確認ツール</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+    }
+    .input-box {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.2rem;
+      box-sizing: border-box;
+      margin-bottom: 20px;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    .status.match {
+      background-color: #e6ffed;
+      color: #1a7f37;
+      border: 1px solid #1a7f37;
+    }
+    .log-box {
+      background: #1e1e1e;
+      color: #00ff66;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: monospace;
+      height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>「2059」入力確認フォーム</h2>
+  <p>下の入力欄に「2059」と入力してください。</p>
+
+  <input type="text" id="targetInput" class="input-box" placeholder="ここに入力..." autofocus>
+
+  <div id="statusMessage" class="status">入力待ち...</div>
+
+  <h3>キー入力ログ（直近）</h3>
+  <div id="keyLog" class="log-box"></div>
+
+  <script>
+    const inputEl = document.getElementById('targetInput');
+    const statusEl = document.getElementById('statusMessage');
+    const logEl = document.getElementById('keyLog');
+
+    // 入力イベントの監視
+    inputEl.addEventListener('input', (e) => {
+      const val = e.target.value;
+
+      // ログに表示
+      addLog(`現在値: "${val}"`);
+
+      // 「2059」が含まれているか判定
+      if (val === '2059') {
+        statusEl.textContent = '✅ 「2059」の完全一致を確認しました！';
+        statusEl.className = 'status match';
+      } else if (val.includes('2059')) {
+        statusEl.textContent = '👍 文字列内に「2059」が含まれています！';
+        statusEl.className = 'status match';
+      } else {
+        statusEl.textContent = '判定中... (2059を入力してください)';
+        statusEl.className = 'status';
+      }
+    });
+
+    // キーボード押下ログ
+    inputEl.addEventListener('keydown', (e) => {
+      addLog(`Key: ${e.key} (Code: ${e.code})`);
+    });
+
+    function addLog(message) {
+      const p = document.createElement('div');
+      p.textContent = message;
+      logEl.prepend(p);
+    }
+  </script>
+
+</body>
+</html>
