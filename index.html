@@ -624,15 +624,14 @@ document.addEventListener("click", (e) => {
 const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
 
-// 変更後
+// 共通送信メタデータ関数
 function getBoardWriteMeta() {
   return {
     appId: SINZO_BOARD_APP_ID,
     writeVersion: SINZO_BOARD_WRITE_VERSION,
-    secretKey: "sinzo_secret" // ルールの検証を通過させるキーを追加
+    secretKey: "01" // ルールの検証を通過させるキー
   };
 }
-
 
 function isOldBoardHtmlError(error) {
   return error?.code === "permission-denied";
@@ -1014,13 +1013,17 @@ function renderThreadsPage(){
       `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`
     );
 
+    // 高評価ボタン処理（キー追加）
     likeBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const rated = getRateCookie(docItem.id);
       if (rated) { showAlert("すでに押されています"); return; }
       try {
         const nextLikes = (data.likes || 0) + 1;
-        await updateDoc(doc(db, currentRoom, docItem.id), { likes: nextLikes });
+        await updateDoc(doc(db, currentRoom, docItem.id), { 
+          likes: nextLikes,
+          ...getBoardWriteMeta() 
+        });
 
         data.likes = nextLikes;
         const countEl = likeBtn.querySelector(".threadRateCount");
@@ -1031,13 +1034,17 @@ function renderThreadsPage(){
       } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
     });
 
+    // 低評価ボタン処理（キー追加）
     dislikeBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const rated = getRateCookie(docItem.id);
       if (rated) { showAlert("すでに押されています"); return; }
       try {
         const nextDislikes = (data.dislikes || 0) + 1;
-        await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: nextDislikes });
+        await updateDoc(doc(db, currentRoom, docItem.id), { 
+          dislikes: nextDislikes,
+          ...getBoardWriteMeta() 
+        });
 
         data.dislikes = nextDislikes;
         const countEl = dislikeBtn.querySelector(".threadRateCount");
@@ -1442,7 +1449,6 @@ document.getElementById('createThreadBtn').onclick=()=>{
     const title=document.getElementById('threadTitleInput').value.trim();
     const detail=document.getElementById('threadDetailInput').value.trim();
 
-    // ▼スレッド名が5文字未満の場合のエラーチェック追加
     if(!title){ showAlert("タイトルを入力してください"); return; }
     if(title.length < 5){ showAlert("スレッド名は5文字以上で入力してください"); return; }
 
@@ -1456,7 +1462,6 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(isFormSending) return;
     isFormSending = true;
 
-    // --- 【体感0秒処理】ポップアップを即座に閉じ、スレッド一覧の先頭に追加 ---
     closePopup();
 
     const threadList = document.getElementById('threadList');
@@ -1470,7 +1475,6 @@ document.getElementById('createThreadBtn').onclick=()=>{
     `;
     threadList.insertBefore(tempLi, threadList.firstChild);
 
-    // --- バックグラウンド処理 ---
     (async () => {
       try{
         const newDoc = await addDoc(collection(db, currentRoom) ,{
@@ -1545,7 +1549,6 @@ document.getElementById('createPostBtn').onclick=async()=>{
     if(isFormSending) return;
     isFormSending = true;
 
-    // --- 【体感0秒処理】ポップアップを閉じ即座に画面反映 ---
     closePopup(); 
     
     const postList = document.getElementById("postList");
@@ -1565,14 +1568,14 @@ document.getElementById('createPostBtn').onclick=async()=>{
     postList.appendChild(tempLi);
     tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    // --- バックグラウンド送信 ---
     (async () => {
       try{
         const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
 
         await updateDoc(doc(db, currentRoom, currentThreadId), {
           postCount: increment(1),
-          latestPostTime: serverTimestamp()
+          latestPostTime: serverTimestamp(),
+          ...getBoardWriteMeta()
         });
 
         await saveLog("create_post", { 
@@ -1761,22 +1764,36 @@ document.getElementById('adminBtn').onclick = async () => {
       } else if (action === "lock") {
         if (threadId) {
           const reason = window.prompt("ロックの理由を入力してください（空欄の場合はデフォルトの文章になります）");
-          await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "" });
+          await updateDoc(doc(db, currentRoom, threadId), { 
+            locked: true, 
+            lockMessage: reason || "",
+            ...getBoardWriteMeta()
+          });
           await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" });
         }
       } else if (action === "unlock") {
         if (threadId) {
-          await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "" });
+          await updateDoc(doc(db, currentRoom, threadId), { 
+            locked: false, 
+            lockMessage: "",
+            ...getBoardWriteMeta()
+          });
           await saveLog("admin_unlock_thread", { targetThreadId: threadId });
         }
       } else if (action === "pin") {
         if (threadId) {
-          await updateDoc(doc(db, currentRoom, threadId), { pinned: true });
+          await updateDoc(doc(db, currentRoom, threadId), { 
+            pinned: true,
+            ...getBoardWriteMeta()
+          });
           await saveLog("admin_pin_thread", { targetThreadId: threadId });
         }
       } else if (action === "unpin") {
         if (threadId) {
-          await updateDoc(doc(db, currentRoom, threadId), { pinned: false });
+          await updateDoc(doc(db, currentRoom, threadId), { 
+            pinned: false,
+            ...getBoardWriteMeta()
+          });
           await saveLog("admin_unpin_thread", { targetThreadId: threadId });
         }
       } else if (action === "deleteRoom") {
@@ -1790,7 +1807,11 @@ document.getElementById('adminBtn').onclick = async () => {
       } else if (action === "ipBan") {
         const ip = ipInput.value.trim();
         if (!ip) { showAlert("BANするIPを入力してください"); return; }
-        await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now() });
+        await setDoc(doc(db, "ipBans", ip), { 
+          ip, 
+          banned_at: Timestamp.now(),
+          ...getBoardWriteMeta()
+        });
         await saveLog("admin_ip_ban", { targetIp: ip });
       } else if (action === "ipUnban") {
         const ip = bannedIpSelect.value;
@@ -1863,7 +1884,10 @@ document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
   const name=document.getElementById("newRoomInput").value.trim();
   if(!name) return alert("部屋名を入力してください");
 
-  await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now() });
+  await setDoc(doc(db,"rooms",name),{ 
+    created_at:Timestamp.now(),
+    ...getBoardWriteMeta()
+  });
   await saveLog("create_room", { roomName: name });
   switchRoom(name);
 };
@@ -1945,7 +1969,8 @@ async function heartbeat() {
   try {
     await setDoc(onlineRef, { 
       t: serverTimestamp(),
-      name: (typeof nickName !== 'undefined' ? nickName : "名称未設定")
+      name: (typeof nickName !== 'undefined' ? nickName : "名称未設定"),
+      ...getBoardWriteMeta()
     });
   } catch (e) { console.error("Heartbeat error:", e); }
 }
@@ -2026,16 +2051,15 @@ document.getElementById("quickSendBtn").onclick = async () => {
   }
   
   isQuickSending = true;
-  input.value = ""; // 入力欄を即時リセット
+  input.value = "";
 
-  // --- 【体感0秒処理】画面に即時反映 ---
   const postList = document.getElementById("postList");
   let index = postList.children.length + 1; 
   let iconId = getCookie("iconId");
 
   const tempLi = document.createElement("li");
   tempLi.style.backgroundColor = "#3498db";
-  tempLi.style.opacity = "0.6"; // 送信中表現
+  tempLi.style.opacity = "0.6";
   tempLi.innerHTML = `
     <span>${convertText(text)}</span>
     <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
@@ -2046,7 +2070,6 @@ document.getElementById("quickSendBtn").onclick = async () => {
   postList.appendChild(tempLi);
   tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  // --- バックグラウンド送信 ---
   (async () => {
     try {
       const newPost = await addDoc(
@@ -2066,7 +2089,8 @@ document.getElementById("quickSendBtn").onclick = async () => {
 
       await updateDoc(doc(db, currentRoom, currentThreadId), {
         postCount: increment(1),
-        latestPostTime: serverTimestamp()
+        latestPostTime: serverTimestamp(),
+        ...getBoardWriteMeta()
       });
 
       await saveLog("quick_send_post", { 
