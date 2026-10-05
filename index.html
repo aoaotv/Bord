@@ -407,7 +407,7 @@ textarea {
     <input id="threadMemberId" placeholder="ニックネーム">
     <label>アイコン</label>
     <input id="threadIconInput" type="file" accept="image/*">
-    <label>タイトル</label>
+    <label>タイトル（5文字以上）</label>
     <input id="threadTitleInput" placeholder="タイトル">
     <label>詳細</label>
     <textarea id="threadDetailInput" placeholder="詳細"></textarea>
@@ -1463,6 +1463,10 @@ document.getElementById('createThreadBtn').onclick=()=>{
     const title=document.getElementById('threadTitleInput').value.trim();
     const detail=document.getElementById('threadDetailInput').value.trim();
 
+    // ▼スレッド名が5文字未満の場合のエラーチェック追加
+    if(!title){ showAlert("タイトルを入力してください"); return; }
+    if(title.length < 5){ showAlert("スレッド名は5文字以上で入力してください"); return; }
+
     if(containsNGWord(title) || containsNGWord(detail)){ showAlert("タイトルまたは詳細に使えない言葉が含まれています"); return; }
 
     const imageFile=document.getElementById('threadImageInput').files[0];
@@ -1470,7 +1474,6 @@ document.getElementById('createThreadBtn').onclick=()=>{
     const password=document.getElementById('threadPasswordInput').value.trim();
     const color=document.getElementById('threadColorInput').value;
 
-    if(!title){ showAlert("タイトルを入力してください"); return; }
     if(isFormSending) return;
     isFormSending = true;
 
