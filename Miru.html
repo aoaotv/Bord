@@ -2,95 +2,380 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ログ閲覧システム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bord - 管理者用ログ閲覧システム</title>
   <style>
     body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-    .card {
-      border: 1px solid #ccc;
+      font-family: "Helvetica Neue", Arial, "平 de 骨", "Hiragino Kaku Gothic ProN", "メイリオ", sans-serif;
+      background-color: #f0f4f8;
+      margin: 0;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      color: #333;
+    }
+    .container {
+      max-width: 1050px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #1e293b;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    /* ログインカード */
+    #loginCard {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      max-width: 360px;
+      margin: 60px auto;
+      text-align: center;
+    }
+    #loginCard h2 {
+      margin-top: 0;
+      color: #1e293b;
+      font-size: 20px;
     }
     input[type="password"] {
-      padding: 8px;
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-sizing: border-box;
       font-size: 16px;
-      width: 200px;
-      margin-right: 8px;
+      outline: none;
+    }
+    input[type="password"]:focus {
+      border-color: #3b82f6;
     }
     button {
-      padding: 8px 16px;
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
       font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s;
     }
-    .error-message {
-      color: red;
-      margin-top: 10px;
+    button:hover {
+      background-color: #1d4ed8;
     }
-    .hidden {
+    /* ログ表示エリア */
+    #logSection {
       display: none;
     }
-    pre {
-      background-color: #f4f4f4;
-      padding: 15px;
-      border-radius: 4px;
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .status-badge {
+      background: #10b981;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .log-table-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
       overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f8fafc;
+      color: #475569;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tr:hover {
+      background-color: #f1f5f9;
+    }
+    .action-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+      white-space: nowrap;
+    }
+    /* 操作別カラー */
+    .act-create_thread { background-color: #10b981; } /* 緑 */
+    .act-create_post { background-color: #3b82f6; }   /* 青 */
+    .act-quick_send_post { background-color: #06b6d4; } /* シアン */
+    .act-report_content { background-color: #ef4444; }  /* 赤 */
+    .act-admin { background-color: #f59e0b; }         /* オレンジ */
+    .act-default { background-color: #64748b; }       /* グレー */
+    
+    /* 日本語化した詳細情報の見た目 */
+    .detail-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .detail-item {
+      margin-bottom: 4px;
+    }
+    .detail-item:last-child {
+      margin-bottom: 0;
+    }
+    .detail-label {
+      font-weight: bold;
+      color: #475569;
+      margin-right: 6px;
+    }
+    .detail-value {
+      color: #0f172a;
+      word-break: break-all;
+    }
+    .id-code {
       font-family: monospace;
+      background: #e2e8f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #334155;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <!-- パスワード入力エリア -->
-    <div id="auth-section">
-      <h2>パスワード入力</h2>
-      <p>ログを閲覧するにはパスワードを入力してください。</p>
-      <input type="password" id="password-input" placeholder="パスワードを入力">
-      <button onclick="checkPassword()">送信</button>
-      <p id="error-msg" class="error-message hidden">パスワードが間違っています。</p>
-    </div>
-
-    <!-- ログ表示エリア -->
-    <div id="log-section" class="hidden">
-      <h2>システムログ</h2>
-      <pre>
-[2026-10-05 10:00:12] INFO: システムが正常に起動しました。
-[2026-10-05 10:05:43] DEBUG: データベースへの接続を確立しました。
-[2026-10-05 10:15:21] WARN: ディスク容量の使用率が70%を超えました。
-[2026-10-05 10:30:00] SUCCESS: ログ表示の認証に成功しました (ユーザー: admin)。
-      </pre>
-      <button onclick="logout()">ログアウト</button>
-    </div>
+<div class="container">
+  <!-- 1. ログイン画面 -->
+  <div id="loginCard">
+    <h2>管理者用ログイン</h2>
+    <p style="font-size:13px; color:#64748b;">ログを確認するには、管理者用パスワードを入力してください。</p>
+    <input type="password" id="passInput" placeholder="パスワードを入力">
+    <button id="loginBtn">ログイン</button>
   </div>
 
-  <script>
-    function checkPassword() {
-      const passwordInput = document.getElementById('password-input').value;
-      const errorMsg = document.getElementById('error-msg');
-      const authSection = document.getElementById('auth-section');
-      const logSection = document.getElementById('log-section');
+  <!-- 2. ログ閲覧画面 -->
+  <div id="logSection">
+    <h1>システム操作・投稿履歴 ログ一覧</h1>
+    <div class="controls">
+      <div>
+        <strong>状態:</strong> <span class="status-badge">🟢 リアルタイム自動更新中</span>
+      </div>
+      <div>
+        <span id="logCount" style="margin-right:15px; font-weight:bold; color:#64748b;">0 件のログ</span>
+        <button id="logoutBtn" style="width:auto; padding:6px 16px; background:#ef4444;">ログアウト</button>
+      </div>
+    </div>
 
-      // パスワード判定 (2059)
-      if (passwordInput === '2059') {
-        authSection.classList.add('hidden');
-        logSection.classList.remove('hidden');
-        errorMsg.classList.add('hidden');
-      } else {
-        errorMsg.classList.remove('hidden');
+    <div class="log-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>日時</th>
+            <th>操作の種類</th>
+            <th>ユーザー名</th>
+            <th>対象の部屋</th>
+            <th>IPアドレス</th>
+            <th>詳細情報</th>
+          </tr>
+        </thead>
+        <tbody id="logTableBody">
+          <tr>
+            <td colspan="6" style="text-align:center; padding:30px; color:#94a3b8;">データを読み込んでいます...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, collection, query, orderBy, limit, onSnapshot
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+// Firebase設定
+const firebaseConfig = {
+  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
+  authDomain: "sinzo-3f972.firebaseapp.com",
+  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
+  projectId: "sinzo-3f972",
+  storageBucket: "sinzo-3f972.firebasestorage.app",
+  messagingSenderId: "1058985227031",
+  appId: "1:1058985227031:web:6b152911e917903910bd52"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const ADMIN_PASS = "2059";
+let logUnsub = null;
+
+// 日付のフォーマット変換（例：2026/10/05 10:43:00）
+function formatDate(ts) {
+  if (!ts) return "不明";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+
+// 操作名の日本語変換とバッジ設定
+function getActionInfo(action) {
+  switch (action) {
+    case "create_thread":
+      return { text: "スレッド作成", class: "act-create_thread" };
+    case "create_post":
+      return { text: "メッセージ投稿", class: "act-create_post" };
+    case "quick_send_post":
+      return { text: "一括・即時送信", class: "act-quick_send_post" };
+    case "report_content":
+      return { text: "通報通知", class: "act-report_content" };
+    default:
+      if (action && action.startsWith("admin_")) {
+        return { text: "管理者操作", class: "act-admin" };
       }
+      return { text: action || "その他操作", class: "act-default" };
+  }
+}
+
+// 英語のキー名（index, textSnippet など）を分かりやすい日本語表現に変換する処理
+function renderJapaneseDetail(detail) {
+  if (!detail || typeof detail !== 'object' || Object.keys(detail).length === 0) {
+    return '<span style="color:#94a3b8;">（詳細データなし）</span>';
+  }
+
+  // 英語のキー（英単語）に対応する日本語のラベル定義
+  const labelMap = {
+    "index": "番号・順番",
+    "textSnippet": "投稿の本文（要約）",
+    "text": "投稿本文",
+    "title": "タイトル",
+    "threadId": "スレッドID",
+    "postId": "投稿ID",
+    "hasImage": "画像の有無",
+    "reason": "通報・操作の理由",
+    "target": "対象データ",
+    "type": "種別"
+  };
+
+  let html = '<div class="detail-box">';
+  for (const [key, value] of Object.entries(detail)) {
+    const japaneseLabel = labelMap[key] || key; // 定義されていなければ元のキーを使用
+    let displayValue = value;
+
+    // 値がIDの場合はフォントを見やすく装飾
+    if (key === "threadId" || key === "postId") {
+      displayValue = `<span class="id-code">${escapeHtml(String(value))}</span>`;
+    } else if (key === "hasImage") {
+      displayValue = value ? "あり 📷" : "なし";
+    } else {
+      displayValue = escapeHtml(String(value));
     }
 
-    function logout() {
-      document.getElementById('password-input').value = '';
-      document.getElementById('auth-section').classList.remove('hidden');
-      document.getElementById('log-section').classList.add('hidden');
-    }
-  </script>
+    html += `
+      <div class="detail-item">
+        <span class="detail-label">・${japaneseLabel}:</span>
+        <span class="detail-value">${displayValue}</span>
+      </div>
+    `;
+  }
+  html += '</div>';
+  return html;
+}
 
+// ログイン処理
+function login() {
+  const pass = document.getElementById("passInput").value;
+  if (pass !== ADMIN_PASS) {
+    alert("パスワードが正しくありません。");
+    return;
+  }
+
+  document.getElementById("loginCard").style.display = "none";
+  document.getElementById("logSection").style.display = "block";
+
+  // Firestoreからlogsコレクションの最新100件をリアルタイム取得
+  const q = query(
+    collection(db, "logs"),
+    orderBy("created_at", "desc"),
+    limit(100)
+  );
+
+  logUnsub = onSnapshot(q, (snapshot) => {
+    const tbody = document.getElementById("logTableBody");
+    tbody.innerHTML = "";
+
+    document.getElementById("logCount").textContent = `${snapshot.docs.length} 件のログを表示中`;
+
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#94a3b8;">記録されているログがありません</td></tr>';
+      return;
+    }
+
+    snapshot.docs.forEach((doc) => {
+      const log = doc.data();
+      const tr = document.createElement("tr");
+
+      const actionInfo = getActionInfo(log.action);
+      const japaneseDetailHtml = renderJapaneseDetail(log.detail);
+
+      tr.innerHTML = `
+        <td style="white-space:nowrap; color:#64748b; font-size:13px;">${formatDate(log.created_at)}</td>
+        <td><span class="action-badge ${actionInfo.class}">${actionInfo.text}</span></td>
+        <td><strong>${escapeHtml(log.user || '名前なし')}</strong></td>
+        <td>${escapeHtml(log.room || '全般・指定なし')}</td>
+        <td style="font-family:monospace; font-size:12px; color:#475569;">${escapeHtml(log.ip || '-')}</td>
+        <td>${japaneseDetailHtml}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  }, (error) => {
+    console.error("ログ取得エラー:", error);
+    alert("ログ情報の読み込みに失敗しました。アクセス権限等を確認してください。");
+  });
+}
+
+function escapeHtml(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[&<>"']/g, function(m) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+  });
+}
+
+// イベント設定
+document.getElementById("loginBtn").addEventListener("click", login);
+document.getElementById("passInput").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") login();
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  if (logUnsub) logUnsub();
+  document.getElementById("passInput").value = "";
+  document.getElementById("logSection").style.display = "none";
+  document.getElementById("loginCard").style.display = "block";
+});
+</script>
 </body>
 </html>
