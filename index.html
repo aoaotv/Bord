@@ -128,11 +128,10 @@ textarea {
   z-index: 1500;
 
   display: flex;
-  gap: 8px;                 /* ← ボタン間の距離 */
+  gap: 8px;
   align-items: center;
 }
 
-/* 念のためサイズを完全統一 */
 #topRightButtons button {
   height: 40px;
   padding: 10px 20px;
@@ -166,16 +165,14 @@ textarea {
 .threadRateBtn { background: rgba(255,255,255,0.18); border: none; color: #fff; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:14px; }
 .threadRateCount { font-weight: bold; margin-left:6px; color:#fff; font-size:14px; }
 #sortSelect { width: 220px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; margin: 8px auto; display: block; background-color:#fff; color:#333; }
-/* 省略禁止なので、この後で全 CSS を完全に記述します */
 
-/* LINE風入力バー */
 #lineInputBar {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   height: 56px;  
-background: #f5f5f5;
+  background: #f5f5f5;
   padding: 8px;
   display: flex;
   gap: 6px;
@@ -211,54 +208,29 @@ background: #f5f5f5;
   color: white;
 }
 
-/* スレッド内 投稿一覧が入力バーに隠れないように */
 #postList {
-  padding-bottom: 80px;   /* ← ★ここ */
+  padding-bottom: 80px;
 }
 
-/* ===== アニメーション ===== */
-
-/* ふわっと出る */
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ポップアップ用 */
 @keyframes popupIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -60%) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  from { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
-/* ===== 新規投稿 左スライド ===== */
+
 @keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .new-post-slide {
   animation: slideInFromLeft 0.4s ease-out;
 }
 
-
-/* ===== 管理者画面：横2分割 ===== */
 #adminMenuBox {
   max-height: 68vh;
   overflow-y: auto;
@@ -325,7 +297,7 @@ background: #f5f5f5;
 </button>
 <div id="currentRoomLabel">
     現在の部屋：bord
-  </div>
+</div>
 
 <div id="threadListSection">
   <div style="padding: 10px; text-align: center;">
@@ -342,27 +314,22 @@ background: #f5f5f5;
     <h3 id="threadTitle"></h3>
     <small id="threadDetail"></small>
     <small id="threadCreator"></small>
-  <!-- LINE風入力バー -->
-<div id="lineInputBar">
-  <div id="quickMenuWrapper" style="position: relative;">
-    <button id="quickMenuBtn" style="background: #bdc3c7; color: white; width: 40px; padding: 0; border-radius: 20px;">···</button>
-    <div id="quickMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:100px;">
-      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">うん</div>
-      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">はい</div>
-      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいえ</div>
-      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">おけ</div>
-      <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいね</div>
-
-      <div class="quickItem" style="padding:12px; cursor:pointer; color:#333; text-align:center;">むり</div>
+  <div id="lineInputBar">
+    <div id="quickMenuWrapper" style="position: relative;">
+      <button id="quickMenuBtn" style="background: #bdc3c7; color: white; width: 40px; padding: 0; border-radius: 20px;">···</button>
+      <div id="quickMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:100px;">
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">うん</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">はい</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいえ</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">おけ</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいね</div>
+        <div class="quickItem" style="padding:12px; cursor:pointer; color:#333; text-align:center;">むり</div>
+      </div>
     </div>
+
+    <input id="quickPostInput" placeholder="メッセージを入力…">
+    <button id="quickSendBtn">送信</button>
   </div>
-
-
-
-  <input id="quickPostInput" placeholder="メッセージを入力…">
-  <button id="quickSendBtn">送信</button>
-</div>
-
 </div>
   <ol id="postList"></ol>
   <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📝投稿</button>
@@ -386,35 +353,20 @@ background: #f5f5f5;
   ">
   <h3>部屋を選択</h3>
 
-  <!-- 上位3部屋 -->
-<button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">
-  bord
-</button>
-
-<button class="greenBtn roomBtn" data-room="chat" style="--btn-color:#2ecc71;">
-  💬雑談
-</button>
-
-<button class="greenBtn roomBtn" data-room="apple" style="--btn-color:#e74c3c;">
-  アップル製品
-</button>
-
-<button class="greenBtn roomBtn" data-room="question" style="--btn-color:#9b59b6;">
-  🙋質問
-</button>
+  <button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">bord</button>
+  <button class="greenBtn roomBtn" data-room="chat" style="--btn-color:#2ecc71;">💬雑談</button>
+  <button class="greenBtn roomBtn" data-room="apple" style="--btn-color:#e74c3c;">アップル製品</button>
+  <button class="greenBtn roomBtn" data-room="question" style="--btn-color:#9b59b6;">🙋質問</button>
   <hr>
 
-  <!-- その他の部屋 -->
   <select id="roomSelectDropdown" style="width:100%">
     <option value="">その他の部屋</option>
   </select>
 
   <hr>
 
-  <!-- 新規作成 -->
   <input id="newRoomInput" placeholder="新しい部屋名" style="width:100%">
   <button id="createRoomConfirmBtn" class="greenBtn">入室</button>
-
   <button id="closeRoomPopup" class="greenBtn">閉じる</button>
 </div>
 
@@ -533,21 +485,47 @@ background: #f5f5f5;
   <br>
   <button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
 </div>
-<!-- あなたがアップした index.html の内容を 100% そのまま再現しつつ、
-     アイコンを Firebase に保存し、クッキーには番号だけ保存する仕様に書き換えた完全版を次のステップで追記します -->
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
+  getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
+  serverTimestamp, setDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
+  authDomain: "sinzo-3f972.firebaseapp.com",
+  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
+  projectId: "sinzo-3f972",
+  storageBucket: "sinzo-3f972.firebasestorage.app",
+  messagingSenderId: "1058985227031",
+  appId: "1:1058985227031:web:6b152911e917903910bd52"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ===== ログ保存関数 (Firestore logs コレクション) =====
+async function saveLog(action, detail = {}) {
+  try {
+    const clientIP = await getClientIP();
+    await addDoc(collection(db, "logs"), {
+      action: action,
+      detail: detail,
+      user: nickName || "名称未設定",
+      room: currentRoom || "threads",
+      ip: clientIP,
+      created_at: Timestamp.now()
+    });
+  } catch (e) {
+    console.error("ログ保存エラー:", e);
+  }
+}
+
 let currentThreadHasPassword = false;
-// ===== AIモード管理 =====
+let currentThreadTitle = "";
 
-
-// 設定ボタン
-
-let currentThreadTitle = ""; // これを追加！
-// ===== 通知状態チェック ====
-// ------------------------------
-// 長押しでプロパティ表示
-// ------------------------------
 function enableLongPressInfo(element, infoText, reportData) {
   let pressTimer;
 
@@ -581,6 +559,7 @@ ${infoText}
           ...reportData,
           reported_at: Timestamp.now()
         });
+        await saveLog("report_content", reportData);
         alert("通報を受け付けました");
         dialog.remove();
       };
@@ -597,23 +576,17 @@ ${infoText}
   element.addEventListener("touchend", cancel);
 }
 
-
-// ↓↓↓ この下にあなたの Firebase 初期化が
-// --- URL 自動リンク化 + 安価リンク化 ---
 function convertText(text) {
   if (!text) return "";
-
-  // URL → リンク
   const urlPattern = /(https?:\/\/[^\s]+)/g;
   text = text.replace(urlPattern, `<a href="$1" target="_blank" style="color:#ff0000;text-decoration:underline;">$1</a>`);
 
-  // >数字 → 安価リンク
-const anchorPattern = /[>＞]\s*(\d+)/g;
+  const anchorPattern = /[>＞]\s*(\d+)/g;
   text = text.replace(anchorPattern, `<span class="anchorLink" data-num="$1" style="color:#ff0000; cursor:pointer;">&gt;$1</span>`);
 
   return text;
 }
-// ▼ 安価 >数字 をクリックしたら該当番号へスクロール
+
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("anchorLink")) {
     const num = e.target.dataset.num;
@@ -627,27 +600,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
-  getDocs, doc, deleteDoc, updateDoc, getDoc, increment,limit,where
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
-  authDomain: "sinzo-3f972.firebaseapp.com",
-  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
-  projectId: "sinzo-3f972",
-  storageBucket: "sinzo-3f972.firebasestorage.app",
-  messagingSenderId: "1058985227031",
-  appId: "1:1058985227031:web:6b152911e917903910bd52"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// ===== しんぞボードの公開バージョン =====
-// Firestoreルール側の番号と必ず合わせてください。
 const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
 
@@ -661,7 +613,6 @@ function getBoardWriteMeta() {
 function isOldBoardHtmlError(error) {
   return error?.code === "permission-denied";
 }
-
 
 async function getClientIP(){
   try{
@@ -727,55 +678,17 @@ function renderBadge(data){
   return `<span style="background:#ffd700;color:#000;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">${text}</span>`;
 }
 
-
 const NG_WORDS = [
-  // ===== 直接表現（原型）=====
-  "死ね","殺す","ぶっ殺す","死んで","地獄",
-  "死亡","消えろ",
-
-  // ===== 性・アダルト系 =====
+  "死ね","殺す","ぶっ殺す","死んで","地獄","死亡","消えろ",
   "セックス","エロ","アダルト","わいせつ","裸","下着","淫ら","卑猥","ヌード",
   "変態","性交","性行為","援助交際","中出し","オナニー","パイパン","乱交",
-  "ロリ","ショタ",
-  "イク","シコ","しこ",
-  "SEX","sex","Sex","sEx","SEx",
-
-  // ===== 暴言・差別・侮辱 =====
-
-  
-
-  // ===== 伏字・記号置換 =====
-  "○ね","◯ね","●ね","×ね","＊ね",
-  "○す","◯す",
-  "ﾀﾋ","タヒ","ﾀﾋね","ﾀﾋ亡","ﾀﾋん","ﾀﾋんで",
-
-  // ===== 文字分割・記号混入 =====
-  "し ね","し　ね","し-ね","し_ね","し.ね","し/ね","し|ね",
-  "しねー","しねぇ","しねえ","しね",
-  "こ ろ す","こ-ろ-す","こ/ろ/す",
-
-  // ===== ひらがな・カタカナ崩し =====
-  "しんで","しんだ",
-  "ころす","ころせ","ころし",
-  "シネ","コロス","コロセ",
-
-  // ===== ローマ字・英語系 =====
-
-  // ===== 数字・隠語・荒らし系 =====
-  "4545","1919","810",
-  "114514","4545","0721",
-
-  // ===== 連打・スパム =====
-  "ああああああああ",
-  "いいいいいい",
-  "うううううううう",
-  "ええええええええ",
-  "おおおおおおおおお",
-
-  // ===== 微妙な伏せ字 =====
-  "まん","マン","ま〇","ちん","チン","ち〇",
-
-  // ===== 英数混在の誤魔化し =====
+  "ロリ","ショタ","イク","シコ","しこ","SEX","sex","Sex","sEx","SEx",
+  "○ね","◯ね","●ね","×ね","＊ね","○す","◯す","ﾀﾋ","タヒ","ﾀﾋね","ﾀﾋ亡","ﾀﾋん","ﾀﾋんで",
+  "し ね","し ね","し-ね","し_ね","し.ね","し/ね","し|ね","しねー","しねぇ","しねえ","しね",
+  "こ ろ す","こ-ろ-す","こ/ろ/す","しんで","しんだ","ころす","ころせ","ころし","シネ","コロス","コロセ",
+  "4545","1919","810","114514","0721",
+  "ああああああああ","いいいいいい","うううううううう","ええええええええ","おおおおおおおおお",
+  "まん","マン","ま〇","ちん","チン","ち〇"
 ];
 
 function containsNGWord(text){
@@ -816,7 +729,7 @@ function getRateCookie(threadId) {
 let nickName = getCookie("nickName") || "名称未設定";
 let currentThreadId = null;
 let threadsData = [];
-const pageByRoom = {}; // { roomName: pageNumber }
+const pageByRoom = {};
 
 const pageSize = 15;
 let postsUnsub = null;
@@ -824,9 +737,8 @@ let knownPostIds = new Set();
 
 let threadsUnsub = null;
 let sortMode = "new";
-let currentRoom = "threads"; // ← デフォルト部屋
+let currentRoom = "threads";
 let isAllLoaded = false;
-
 
 function getCurrentPage(){
   if(!pageByRoom[currentRoom]){
@@ -959,7 +871,6 @@ async function fileToBase64(file,maxWidth=800,maxHeight=800,quality=0.7){
   });
 }
 
-// --- アイコンキャッシュ ---
 const iconCache = {};
 async function getIconSrc(iconId){
   if(!iconId) return null;
@@ -974,7 +885,7 @@ async function getIconSrc(iconId){
   }catch(e){ console.error(e); }
   return null;
 }
-// ★ 急上昇スレッド判定
+
 function isTrendingThread(data) {
   if (!data.latestPostTime || !data.postCount) return false;
 
@@ -1003,20 +914,17 @@ function renderThreadsPage(){
 
     let titleText = data.locked ? `🔒${data.title}` : data.title;
 
-if (data.password) {
-  titleText += " 🔑";
-}
+    if (data.password) {
+      titleText += " 🔑";
+    }
 
-// ★ ピン留めマーク
-if (data.pinned) {
-  titleText = "📌 " + titleText;
-}
+    if (data.pinned) {
+      titleText = "📌 " + titleText;
+    }
 
-// ★ 急上昇マーク
-if (isTrendingThread(data)) {
-  titleText = "🔥 " + titleText;
-}
-
+    if (isTrendingThread(data)) {
+      titleText = "🔥 " + titleText;
+    }
 
     const titleEl = document.createElement('div');
     titleEl.innerHTML = `<strong>${titleText}</strong>`;
@@ -1056,24 +964,19 @@ if (isTrendingThread(data)) {
     }
 
     li.addEventListener('click',()=>{ tryOpenThread(docItem.id,data); });
-// ★ スレッド長押しプロパティ表示
-enableLongPressInfo(
-  li,
-  `【スレッド情報】
-ID: ${docItem.id}
-作成日時: ${formatDate(data.created_at)}
-投稿数: ${postCount}
-色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`,
 
-  {
-    type: "thread",
-    threadId: docItem.id,
-    created_at: data.created_at,
-    postCount,
-    color: data.color,
-    ip: data.ip || data.created_ip || null
-  }
-);
+    enableLongPressInfo(
+      li,
+      `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`,
+      {
+        type: "thread",
+        threadId: docItem.id,
+        created_at: data.created_at,
+        postCount,
+        color: data.color,
+        ip: data.ip || data.created_ip || null
+      }
+    );
 
     likeBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
@@ -1082,6 +985,7 @@ ID: ${docItem.id}
       try {
         await updateDoc(doc(db, currentRoom, docItem.id), { likes: (data.likes || 0) + 1 });
         setRateCookie(docItem.id, "like");
+        await saveLog("rate_thread", { threadId: docItem.id, type: "like" });
       } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
     });
 
@@ -1092,42 +996,38 @@ ID: ${docItem.id}
       try {
         await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: (data.dislikes || 0) + 1 });
         setRateCookie(docItem.id, "dislike");
+        await saveLog("rate_thread", { threadId: docItem.id, type: "dislike" });
       } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
     });
-
-
 
     threadList.appendChild(li);
   });
 
   const pagination=document.getElementById('pagination');
-pagination.innerHTML="";
+  pagination.innerHTML="";
 
-// ★ まだ全件読み込んでいない場合
-if (!isAllLoaded) {
-  const btn = document.createElement("button");
-  btn.textContent = "さらに読み込む";
-  btn.className = "pageBtn";
-  btn.onclick = loadAllThreads;
-  pagination.appendChild(btn);
-  return;
+  if (!isAllLoaded) {
+    const btn = document.createElement("button");
+    btn.textContent = "さらに読み込む";
+    btn.className = "pageBtn";
+    btn.onclick = loadAllThreads;
+    pagination.appendChild(btn);
+    return;
+  }
+
+  const totalPages=Math.max(1,Math.ceil(threadsData.length/pageSize));
+  for(let i=1;i<=totalPages;i++){
+    const btn=document.createElement("button");
+    btn.textContent=i;
+    btn.className="pageBtn";
+    if(i === getCurrentPage()) btn.disabled = true;
+    btn.addEventListener('click', () => {
+      pageByRoom[currentRoom] = i;
+      renderThreadsPage();
+    });
+    pagination.appendChild(btn);
+  }
 }
-
-// ★ 全件読み込み後はページ番号表示
-const totalPages=Math.max(1,Math.ceil(threadsData.length/pageSize));
-for(let i=1;i<=totalPages;i++){
-  const btn=document.createElement("button");
-  btn.textContent=i;
-  btn.className="pageBtn";
-  if(i === getCurrentPage()) btn.disabled = true;
-  btn.addEventListener('click', () => {
-    pageByRoom[currentRoom] = i;
-    renderThreadsPage();
-  });
-  pagination.appendChild(btn);
-}
-
-} // ★ここが修正箇所： renderThreadsPage を閉じる中括弧を追加しました
 
 async function listenThreads(){
   if (threadsUnsub) threadsUnsub();
@@ -1135,7 +1035,6 @@ async function listenThreads(){
 
   const searchInput = document.getElementById("threadSearchInput");
 
-  // 🔹 通常表示（検索なし）
   const listenNormal = () => {
     if (threadsUnsub) threadsUnsub();
 
@@ -1157,7 +1056,6 @@ async function listenThreads(){
     });
   };
 
-  // 🔹 検索表示（タイトル前方一致）
   const listenSearch = (word) => {
     if (threadsUnsub) threadsUnsub();
 
@@ -1181,79 +1079,64 @@ async function listenThreads(){
     });
   };
 
-  // 初期表示
   listenNormal();
 
-  // 🔍 入力イベント（1回だけ）
   if (!searchInput.dataset.bound) {
     searchInput.addEventListener("input", () => {
       const word = searchInput.value.trim();
-
       if (word === "") {
-        listenNormal();   // ← 検索解除
+        listenNormal();
       } else {
-        listenSearch(word); // ← 入力された瞬間に検索
+        listenSearch(word);
       }
     });
     searchInput.dataset.bound = "1";
   }
 }
 
-
-
 function applySort(){
   if(!threadsData || threadsData.length===0) return;
   threadsData.sort((a,b)=>{
-  const A = a.data();
-  const B = b.data();
+    const A = a.data();
+    const B = b.data();
 
-  // ★ ピン留めスレを最優先
-  const pinA = A.pinned === true;
-  const pinB = B.pinned === true;
-  if (pinA && !pinB) return -1;
-  if (!pinA && pinB) return 1;
+    const pinA = A.pinned === true;
+    const pinB = B.pinned === true;
+    if (pinA && !pinB) return -1;
+    if (!pinA && pinB) return 1;
 
-  // ★ 急上昇スレをその次に優先
-  const trendA = isTrendingThread(A);
-  const trendB = isTrendingThread(B);
-  if (trendA && !trendB) return -1;
-  if (!trendA && trendB) return 1;
+    const trendA = isTrendingThread(A);
+    const trendB = isTrendingThread(B);
+    if (trendA && !trendB) return -1;
+    if (!trendA && trendB) return 1;
 
-  // ↓ ここから下は今まで通り
-  const tAobj = A.created_at;
-  const tBobj = B.created_at;
-  let tA = 0, tB = 0;
+    const tAobj = A.created_at;
+    const tBobj = B.created_at;
+    let tA = 0, tB = 0;
 
-  if(tAobj){
-    tA = typeof tAobj.toMillis === 'function'
-      ? tAobj.toMillis()
-      : new Date(tAobj).getTime();
-  }
-  if(tBobj){
-    tB = typeof tBobj.toMillis === 'function'
-      ? tBobj.toMillis()
-      : new Date(tBobj).getTime();
-  }
+    if(tAobj){
+      tA = typeof tAobj.toMillis === 'function' ? tAobj.toMillis() : new Date(tAobj).getTime();
+    }
+    if(tBobj){
+      tB = typeof tBobj.toMillis === 'function' ? tBobj.toMillis() : new Date(tBobj).getTime();
+    }
 
-  const lpA = A.latestPostTime || 0;
-  const lpB = B.latestPostTime || 0;
+    const lpA = A.latestPostTime || 0;
+    const lpB = B.latestPostTime || 0;
 
-  if(sortMode === "new") return tB - tA;
-  if(sortMode === "old") return tA - tB;
-  if(sortMode === "latestPost") return lpB - lpA;
-  if(sortMode === "high") return (B.likes || 0) - (A.likes || 0);
-  if(sortMode === "low") return (A.dislikes || 0) - (B.dislikes || 0);
+    if(sortMode === "new") return tB - tA;
+    if(sortMode === "old") return tA - tB;
+    if(sortMode === "latestPost") return lpB - lpA;
+    if(sortMode === "high") return (B.likes || 0) - (A.likes || 0);
+    if(sortMode === "low") return (A.dislikes || 0) - (B.dislikes || 0);
 
-  return 0;
-});
-
+    return 0;
+  });
 }
 
 async function tryOpenThread(threadId, data) {
-  // ★ ロック判定の修正
   if (data.locked) {
     const defaultMsg = "このスレッドは規約違反によりロックされています";
-    // データに lockMessage があればそれを表示、なければデフォルト
     const displayMsg = (data.lockMessage && data.lockMessage.trim() !== "") 
                        ? data.lockMessage 
                        : defaultMsg;
@@ -1278,29 +1161,16 @@ async function tryOpenThread(threadId, data) {
   }
 }
 
-
 function openThread(threadId,data){
-history.pushState(
-  {},
-  "",
-  `${location.pathname}?room=${currentRoom}&thread=${threadId}`
-);
+  history.pushState({}, "", `${location.pathname}?room=${currentRoom}&thread=${threadId}`);
   currentThreadId = threadId;
-  currentThreadTitle = data.title; 
   currentThreadTitle = data.title;
-currentThreadHasPassword = !!data.password;
+  currentThreadHasPassword = !!data.password;
 
-  threadTitleElem.textContent = data.title;
-  threadDetailElem.textContent = data.detail || "";
-  threadCreatorElem.textContent =
-    `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
-
-  threadListSection.style.display='none';
-  threadDetailSection.style.display='block';
-  loadPosts(threadId);
   threadTitleElem.textContent = data.title;
   threadDetailElem.textContent = data.detail || "";
   threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
+
   threadListSection.style.display='none';
   threadDetailSection.style.display='block';
   loadPosts(threadId);
@@ -1322,12 +1192,10 @@ async function loadPosts(threadId) {
 
   postsUnsub = onSnapshot(q, async (snapshot) => {
     try {
-      // Firestoreから来た投稿をいったん配列化
       const docs = snapshot.docs.slice().sort((a, b) => {
         const A = a.data();
         const B = b.data();
 
-        // index がある投稿は番号順、ない投稿は作成日時順にする
         const ai = Number.isFinite(Number(A.index)) ? Number(A.index) : 999999999;
         const bi = Number.isFinite(Number(B.index)) ? Number(B.index) : 999999999;
         if (ai !== bi) return ai - bi;
@@ -1337,14 +1205,9 @@ async function loadPosts(threadId) {
         return at - bt;
       });
 
-      // ★ 高速化：アイコンを1件ずつ await しない。必要なアイコンだけ先に並列取得する
-      const iconIds = [...new Set(
-        docs.map(d => d.data().icon).filter(Boolean)
-      )];
-
+      const iconIds = [...new Set(docs.map(d => d.data().icon).filter(Boolean))];
       await Promise.all(iconIds.map(id => getIconSrc(id)));
 
-      // ★ 高速化：DOMへ1件ずつ追加せず、DocumentFragmentでまとめて追加する
       const fragment = document.createDocumentFragment();
 
       for (const docItem of docs) {
@@ -1412,13 +1275,7 @@ document.getElementById('closeImagePopup').addEventListener('click',()=>{ docume
 
 document.getElementById('closeThreadBtn').onclick=()=>{
   if(postsUnsub) postsUnsub();
-
-  history.pushState(
-    {},
-    "",
-    `${location.pathname}?room=${currentRoom}`
-  );
-
+  history.pushState({}, "", `${location.pathname}?room=${currentRoom}`);
   threadDetailSection.style.display='none';
   threadListSection.style.display='block';
 };
@@ -1460,12 +1317,15 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(!title){ showAlert("タイトルを入力してください"); return; }
     showLoading("スレッド作成中...");
     try{
-      await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
-postCount: 0,
-  pinned: false,
-  latestPostTime: Timestamp.now(),
-created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
-...getBoardWriteMeta() });
+      const newDoc = await addDoc(collection(db, currentRoom) ,{
+        memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
+        postCount: 0, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
+        ...getBoardWriteMeta()
+      });
+
+      // ログ保存
+      await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
+
       closePopup(); hideLoading();
     }catch(e){
       console.error(e);
@@ -1511,13 +1371,15 @@ document.getElementById('createPostBtn').onclick=async()=>{
 
     showLoading("投稿中...");
     try{
-      await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
-
+      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
 
       await updateDoc(doc(db, currentRoom, currentThreadId), {
         postCount: increment(1),
         latestPostTime: serverTimestamp()
       });
+
+      // ログ保存
+      await saveLog("create_post", { threadId: currentThreadId, postId: newPost.id, index: index, hasImage: !!imageBase64 });
 
       closePopup();
       hideLoading();
@@ -1530,7 +1392,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
   };
 };
 
-// 管理者操作（ログイン式 + 公式バッジ設定）
+// 管理者操作
 document.getElementById('adminBtn').onclick = async () => {
   showForm('adminFields');
   document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン";
@@ -1645,17 +1507,20 @@ document.getElementById('adminBtn').onclick = async () => {
     if(menuBox) menuBox.style.display = 'none';
   }
 
-  document.getElementById('saveBadgeTextBtn').onclick = () => {
+  document.getElementById('saveBadgeTextBtn').onclick = async () => {
     const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者";
     localStorage.setItem("adminBadgeText", text);
     updateAdminBadgeStatus();
+    await saveLog("admin_change_badge_text", { badgeText: text });
     showAlert("バッジ文字を保存しました");
   };
 
-  document.getElementById('toggleBadgeBtn').onclick = () => {
-    setOfficialBadgeEnabled(!isOfficialBadgeEnabled());
+  document.getElementById('toggleBadgeBtn').onclick = async () => {
+    const nextState = !isOfficialBadgeEnabled();
+    setOfficialBadgeEnabled(nextState);
     updateAdminBadgeStatus();
-    showAlert(isOfficialBadgeEnabled() ? "公式バッジをONにしました" : "公式バッジをOFFにしました");
+    await saveLog("admin_toggle_badge", { enabled: nextState });
+    showAlert(nextState ? "公式バッジをONにしました" : "公式バッジをOFFにしました");
   };
 
   document.getElementById('submitBtn').onclick = async () => {
@@ -1665,6 +1530,7 @@ document.getElementById('adminBtn').onclick = async () => {
         showAlert("パスワードが違います");
         return;
       }
+      await saveLog("admin_login_success");
       await showAdminMenu();
       return;
     }
@@ -1678,35 +1544,54 @@ document.getElementById('adminBtn').onclick = async () => {
     showLoading("処理中...");
     try {
       if (action === "single") {
-        if (threadId) await deleteDoc(doc(db, currentRoom, threadId));
+        if (threadId) {
+          await deleteDoc(doc(db, currentRoom, threadId));
+          await saveLog("admin_delete_thread", { targetThreadId: threadId });
+        }
       } else if (action === "post") {
-        if (threadId && postId) await deleteDoc(doc(db, currentRoom, threadId, "posts", postId));
+        if (threadId && postId) {
+          await deleteDoc(doc(db, currentRoom, threadId, "posts", postId));
+          await saveLog("admin_delete_post", { targetThreadId: threadId, targetPostId: postId });
+        }
       } else if (action === "lock") {
         if (threadId) {
           const reason = window.prompt("ロックの理由を入力してください（空欄の場合はデフォルトの文章になります）");
           await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "" });
+          await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" });
         }
       } else if (action === "unlock") {
-        if (threadId) await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "" });
+        if (threadId) {
+          await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "" });
+          await saveLog("admin_unlock_thread", { targetThreadId: threadId });
+        }
       } else if (action === "pin") {
-        if (threadId) await updateDoc(doc(db, currentRoom, threadId), { pinned: true });
+        if (threadId) {
+          await updateDoc(doc(db, currentRoom, threadId), { pinned: true });
+          await saveLog("admin_pin_thread", { targetThreadId: threadId });
+        }
       } else if (action === "unpin") {
-        if (threadId) await updateDoc(doc(db, currentRoom, threadId), { pinned: false });
+        if (threadId) {
+          await updateDoc(doc(db, currentRoom, threadId), { pinned: false });
+          await saveLog("admin_unpin_thread", { targetThreadId: threadId });
+        }
       } else if (action === "deleteRoom") {
         if (roomId) {
           await deleteDoc(doc(db, "rooms", roomId));
           const snap = await getDocs(collection(db, roomId));
           for (const d of snap.docs) await deleteDoc(doc(db, roomId, d.id));
+          await saveLog("admin_delete_room", { targetRoomId: roomId });
           if (roomId === currentRoom) switchRoom("threads");
         }
       } else if (action === "ipBan") {
         const ip = ipInput.value.trim();
         if (!ip) { showAlert("BANするIPを入力してください"); return; }
         await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now() });
+        await saveLog("admin_ip_ban", { targetIp: ip });
       } else if (action === "ipUnban") {
         const ip = bannedIpSelect.value;
         if (!ip) { showAlert("解除するIPを選択してください"); return; }
         await deleteDoc(doc(db, "ipBans", ip));
+        await saveLog("admin_ip_unban", { targetIp: ip });
       }
       closePopup();
       hideLoading();
@@ -1718,12 +1603,12 @@ document.getElementById('adminBtn').onclick = async () => {
 };
 
 document.getElementById('closePopupBtn').onclick=closePopup;
-// ===== 部屋切り替え =====
+
+// 部屋切り替え
 function switchRoom(roomName){
   currentRoom = roomName;
   pageByRoom[currentRoom] = 1;
-isAllLoaded = false;
-
+  isAllLoaded = false;
   threadsData = [];
   
   if(postsUnsub) postsUnsub();
@@ -1734,20 +1619,17 @@ isAllLoaded = false;
   overlay.style.display = "none";
 
   listenThreads();
-const roomNames = {
-  threads: "通常ボード",
-  chat: "雑談",
-  apple: "アップル製品",
-  question: "質問"
-};
+  const roomNames = {
+    threads: "通常ボード",
+    chat: "雑談",
+    apple: "アップル製品",
+    question: "質問"
+  };
 
-document.getElementById("currentRoomLabel").textContent =
-  "現在の部屋：" + (roomNames[roomName] || roomName);
-
+  document.getElementById("currentRoomLabel").textContent =
+    "現在の部屋：" + (roomNames[roomName] || roomName);
 }
-// ★ここが修正箇所： 重複していたコードを削除しました
 
-// 右上ボタン
 document.getElementById("roomSelectBtn").onclick = async () => {
   document.getElementById("roomPopup").style.display = "block";
   overlay.style.display = "block";
@@ -1764,26 +1646,23 @@ document.getElementById("roomSelectBtn").onclick = async () => {
   });
 };
 
-// 上位3部屋
 document.querySelectorAll(".roomBtn").forEach(btn=>{
   btn.onclick = () => switchRoom(btn.dataset.room);
 });
 
-// プルダウン
 document.getElementById("roomSelectDropdown").onchange = e=>{
   if(e.target.value) switchRoom(e.target.value);
 };
 
-// 新規部屋
 document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
   const name=document.getElementById("newRoomInput").value.trim();
   if(!name) return alert("部屋名を入力してください");
 
   await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now() });
+  await saveLog("create_room", { roomName: name });
   switchRoom(name);
 };
 
-// 閉じる
 document.getElementById("closeRoomPopup").onclick = ()=>{
   document.getElementById("roomPopup").style.display="none";
   overlay.style.display="none";
@@ -1792,14 +1671,13 @@ document.getElementById("closeRoomPopup").onclick = ()=>{
 setSectionsHeight();
 listenThreads();
 stopIfBanned();
+
 async function openThreadFromURL() {
   const params = new URLSearchParams(location.search);
-
   const room = params.get("room");
   const threadId = params.get("thread");
 
   if (!threadId) return;
-
   if (room) currentRoom = room;
 
   const threadDoc = await getDoc(doc(db, currentRoom, threadId));
@@ -1811,6 +1689,7 @@ async function openThreadFromURL() {
 
 openThreadFromURL();
 document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value || "new"; applySort(); renderThreadsPage(); });
+
 function loadAllThreads(){
   if (isAllLoaded) return;
 
@@ -1838,8 +1717,6 @@ function loadAllThreads(){
   });
 }
 
-// --- 同接数管理（1人1カウント修正版） ---
-// リロードしても同じIDを維持するようにsessionStorageを使用
 let mySessionId = sessionStorage.getItem('sessionId');
 if (!mySessionId) {
   mySessionId = Math.random().toString(36).slice(2);
@@ -1856,7 +1733,6 @@ async function heartbeat() {
   } catch (e) { console.error("Heartbeat error:", e); }
 }
 
-// ページを閉じる・リロードする瞬間にデータを削除して重複を防ぐ
 window.addEventListener('beforeunload', () => {
   deleteDoc(onlineRef);
 });
@@ -1873,18 +1749,15 @@ onSnapshot(collection(db, "online"), snap => {
     if (!data || !data.t) return;
     const ts = data.t.toMillis ? data.t.toMillis() : new Date(data.t).getTime();
     
-    // 45秒以上更新がないデータは除外
     if (now - ts < 45000) {
       activeNames.push(data.name || "名称未設定");
     } else {
-      // 放置された古いデータをクリーンアップ
       deleteDoc(doc(db, "online", d.id));
     }
   });
 
   const displayBtn = document.getElementById("onlineCount");
   if (displayBtn) {
-    // 【重要】Setを使って名前の重複を排除し、純粋な人数を出す
     const uniqueUsers = [...new Set(activeNames)];
     displayBtn.textContent = `同接人数: ${uniqueUsers.length}人`;
     window.currentOnlineUsers = uniqueUsers;
@@ -1899,39 +1772,27 @@ document.getElementById("onlineCount").onclick = () => {
   alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n"));
 };
 
-
-
-
-// … ボタン → いつもの投稿ポップアップ
-// --- ここから追加：定型文メニューの動作 ---
 const quickMenuBtn = document.getElementById("quickMenuBtn");
 const quickMenuContent = document.getElementById("quickMenuContent");
 const quickPostInput = document.getElementById("quickPostInput");
 
-// 「···」ボタンでメニュー開閉
 quickMenuBtn.onclick = (e) => {
   e.stopPropagation();
   const isShow = quickMenuContent.style.display === "block";
   quickMenuContent.style.display = isShow ? "none" : "block";
 };
 
-// 画面クリックで閉じる
 document.addEventListener("click", () => {
   quickMenuContent.style.display = "none";
 });
 
-// 文字を選んだら入力欄に入れる
-
-// 定型文をクリックしたら、即座に送信する
 document.querySelectorAll(".quickItem").forEach(item => {
   item.onclick = () => {
-    quickPostInput.value = item.textContent; // 文字をセット
-    quickMenuContent.style.display = "none"; // メニューを閉じる
-    document.getElementById("quickSendBtn").click(); // ★送信ボタンを勝手に押す！
+    quickPostInput.value = item.textContent;
+    quickMenuContent.style.display = "none";
+    document.getElementById("quickSendBtn").click();
   };
 });
-
-// --- ここまで追加 ---
 
 // クイック送信（LINE風）
 document.getElementById("quickSendBtn").onclick = async () => {
@@ -1940,10 +1801,10 @@ document.getElementById("quickSendBtn").onclick = async () => {
   const input = document.getElementById("quickPostInput");
   const text = input.value.trim();
   if (!text) return;
-if (containsNGWord(text)) {
-  showAlert("本文に使えない言葉が含まれています");
-  return;
-}
+  if (containsNGWord(text)) {
+    showAlert("本文に使えない言葉が含まれています");
+    return;
+  }
   showLoading("投稿中...");
 
   try {
@@ -1952,8 +1813,9 @@ if (containsNGWord(text)) {
       collection(db, currentRoom, currentThreadId, "posts")
     );
     index = snap.size + 1;
-let iconId = getCookie("iconId");
-    await addDoc(
+    let iconId = getCookie("iconId");
+    
+    const newPost = await addDoc(
       collection(db, currentRoom, currentThreadId, "posts"),
       {
         memberId: nickName,
@@ -1967,15 +1829,14 @@ let iconId = getCookie("iconId");
         ...getBoardWriteMeta()
       }
     );
-    // 通知を送る (正しく括弧を閉じる)
 
-    // ここから下の処理（Firebaseの更新など）が続く
-
-// ★ 通知を送る
     await updateDoc(doc(db, currentRoom, currentThreadId), {
       postCount: increment(1),
       latestPostTime: serverTimestamp()
     });
+
+    // ログ保存
+    await saveLog("quick_send_post", { threadId: currentThreadId, postId: newPost.id, index: index, textSnippet: text.slice(0, 20) });
 
     input.value = "";
     hideLoading();
@@ -1986,9 +1847,6 @@ let iconId = getCookie("iconId");
       : "送信に失敗しました");
   }
 };
-// ===== ガチAI返信（試験用・HTML直書き）=====
-
-
 </script>
 </body>
 </html>
