@@ -535,9 +535,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// エラー時の統一メッセージ（HTML形式）
-const FAIL_MSG = '送信に失敗しました 詳細<a href="https://google.com" target="_blank" style="color:#3498db;text-decoration:underline;">はこちら</a>';
-
 // ===== ログ保存関数 (Firestore logs コレクション) =====
 async function saveLog(action, detail = {}) {
   try {
@@ -635,13 +632,11 @@ document.addEventListener("click", (e) => {
 
 const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
-const SECRET_KEY = "sinzo_secret"; // Firebaseルールと照らし合わせる合言葉
 
 function getBoardWriteMeta() {
   return {
     appId: SINZO_BOARD_APP_ID,
-    writeVersion: SINZO_BOARD_WRITE_VERSION,
-    secretKey: SECRET_KEY
+    writeVersion: SINZO_BOARD_WRITE_VERSION
   };
 }
 
@@ -819,11 +814,7 @@ window.addEventListener('resize',setSectionsHeight);
 window.addEventListener('orientationchange',setSectionsHeight);
 
 function hideLoading(){ document.getElementById('loadingPopup').style.display='none'; }
-function showAlert(msg){ 
-  document.getElementById('loadingText').innerHTML=msg; 
-  document.getElementById('loadingOkBtn').style.display='inline-block'; 
-  document.getElementById('loadingPopup').style.display='block'; 
-}
+function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
 document.getElementById('loadingOkBtn').onclick = hideLoading;
 
 function showTopNotification(text) {
@@ -1354,7 +1345,7 @@ async function loadPosts(threadId) {
           <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
             <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
             ${renderBadge(data)}
-            ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#8e44ad;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">スレ主</span>` : ""}
+            ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
             ${iconHtml}
             <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
           </small>
@@ -1472,6 +1463,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
     const title=document.getElementById('threadTitleInput').value.trim();
     const detail=document.getElementById('threadDetailInput').value.trim();
 
+    // ▼スレッド名が5文字未満の場合のエラーチェック追加
     if(!title){ showAlert("タイトルを入力してください"); return; }
     if(title.length < 5){ showAlert("スレッド名は5文字以上で入力してください"); return; }
 
@@ -1485,6 +1477,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(isFormSending) return;
     isFormSending = true;
 
+    // --- 【体感0秒処理】ポップアップを即座に閉じ、スレッド一覧の先頭に追加 ---
     closePopup();
 
     const threadList = document.getElementById('threadList');
@@ -1498,6 +1491,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
     `;
     threadList.insertBefore(tempLi, threadList.firstChild);
 
+    // --- バックグラウンド処理 ---
     (async () => {
       try{
         const newDoc = await addDoc(collection(db, currentRoom) ,{
@@ -1527,7 +1521,9 @@ document.getElementById('createThreadBtn').onclick=()=>{
         await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
       }catch(e){
         console.error(e);
-        showAlert(FAIL_MSG);
+        showAlert(isOldBoardHtmlError(e)
+          ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。"
+          : "作成に失敗しました");
         tempLi.remove();
       } finally {
         isFormSending = false;
@@ -1570,6 +1566,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
     if(isFormSending) return;
     isFormSending = true;
 
+    // --- 【体感0秒処理】ポップアップを閉じ即座に画面反映 ---
     closePopup(); 
     
     const postList = document.getElementById("postList");
@@ -1589,6 +1586,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
     postList.appendChild(tempLi);
     tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
+    // --- バックグラウンド送信 ---
     (async () => {
       try{
         const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
@@ -1608,7 +1606,9 @@ document.getElementById('createPostBtn').onclick=async()=>{
         });
       }catch(e){
         console.error(e);
-        showAlert(FAIL_MSG);
+        showAlert(isOldBoardHtmlError(e)
+          ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
+          : "投稿に失敗しました");
         tempLi.remove();
       } finally {
         isFormSending = false;
@@ -2047,15 +2047,16 @@ document.getElementById("quickSendBtn").onclick = async () => {
   }
   
   isQuickSending = true;
-  input.value = "";
+  input.value = ""; // 入力欄を即時リセット
 
+  // --- 【体感0秒処理】画面に即時反映 ---
   const postList = document.getElementById("postList");
   let index = postList.children.length + 1; 
   let iconId = getCookie("iconId");
 
   const tempLi = document.createElement("li");
   tempLi.style.backgroundColor = "#3498db";
-  tempLi.style.opacity = "0.6";
+  tempLi.style.opacity = "0.6"; // 送信中表現
   tempLi.innerHTML = `
     <span>${convertText(text)}</span>
     <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
@@ -2066,6 +2067,7 @@ document.getElementById("quickSendBtn").onclick = async () => {
   postList.appendChild(tempLi);
   tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
+  // --- バックグラウンド送信 ---
   (async () => {
     try {
       const newPost = await addDoc(
@@ -2097,7 +2099,9 @@ document.getElementById("quickSendBtn").onclick = async () => {
       });
     } catch (e) {
       console.error(e);
-      showAlert(FAIL_MSG);
+      showAlert(isOldBoardHtmlError(e)
+        ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
+        : "送信に失敗しました");
       tempLi.remove();
     } finally {
       isQuickSending = false;
