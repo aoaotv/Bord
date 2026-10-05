@@ -230,7 +230,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const ADMIN_PASS = "1234";
+const ADMIN_PASS = "2059";
 let logUnsub = null;
 
 // 日付のフォーマット変換（例：2026/10/05 10:43:00）
@@ -251,6 +251,24 @@ function getActionInfo(action) {
       return { text: "クイック投稿", class: "act-quick_send_post" };
     case "report_content":
       return { text: "通報通知", class: "act-report_content" };
+      
+    // ▼ 管理者操作をすべてここに追加 ▼
+    case "admin_delete_thread":
+      return { text: "スレッド削除(管理者)", class: "act-admin" };
+    case "admin_delete_post":
+      return { text: "投稿削除(管理者)", class: "act-admin" };
+    case "admin_lock_thread":
+      return { text: "スレッドロック(管理者)", class: "act-admin" };
+    case "admin_unlock_thread":
+      return { text: "ロック解除(管理者)", class: "act-admin" };
+    case "admin_ban_user":
+      return { text: "アクセス禁止(管理者)", class: "act-admin" };
+    case "admin_unban_user":
+      return { text: "禁止解除(管理者)", class: "act-admin" };
+    case "admin_hide_post":
+      return { text: "投稿非表示(管理者)", class: "act-admin" };
+    // ▲ 追加ここまで ▲
+
     default:
       if (action && action.startsWith("admin_")) {
         return { text: "管理者操作", class: "act-admin" };
@@ -267,17 +285,27 @@ function renderJapaneseDetail(detail) {
 
   // 英語のキー（英単語）に対応する日本語のラベル定義
   // 英語のキー（英単語）に対応する日本語のラベル定義
+  // 英語のキー（英単語）に対応する日本語のラベル定義
   const labelMap = {
     "index": "番号",
     "textSnippet": "投稿の本文",
     "text": "投稿本文",
     "title": "タイトル",
     "threadId": "スレッドID",
-    "threadTitle": "スレッド名",         // ← 追加
-    "targetThreadTitle": "スレッド名",   // ← 追加
+    "threadTitle": "スレッド名",
+    "targetThreadId": "対象スレッドID",
+    "targetThreadTitle": "スレッド名",
+    
+    // ▼ 管理者操作用に追加 ▼
     "postId": "投稿ID",
+    "targetPostId": "対象投稿ID",
+    "userId": "ユーザーID",
+    "targetUserId": "対象ユーザーID",
+    "bannedIp": "制限したIP",
+    // ▲ 追加ここまで ▲
+    
     "hasImage": "画像の有無",
-    "reason": "ロックの理由",
+    "reason": "理由",          // 「ロックの理由」から汎用的な「理由」に変更
     "target": "対象データ",
     "type": "種別"
   };
