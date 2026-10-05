@@ -230,7 +230,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const ADMIN_PASS = "2059";
+const ADMIN_PASS = "2099";
 let logUnsub = null;
 
 // 日付のフォーマット変換（例：2026/10/05 10:43:00）
@@ -267,14 +267,14 @@ function renderJapaneseDetail(detail) {
 
   // 英語のキー（英単語）に対応する日本語のラベル定義
   const labelMap = {
-    "index": "番号・順番",
-    "textSnippet": "投稿の本文（要約）",
+    "index": "番号",
+    "textSnippet": "投稿の本文",
     "text": "投稿本文",
     "title": "タイトル",
     "threadId": "スレッドID",
     "postId": "投稿ID",
     "hasImage": "画像の有無",
-    "reason": "通報・操作の理由",
+    "reason": "ロックの理由",
     "target": "対象データ",
     "type": "種別"
   };
