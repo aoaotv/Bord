@@ -556,7 +556,7 @@ let currentThreadHasPassword = false;
 let currentThreadTitle = "";
 let currentThreadCreatorName = "";
 
-function enableLongPressInfo(element, infoText, reportData) {
+function enableLongPressInfo(element, infoText) {
   let pressTimer;
 
   const start = () => {
@@ -576,24 +576,12 @@ function enableLongPressInfo(element, infoText, reportData) {
       dialog.innerHTML = `
 ${infoText}
 
-<button id="reportBtn" style="background:#e74c3c;color:white;padding:6px 12px;border-radius:8px;margin-right:12px;">報告する</button>
 <button id="closeBtn" style="background:#3498db;color:white;padding:6px 12px;border-radius:8px;">閉じる</button>
 `;
 
       document.body.appendChild(dialog);
 
       dialog.querySelector("#closeBtn").onclick = () => dialog.remove();
-
-      dialog.querySelector("#reportBtn").onclick = async () => {
-        await addDoc(collection(db, "reports"), {
-          ...reportData,
-          reported_at: Timestamp.now()
-        });
-        await saveLog("report_content", reportData);
-        alert("通報を受け付けました");
-        dialog.remove();
-      };
-
     }, 3000);
   };
 
@@ -1020,15 +1008,7 @@ function renderThreadsPage(){
 
     enableLongPressInfo(
       li,
-      `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`,
-      {
-        type: "thread",
-        threadId: docItem.id,
-        created_at: data.created_at,
-        postCount,
-        color: data.color,
-        ip: data.ip || data.created_ip || null
-      }
+      `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`
     );
 
     likeBtn.addEventListener("click", async (e) => {
@@ -1356,14 +1336,7 @@ async function loadPosts(threadId) {
 
         enableLongPressInfo(
           li,
-          `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`,
-          {
-            type: "post",
-            postId: docItem.id,
-            threadId,
-            created_at: data.created_at,
-            ip: data.ip || null
-          }
+          `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`
         );
 
         fragment.appendChild(li);
