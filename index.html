@@ -341,7 +341,6 @@ textarea {
     <small id="threadCreator"></small>
   </div>
   
-  <!-- 追加：目次用コンテナ -->
   <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;"></div>
   
   <div id="lineInputBar">
@@ -645,11 +644,14 @@ function isOldBoardHtmlError(error) {
   return error?.code === "permission-denied";
 }
 
+let cachedIP = null;
 async function getClientIP(){
+  if (cachedIP) return cachedIP;
   try{
     const res = await fetch("https://api.ipify.org?format=json");
     const data = await res.json();
-    return data.ip || "unknown";
+    cachedIP = data.ip || "unknown";
+    return cachedIP;
   }catch(e){
     console.warn("IP取得失敗:", e);
     return "unknown";
@@ -815,7 +817,6 @@ function hideLoading(){ document.getElementById('loadingPopup').style.display='n
 function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
 document.getElementById('loadingOkBtn').onclick = hideLoading;
 
-// ポップアップ通知用関数
 function showTopNotification(text) {
   const notif = document.getElementById("topNotification");
   notif.textContent = text;
@@ -940,7 +941,7 @@ function isTrendingThread(data) {
 
 function renderThreadsPage(){
   const threadListSection = document.getElementById('threadListSection');
-  const scrollTop = threadListSection.scrollTop; // 更新前のスクロール位置を保存
+  const scrollTop = threadListSection.scrollTop;
 
   const threadList=document.getElementById('threadList');
   threadList.innerHTML="";
@@ -948,7 +949,7 @@ function renderThreadsPage(){
   const pageThreads=threadsData.slice(start,start+pageSize);
   if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
   
-  const now = Date.now(); // 現在時刻を取得
+  const now = Date.now();
 
   pageThreads.forEach(docItem=>{
     const data=docItem.data();
@@ -956,7 +957,6 @@ function renderThreadsPage(){
     const li=document.createElement("li");
     li.style.backgroundColor = data.color || "#3498db";
 
-    // --- 追加：作成から10秒以内の場合のみアニメーションクラスを付与 ---
     const createdAt = data.created_at?.toMillis ? data.created_at.toMillis() : new Date(data.created_at || 0).getTime();
     if (now - createdAt < 10000) { 
       li.classList.add("new-thread-animation");
@@ -1036,7 +1036,6 @@ function renderThreadsPage(){
         const nextLikes = (data.likes || 0) + 1;
         await updateDoc(doc(db, currentRoom, docItem.id), { likes: nextLikes });
 
-        // 評価では一覧を再描画しない。これで「一瞬トップ→元ページ」のちらつきを防ぐ。
         data.likes = nextLikes;
         const countEl = likeBtn.querySelector(".threadRateCount");
         if (countEl) countEl.textContent = nextLikes;
@@ -1054,7 +1053,6 @@ function renderThreadsPage(){
         const nextDislikes = (data.dislikes || 0) + 1;
         await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: nextDislikes });
 
-        // 評価では一覧を再描画しない。ページ位置をそのまま維持する。
         data.dislikes = nextDislikes;
         const countEl = dislikeBtn.querySelector(".threadRateCount");
         if (countEl) countEl.textContent = nextDislikes;
@@ -1076,7 +1074,6 @@ function renderThreadsPage(){
     btn.className = "pageBtn";
     btn.onclick = loadAllThreads;
     pagination.appendChild(btn);
-    // スクロール位置を復元して終了
     threadListSection.scrollTop = scrollTop;
     return;
   }
@@ -1094,7 +1091,6 @@ function renderThreadsPage(){
     pagination.appendChild(btn);
   }
 
-  // --- 追加：スクロール位置を復元 ---
   threadListSection.scrollTop = scrollTop; 
 }
 
@@ -1105,7 +1101,6 @@ async function listenThreads(){
 
   const searchInput = document.getElementById("threadSearchInput");
 
-  // ===== 通常のスレッド読み込み（＋ピン留め独立取得） =====
   const listenNormal = () => {
     if (threadsUnsub) threadsUnsub();
     if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
@@ -1114,20 +1109,18 @@ async function listenThreads(){
     let normalThreads = [];
     let pinnedThreads = [];
 
-    // 両方のリスナーの結果を合体させてからソート＆描画する関数
     const mergeAndRender = () => {
       const map = new Map();
       normalThreads.forEach(t => map.set(t.id, t));
-      pinnedThreads.forEach(t => map.set(t.id, t)); // ピン留めが優先して重複を上書き
+      pinnedThreads.forEach(t => map.set(t.id, t));
       
       threadsData = Array.from(map.values());
       isAllLoaded = false;
-      applySort(); // applySortによって、ピン留めスレッドが必ず配列の先頭に来る
+      applySort();
       renderThreadsPage();
       hideLoading();
     };
 
-    // 1. 最新の通常スレッド（15件まで）
     const qNormal = query(
       collection(db, currentRoom),
       orderBy("created_at", "desc"),
@@ -1152,7 +1145,6 @@ async function listenThreads(){
       mergeAndRender();
     });
 
-    // 2. ピン留めされているスレッド（古くても全て）
     const qPinned = query(
       collection(db, currentRoom),
       where("pinned", "==", true)
@@ -1167,7 +1159,6 @@ async function listenThreads(){
     });
   };
 
-  // ===== 検索時の部分一致読み込み =====
   const listenSearch = (word) => {
     if (threadsUnsub) threadsUnsub();
     if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
@@ -1183,7 +1174,6 @@ async function listenThreads(){
         data: () => d.data()
       }));
 
-      // 部分一致での絞り込み
       threadsData = allDocs.filter(item => {
         const title = item.data().title || "";
         return title.includes(word);
@@ -1355,7 +1345,7 @@ async function loadPosts(threadId) {
           <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
             <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
             ${renderBadge(data)}
-            ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background: #003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
+            ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#8e44ad;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">スレ主</span>` : ""}
             ${iconHtml}
             <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
           </small>
@@ -1378,7 +1368,6 @@ async function loadPosts(threadId) {
 
       postList.replaceChildren(fragment);
 
-      // --- 追加：目次と最新ボタンの生成処理 ---
       const tocContainer = document.getElementById("threadToc");
       if(tocContainer) {
         tocContainer.innerHTML = "";
@@ -1386,7 +1375,6 @@ async function loadPosts(threadId) {
 
         const totalPosts = docs.length;
         
-        // 10単位のボタンを作成
         for (let i = 0; i < totalPosts; i += 10) {
           const start = i + 1;
           const end = Math.min(i + 10, totalPosts);
@@ -1401,11 +1389,10 @@ async function loadPosts(threadId) {
           tocContainer.appendChild(btn);
         }
 
-        // 最新の投稿へボタンを作成
         if (totalPosts > 0) {
           const latestBtn = document.createElement("button");
           latestBtn.className = "pageBtn";
-          latestBtn.style.backgroundColor = "#e74c3c"; // 赤色で目立たせる
+          latestBtn.style.backgroundColor = "#e74c3c";
           latestBtn.textContent = "最新の投稿";
           latestBtn.onclick = () => {
             const lastTarget = docs[totalPosts - 1].data().index || docs[totalPosts - 1].id;
@@ -1415,7 +1402,6 @@ async function loadPosts(threadId) {
           tocContainer.appendChild(latestBtn);
         }
       }
-      // ------------------------------------
 
       hideLoading();
     } catch (e) {
@@ -1439,18 +1425,19 @@ document.getElementById('closeThreadBtn').onclick=()=>{
   threadDetailSection.style.display='none';
   threadListSection.style.display='block';
 
-  // --- 追加：スレッドを閉じた時に目次をリセットして非表示にする ---
   const tocContainer = document.getElementById("threadToc");
   if(tocContainer) {
     tocContainer.innerHTML = "";
     tocContainer.style.display = "none";
   }
-  // -------------------------------------------------------------
 };
 
+let isFormSending = false;
 
-// 新規スレッド作成
+// 新規スレッド作成（体感0秒 UI）
 document.getElementById('createThreadBtn').onclick=()=>{
+  isFormSending = false;
+  document.getElementById('submitBtn').disabled = false;
   showForm('threadFields');
   document.getElementById('popupTitle').textContent="新規スレッド作成";
   document.getElementById('submitBtn').onclick=async()=>{
@@ -1484,51 +1471,68 @@ document.getElementById('createThreadBtn').onclick=()=>{
     const color=document.getElementById('threadColorInput').value;
 
     if(!title){ showAlert("タイトルを入力してください"); return; }
-    showLoading("スレッド作成中...");
-    try{
-      // スレッド本体の作成（最初から1件投稿されるので postCount を 1 に設定）
-      const newDoc = await addDoc(collection(db, currentRoom) ,{
-        memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
-        postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
-        ...getBoardWriteMeta()
-      });
+    if(isFormSending) return;
+    isFormSending = true;
 
-      // --- 追加：スレッド作成時に「1件目の投稿」として詳細を自動投稿 ---
-      let firstPostBody = `【${title}】`;
-      if (detail) {
-        firstPostBody += `\n${detail}`;
+    // --- 【体感0秒処理】ポップアップを即座に閉じ、スレッド一覧の先頭に追加 ---
+    closePopup();
+
+    const threadList = document.getElementById('threadList');
+    const tempLi = document.createElement("li");
+    tempLi.style.backgroundColor = color || "#3498db";
+    tempLi.style.opacity = "0.6";
+    tempLi.innerHTML = `
+      <div><strong>${title} (送信中...)</strong></div>
+      <small>投稿数: 1</small>
+      <small>${detail || ''}</small>
+    `;
+    threadList.insertBefore(tempLi, threadList.firstChild);
+
+    // --- バックグラウンド処理 ---
+    (async () => {
+      try{
+        const newDoc = await addDoc(collection(db, currentRoom) ,{
+          memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
+          postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
+          ...getBoardWriteMeta()
+        });
+
+        let firstPostBody = `【${title}】`;
+        if (detail) {
+          firstPostBody += `\n${detail}`;
+        }
+        
+        await addDoc(collection(db, currentRoom, newDoc.id, "posts"), {
+          memberId: nickName,
+          icon: iconId || null,
+          body: firstPostBody,
+          image: imageBase64,
+          color: color,
+          created_at: Timestamp.now(),
+          ip: clientIP,
+          index: 1,
+          ...getPostBadgeData(),
+          ...getBoardWriteMeta()
+        });
+
+        await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
+      }catch(e){
+        console.error(e);
+        showAlert(isOldBoardHtmlError(e)
+          ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。"
+          : "作成に失敗しました");
+        tempLi.remove();
+      } finally {
+        isFormSending = false;
       }
-      
-      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), {
-        memberId: nickName,
-        icon: iconId || null,
-        body: firstPostBody,
-        image: imageBase64,
-        color: color,
-        created_at: Timestamp.now(),
-        ip: clientIP,
-        index: 1,
-        ...getPostBadgeData(),
-        ...getBoardWriteMeta()
-      });
-      // -----------------------------------------------------------------
-
-      // ログ保存
-      await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
-
-      closePopup(); hideLoading();
-    }catch(e){
-      console.error(e);
-      showAlert(isOldBoardHtmlError(e)
-        ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。"
-        : "作成に失敗しました");
-    }
+    })();
   };
 };
 
-
-// 投稿作成
+// 通常投稿作成（体感0秒 UI）
 document.getElementById('createPostBtn').onclick=async()=>{
+  isFormSending = false;
+  document.getElementById('submitBtn').disabled = false;
   showForm('postFields');
   document.getElementById('popupTitle').textContent="投稿作成";
   document.getElementById('submitBtn').onclick=async()=>{
@@ -1556,36 +1560,57 @@ document.getElementById('createPostBtn').onclick=async()=>{
     const color=document.getElementById('postColorInput').value;
 
     if(!body && !imageBase64){ showAlert("本文または画像を入力してください"); return; }
+    if(isFormSending) return;
+    isFormSending = true;
 
-    let index=1;
-    try{ const snap=await getDocs(collection(db,currentRoom,currentThreadId,"posts")); index=snap.size+1; }catch(e){ index=1; }
+    // --- 【体感0秒処理】ポップアップを閉じ即座に画面反映 ---
+    closePopup(); 
+    
+    const postList = document.getElementById("postList");
+    let index = postList.children.length + 1;
 
-    showLoading("投稿中...");
-    try{
-      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+    const tempLi = document.createElement("li");
+    tempLi.style.backgroundColor = color || "#3498db";
+    tempLi.style.opacity = "0.6"; 
+    tempLi.innerHTML = `
+      <span>${convertText(body || "")}</span>
+      ${imageBase64 ? `<div style="margin-top:6px; font-size:12px;">(画像送信中...)</div>` : ""}
+      <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
+        <strong style="margin-right:6px;">#${index}</strong>
+        <span style="margin-left:0;">${nickName} / 送信中...</span>
+      </small>
+    `;
+    postList.appendChild(tempLi);
+    tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
-      await updateDoc(doc(db, currentRoom, currentThreadId), {
-        postCount: increment(1),
-        latestPostTime: serverTimestamp()
-      });
+    // --- バックグラウンド送信 ---
+    (async () => {
+      try{
+        const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
 
-      await saveLog("create_post", { 
-        threadId: currentThreadId, 
-        threadTitle: currentThreadTitle,
-        postId: newPost.id, 
-        index: index, 
-        text: body,
-        hasImage: !!imageBase64 
-      });
+        await updateDoc(doc(db, currentRoom, currentThreadId), {
+          postCount: increment(1),
+          latestPostTime: serverTimestamp()
+        });
 
-      closePopup();
-      hideLoading();
-    }catch(e){
-      console.error(e);
-      showAlert(isOldBoardHtmlError(e)
-        ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
-        : "投稿に失敗しました");
-    }
+        await saveLog("create_post", { 
+          threadId: currentThreadId, 
+          threadTitle: currentThreadTitle,
+          postId: newPost.id, 
+          index: index, 
+          text: body,
+          hasImage: !!imageBase64 
+        });
+      }catch(e){
+        console.error(e);
+        showAlert(isOldBoardHtmlError(e)
+          ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
+          : "投稿に失敗しました");
+        tempLi.remove();
+      } finally {
+        isFormSending = false;
+      }
+    })();
   };
 };
 
@@ -2004,8 +2029,10 @@ document.querySelectorAll(".quickItem").forEach(item => {
   };
 });
 
-// クイック送信（LINE風）
+// クイック送信（体感0秒 UI）
+let isQuickSending = false;
 document.getElementById("quickSendBtn").onclick = async () => {
+  if (isQuickSending) return;
   if(await stopIfBanned()) return;
   const clientIP = await getClientIP();
   const input = document.getElementById("quickPostInput");
@@ -2015,52 +2042,68 @@ document.getElementById("quickSendBtn").onclick = async () => {
     showAlert("本文に使えない言葉が含まれています");
     return;
   }
-  showLoading("投稿中...");
+  
+  isQuickSending = true;
+  input.value = ""; // 入力欄を即時リセット
 
-  try {
-    let index = 1;
-    const snap = await getDocs(
-      collection(db, currentRoom, currentThreadId, "posts")
-    );
-    index = snap.size + 1;
-    let iconId = getCookie("iconId");
-    
-    const newPost = await addDoc(
-      collection(db, currentRoom, currentThreadId, "posts"),
-      {
-        memberId: nickName,
-        body: text,
-        color: "#3498db",
-        icon: iconId || null,
-        created_at: Timestamp.now(),
-        ip: clientIP,
-        index,
-        ...getPostBadgeData(),
-        ...getBoardWriteMeta()
-      }
-    );
+  // --- 【体感0秒処理】画面に即時反映 ---
+  const postList = document.getElementById("postList");
+  let index = postList.children.length + 1; 
+  let iconId = getCookie("iconId");
 
-    await updateDoc(doc(db, currentRoom, currentThreadId), {
-      postCount: increment(1),
-      latestPostTime: serverTimestamp()
-    });
+  const tempLi = document.createElement("li");
+  tempLi.style.backgroundColor = "#3498db";
+  tempLi.style.opacity = "0.6"; // 送信中表現
+  tempLi.innerHTML = `
+    <span>${convertText(text)}</span>
+    <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
+      <strong style="margin-right:6px;">#${index}</strong>
+      <span style="margin-left:0;">${nickName} / 送信中...</span>
+    </small>
+  `;
+  postList.appendChild(tempLi);
+  tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    await saveLog("quick_send_post", { 
-      threadId: currentThreadId, 
-      threadTitle: currentThreadTitle,
-      postId: newPost.id, 
-      index: index, 
-      text: text
-    });
+  // --- バックグラウンド送信 ---
+  (async () => {
+    try {
+      const newPost = await addDoc(
+        collection(db, currentRoom, currentThreadId, "posts"),
+        {
+          memberId: nickName,
+          body: text,
+          color: "#3498db",
+          icon: iconId || null,
+          created_at: Timestamp.now(),
+          ip: clientIP,
+          index,
+          ...getPostBadgeData(),
+          ...getBoardWriteMeta()
+        }
+      );
 
-    input.value = "";
-    hideLoading();
-  } catch (e) {
-    console.error(e);
-    showAlert(isOldBoardHtmlError(e)
-      ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
-      : "送信に失敗しました");
-  }
+      await updateDoc(doc(db, currentRoom, currentThreadId), {
+        postCount: increment(1),
+        latestPostTime: serverTimestamp()
+      });
+
+      await saveLog("quick_send_post", { 
+        threadId: currentThreadId, 
+        threadTitle: currentThreadTitle,
+        postId: newPost.id, 
+        index: index, 
+        text: text
+      });
+    } catch (e) {
+      console.error(e);
+      showAlert(isOldBoardHtmlError(e)
+        ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
+        : "送信に失敗しました");
+      tempLi.remove();
+    } finally {
+      isQuickSending = false;
+    }
+  })();
 };
 </script>
 </body>
