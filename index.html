@@ -270,6 +270,7 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
 #topNotification {
   display: none;
   position: fixed;
@@ -288,10 +289,13 @@ textarea {
   white-space: nowrap;
   pointer-events: none;
 }
+
 </style>
 </head>
 <body>
+
 <div id="topNotification"></div>
+
 <a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
     <img src="logo.png" alt="bord" style="height:60px;">
@@ -744,6 +748,7 @@ let postsUnsub = null;
 let knownPostIds = new Set();
 
 let threadsUnsub = null;
+let pinnedUnsub = null; // ピン留め専用のリスナー
 let sortMode = "new";
 let currentRoom = "threads";
 let isAllLoaded = false;
@@ -796,14 +801,11 @@ function setSectionsHeight(){
 window.addEventListener('resize',setSectionsHeight); 
 window.addEventListener('orientationchange',setSectionsHeight);
 
-function showLoading(msg="読み込み中..."){ 
-  document.getElementById('loadingText').textContent=msg; 
-  document.getElementById('loadingOkBtn').style.display='none'; 
-  document.getElementById('loadingPopup').style.display='block'; 
-}
 function hideLoading(){ document.getElementById('loadingPopup').style.display='none'; }
 function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
 document.getElementById('loadingOkBtn').onclick = hideLoading;
+
+// ポップアップ通知用関数
 function showTopNotification(text) {
   const notif = document.getElementById("topNotification");
   notif.textContent = text;
@@ -816,6 +818,13 @@ function showTopNotification(text) {
     setTimeout(() => { notif.style.display = "none"; }, 400); 
   }, 3000);
 }
+
+function showLoading(msg="読み込み中..."){ 
+  document.getElementById('loadingText').textContent=msg; 
+  document.getElementById('loadingOkBtn').style.display='none'; 
+  document.getElementById('loadingPopup').style.display='block'; 
+}
+
 function clearFormFields(fieldId){
   if(fieldId==="threadFields"){
     document.getElementById('threadMemberId').value=nickName;
@@ -1050,22 +1059,41 @@ function renderThreadsPage(){
 
 async function listenThreads(){
   if (threadsUnsub) threadsUnsub();
+  if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
   showLoading("スレッドを読み込み中...");
 
   const searchInput = document.getElementById("threadSearchInput");
 
+  // ===== 通常のスレッド読み込み（＋ピン留め独立取得） =====
   const listenNormal = () => {
     if (threadsUnsub) threadsUnsub();
+    if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
 
     let isInitialLoad = true;
+    let normalThreads = [];
+    let pinnedThreads = [];
 
-    const q = query(
+    // 両方のリスナーの結果を合体させてからソート＆描画する関数
+    const mergeAndRender = () => {
+      const map = new Map();
+      normalThreads.forEach(t => map.set(t.id, t));
+      pinnedThreads.forEach(t => map.set(t.id, t)); // ピン留めが優先して重複を上書き
+      
+      threadsData = Array.from(map.values());
+      isAllLoaded = false;
+      applySort(); // applySortによって、ピン留めスレッドが必ず配列の先頭に来る
+      renderThreadsPage();
+      hideLoading();
+    };
+
+    // 1. 最新の通常スレッド（15件まで）
+    const qNormal = query(
       collection(db, currentRoom),
       orderBy("created_at", "desc"),
       limit(pageSize)
     );
 
-    threadsUnsub = onSnapshot(q, snap => {
+    threadsUnsub = onSnapshot(qNormal, snap => {
       if (!isInitialLoad) {
         snap.docChanges().forEach(change => {
           if (change.type === "added") {
@@ -1076,32 +1104,50 @@ async function listenThreads(){
       }
       isInitialLoad = false;
 
-      threadsData = snap.docs.map(d => ({
+      normalThreads = snap.docs.map(d => ({
         id: d.id,
         data: () => d.data()
       }));
-      isAllLoaded = false;
-      applySort();
-      renderThreadsPage();
-      hideLoading();
+      mergeAndRender();
+    });
+
+    // 2. ピン留めされているスレッド（古くても全て）
+    const qPinned = query(
+      collection(db, currentRoom),
+      where("pinned", "==", true)
+    );
+
+    pinnedUnsub = onSnapshot(qPinned, snap => {
+      pinnedThreads = snap.docs.map(d => ({
+        id: d.id,
+        data: () => d.data()
+      }));
+      mergeAndRender();
     });
   };
 
+  // ===== 検索時の部分一致読み込み =====
   const listenSearch = (word) => {
     if (threadsUnsub) threadsUnsub();
+    if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
 
     const q = query(
       collection(db, currentRoom),
-      orderBy("title"),
-      where("title", ">=", word),
-      where("title", "<=", word + "\uf8ff")
+      orderBy("created_at", "desc")
     );
 
     threadsUnsub = onSnapshot(q, snap => {
-      threadsData = snap.docs.map(d => ({
+      const allDocs = snap.docs.map(d => ({
         id: d.id,
         data: () => d.data()
       }));
+
+      // 部分一致での絞り込み
+      threadsData = allDocs.filter(item => {
+        const title = item.data().title || "";
+        return title.includes(word);
+      });
+
       isAllLoaded = true;
       pageByRoom[currentRoom] = 1;
       applySort();
@@ -1409,12 +1455,9 @@ document.getElementById('createPostBtn').onclick=async()=>{
         latestPostTime: serverTimestamp()
       });
 
-      // ログ保存
-      // ログ保存
-// ログ保存
       await saveLog("create_post", { 
         threadId: currentThreadId, 
-        threadTitle: currentThreadTitle, // ← 追加（操作したスレッド名）
+        threadTitle: currentThreadTitle,
         postId: newPost.id, 
         index: index, 
         text: body,
@@ -1585,11 +1628,9 @@ document.getElementById('adminBtn').onclick = async () => {
     try {
       if (action === "single") {
         if (threadId) {
-          // 選択中のプルダウンからスレッド名を取得（追加）
           const threadTitle = threadSelect.options[threadSelect.selectedIndex].textContent;
-          
           await deleteDoc(doc(db, currentRoom, threadId));
-          await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadTitle }); // targetThreadTitle を追加
+          await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadTitle });
         }
       } else if (action === "post") {
         if (threadId && postId) {
@@ -1739,6 +1780,7 @@ function loadAllThreads(){
   showLoading("すべてのスレッドを読み込み中...");
 
   if (threadsUnsub) threadsUnsub();
+  if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
 
   let isInitialLoadAll = true;
 
@@ -1890,12 +1932,9 @@ document.getElementById("quickSendBtn").onclick = async () => {
       latestPostTime: serverTimestamp()
     });
 
-    // ログ保存
-    // ログ保存
-// ログ保存
     await saveLog("quick_send_post", { 
       threadId: currentThreadId, 
-      threadTitle: currentThreadTitle, // ← 追加（操作したスレッド名）
+      threadTitle: currentThreadTitle,
       postId: newPost.id, 
       index: index, 
       text: text
