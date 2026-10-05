@@ -555,6 +555,7 @@ async function saveLog(action, detail = {}) {
 
 let currentThreadHasPassword = false;
 let currentThreadTitle = "";
+let currentThreadCreatorName = "";
 
 function enableLongPressInfo(element, infoText, reportData) {
   let pressTimer;
@@ -1032,7 +1033,14 @@ function renderThreadsPage(){
       const rated = getRateCookie(docItem.id);
       if (rated) { showAlert("すでに押されています"); return; }
       try {
-        await updateDoc(doc(db, currentRoom, docItem.id), { likes: (data.likes || 0) + 1 });
+        const nextLikes = (data.likes || 0) + 1;
+        await updateDoc(doc(db, currentRoom, docItem.id), { likes: nextLikes });
+
+        // 評価では一覧を再描画しない。これで「一瞬トップ→元ページ」のちらつきを防ぐ。
+        data.likes = nextLikes;
+        const countEl = likeBtn.querySelector(".threadRateCount");
+        if (countEl) countEl.textContent = nextLikes;
+
         setRateCookie(docItem.id, "like");
         await saveLog("rate_thread", { threadId: docItem.id, type: "like" });
       } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
@@ -1043,7 +1051,14 @@ function renderThreadsPage(){
       const rated = getRateCookie(docItem.id);
       if (rated) { showAlert("すでに押されています"); return; }
       try {
-        await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: (data.dislikes || 0) + 1 });
+        const nextDislikes = (data.dislikes || 0) + 1;
+        await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: nextDislikes });
+
+        // 評価では一覧を再描画しない。ページ位置をそのまま維持する。
+        data.dislikes = nextDislikes;
+        const countEl = dislikeBtn.querySelector(".threadRateCount");
+        if (countEl) countEl.textContent = nextDislikes;
+
         setRateCookie(docItem.id, "dislike");
         await saveLog("rate_thread", { threadId: docItem.id, type: "dislike" });
       } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
@@ -1269,6 +1284,7 @@ function openThread(threadId,data){
   currentThreadId = threadId;
   currentThreadTitle = data.title;
   currentThreadHasPassword = !!data.password;
+  currentThreadCreatorName = data.memberId || "";
 
   threadTitleElem.textContent = data.title;
   threadDetailElem.textContent = data.detail || "";
@@ -1339,6 +1355,7 @@ async function loadPosts(threadId) {
           <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
             <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
             ${renderBadge(data)}
+            ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background: #003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
             ${iconHtml}
             <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
           </small>
@@ -1903,7 +1920,6 @@ function loadAllThreads(){
     });
 
     isAllLoaded = true;
-    pageByRoom[currentRoom] = 1;
 
     applySort();
     renderThreadsPage();
