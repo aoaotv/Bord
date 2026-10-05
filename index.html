@@ -12,7 +12,6 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sinzo.site/">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 
@@ -24,7 +23,12 @@
 body { font-family: sans-serif; text-align: center; background-color: #e6f0ff; margin:0; padding:0; }
 h1 { margin:10px 0; }
 ul, ol { list-style: none; padding: 0; margin: 0; text-align:left; }
-li { margin: 2px 0; padding: 8px; border-radius: 16px; cursor: pointer; animation: fadeUp 0.5s ease; word-wrap: break-word; color:#fff; position:relative; }
+
+/* 元の li から animation を削除 */
+li { margin: 2px 0; padding: 8px; border-radius: 16px; cursor: pointer; word-wrap: break-word; color:#fff; position:relative; }
+/* 新規スレッド用のアニメーションクラスを追加 */
+.new-thread-animation { animation: fadeUp 0.5s ease; }
+
 li small { display:block; font-size:0.8em; color:#f0f0f0; margin-top:2px; }
 li span { white-space: pre-wrap; }
 
@@ -335,6 +339,11 @@ textarea {
     <h3 id="threadTitle"></h3>
     <small id="threadDetail"></small>
     <small id="threadCreator"></small>
+  </div>
+  
+  <!-- 追加：目次用コンテナ -->
+  <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;"></div>
+  
   <div id="lineInputBar">
     <div id="quickMenuWrapper" style="position: relative;">
       <button id="quickMenuBtn" style="background: #bdc3c7; color: white; width: 40px; padding: 0; border-radius: 20px;">···</button>
@@ -351,7 +360,7 @@ textarea {
     <input id="quickPostInput" placeholder="メッセージを入力…">
     <button id="quickSendBtn">送信</button>
   </div>
-</div>
+
   <ol id="postList"></ol>
   <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📝投稿</button>
   <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px;">戻る</button>
@@ -748,7 +757,7 @@ let postsUnsub = null;
 let knownPostIds = new Set();
 
 let threadsUnsub = null;
-let pinnedUnsub = null; // ピン留め専用のリスナー
+let pinnedUnsub = null; 
 let sortMode = "new";
 let currentRoom = "threads";
 let isAllLoaded = false;
@@ -929,16 +938,28 @@ function isTrendingThread(data) {
 }
 
 function renderThreadsPage(){
+  const threadListSection = document.getElementById('threadListSection');
+  const scrollTop = threadListSection.scrollTop; // 更新前のスクロール位置を保存
+
   const threadList=document.getElementById('threadList');
   threadList.innerHTML="";
   const start = (getCurrentPage() - 1) * pageSize;
   const pageThreads=threadsData.slice(start,start+pageSize);
   if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
+  
+  const now = Date.now(); // 現在時刻を取得
+
   pageThreads.forEach(docItem=>{
     const data=docItem.data();
     const postCount = data.postCount || 0;
     const li=document.createElement("li");
     li.style.backgroundColor = data.color || "#3498db";
+
+    // --- 追加：作成から10秒以内の場合のみアニメーションクラスを付与 ---
+    const createdAt = data.created_at?.toMillis ? data.created_at.toMillis() : new Date(data.created_at || 0).getTime();
+    if (now - createdAt < 10000) { 
+      li.classList.add("new-thread-animation");
+    }
 
     let titleText = data.locked ? `🔒${data.title}` : data.title;
 
@@ -1040,6 +1061,8 @@ function renderThreadsPage(){
     btn.className = "pageBtn";
     btn.onclick = loadAllThreads;
     pagination.appendChild(btn);
+    // スクロール位置を復元して終了
+    threadListSection.scrollTop = scrollTop;
     return;
   }
 
@@ -1055,6 +1078,9 @@ function renderThreadsPage(){
     });
     pagination.appendChild(btn);
   }
+
+  // --- 追加：スクロール位置を復元 ---
+  threadListSection.scrollTop = scrollTop; 
 }
 
 async function listenThreads(){
@@ -1334,6 +1360,46 @@ async function loadPosts(threadId) {
       }
 
       postList.replaceChildren(fragment);
+
+      // --- 追加：目次と最新ボタンの生成処理 ---
+      const tocContainer = document.getElementById("threadToc");
+      if(tocContainer) {
+        tocContainer.innerHTML = "";
+        tocContainer.style.display = "flex";
+
+        const totalPosts = docs.length;
+        
+        // 10単位のボタンを作成
+        for (let i = 0; i < totalPosts; i += 10) {
+          const start = i + 1;
+          const end = Math.min(i + 10, totalPosts);
+          const btn = document.createElement("button");
+          btn.className = "pageBtn";
+          btn.textContent = `${start}-${end}`;
+          btn.onclick = () => {
+            const targetIndex = docs[i].data().index || docs[i].id;
+            const el = document.getElementById("post-" + targetIndex);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          };
+          tocContainer.appendChild(btn);
+        }
+
+        // 最新の投稿へボタンを作成
+        if (totalPosts > 0) {
+          const latestBtn = document.createElement("button");
+          latestBtn.className = "pageBtn";
+          latestBtn.style.backgroundColor = "#e74c3c"; // 赤色で目立たせる
+          latestBtn.textContent = "最新の投稿";
+          latestBtn.onclick = () => {
+            const lastTarget = docs[totalPosts - 1].data().index || docs[totalPosts - 1].id;
+            const el = document.getElementById("post-" + lastTarget);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+          };
+          tocContainer.appendChild(latestBtn);
+        }
+      }
+      // ------------------------------------
+
       hideLoading();
     } catch (e) {
       console.error("投稿読み込みエラー:", e);
@@ -1355,7 +1421,16 @@ document.getElementById('closeThreadBtn').onclick=()=>{
   history.pushState({}, "", `${location.pathname}?room=${currentRoom}`);
   threadDetailSection.style.display='none';
   threadListSection.style.display='block';
+
+  // --- 追加：スレッドを閉じた時に目次をリセットして非表示にする ---
+  const tocContainer = document.getElementById("threadToc");
+  if(tocContainer) {
+    tocContainer.innerHTML = "";
+    tocContainer.style.display = "none";
+  }
+  // -------------------------------------------------------------
 };
+
 
 // 新規スレッド作成
 document.getElementById('createThreadBtn').onclick=()=>{
@@ -1394,11 +1469,32 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(!title){ showAlert("タイトルを入力してください"); return; }
     showLoading("スレッド作成中...");
     try{
+      // スレッド本体の作成（最初から1件投稿されるので postCount を 1 に設定）
       const newDoc = await addDoc(collection(db, currentRoom) ,{
         memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
-        postCount: 0, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
+        postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
         ...getBoardWriteMeta()
       });
+
+      // --- 追加：スレッド作成時に「1件目の投稿」として詳細を自動投稿 ---
+      let firstPostBody = `【${title}】`;
+      if (detail) {
+        firstPostBody += `\n${detail}`;
+      }
+      
+      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), {
+        memberId: nickName,
+        icon: iconId || null,
+        body: firstPostBody,
+        image: imageBase64,
+        color: color,
+        created_at: Timestamp.now(),
+        ip: clientIP,
+        index: 1,
+        ...getPostBadgeData(),
+        ...getBoardWriteMeta()
+      });
+      // -----------------------------------------------------------------
 
       // ログ保存
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
@@ -1412,6 +1508,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
     }
   };
 };
+
 
 // 投稿作成
 document.getElementById('createPostBtn').onclick=async()=>{
