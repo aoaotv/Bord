@@ -2,93 +2,93 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2059 入力確認ツール</title>
+  <title>ログ閲覧システム</title>
   <style>
     body {
       font-family: sans-serif;
       max-width: 600px;
       margin: 40px auto;
       padding: 0 20px;
-      line-height: 1.6;
     }
-    .input-box {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.2rem;
-      box-sizing: border-box;
-      margin-bottom: 20px;
-    }
-    .status {
-      padding: 15px;
+    .card {
+      border: 1px solid #ccc;
+      padding: 20px;
       border-radius: 8px;
-      font-weight: bold;
-      margin-bottom: 20px;
-      background-color: #f0f0f0;
-      color: #333;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .status.match {
-      background-color: #e6ffed;
-      color: #1a7f37;
-      border: 1px solid #1a7f37;
+    input[type="password"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 200px;
+      margin-right: 8px;
     }
-    .log-box {
-      background: #1e1e1e;
-      color: #00ff66;
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    pre {
+      background-color: #f4f4f4;
       padding: 15px;
-      border-radius: 6px;
+      border-radius: 4px;
+      overflow-x: auto;
       font-family: monospace;
-      height: 150px;
-      overflow-y: auto;
     }
   </style>
 </head>
 <body>
 
-  <h2>「2059」入力確認フォーム</h2>
-  <p>下の入力欄に「2059」と入力してください。</p>
+  <div class="card">
+    <!-- パスワード入力エリア -->
+    <div id="auth-section">
+      <h2>パスワード入力</h2>
+      <p>ログを閲覧するにはパスワードを入力してください。</p>
+      <input type="password" id="password-input" placeholder="パスワードを入力">
+      <button onclick="checkPassword()">送信</button>
+      <p id="error-msg" class="error-message hidden">パスワードが間違っています。</p>
+    </div>
 
-  <input type="text" id="targetInput" class="input-box" placeholder="ここに入力..." autofocus>
-
-  <div id="statusMessage" class="status">入力待ち...</div>
-
-  <h3>キー入力ログ（直近）</h3>
-  <div id="keyLog" class="log-box"></div>
+    <!-- ログ表示エリア -->
+    <div id="log-section" class="hidden">
+      <h2>システムログ</h2>
+      <pre>
+[2026-10-05 10:00:12] INFO: システムが正常に起動しました。
+[2026-10-05 10:05:43] DEBUG: データベースへの接続を確立しました。
+[2026-10-05 10:15:21] WARN: ディスク容量の使用率が70%を超えました。
+[2026-10-05 10:30:00] SUCCESS: ログ表示の認証に成功しました (ユーザー: admin)。
+      </pre>
+      <button onclick="logout()">ログアウト</button>
+    </div>
+  </div>
 
   <script>
-    const inputEl = document.getElementById('targetInput');
-    const statusEl = document.getElementById('statusMessage');
-    const logEl = document.getElementById('keyLog');
+    function checkPassword() {
+      const passwordInput = document.getElementById('password-input').value;
+      const errorMsg = document.getElementById('error-msg');
+      const authSection = document.getElementById('auth-section');
+      const logSection = document.getElementById('log-section');
 
-    // 入力イベントの監視
-    inputEl.addEventListener('input', (e) => {
-      const val = e.target.value;
-
-      // ログに表示
-      addLog(`現在値: "${val}"`);
-
-      // 「2059」が含まれているか判定
-      if (val === '2059') {
-        statusEl.textContent = '✅ 「2059」の完全一致を確認しました！';
-        statusEl.className = 'status match';
-      } else if (val.includes('2059')) {
-        statusEl.textContent = '👍 文字列内に「2059」が含まれています！';
-        statusEl.className = 'status match';
+      // パスワード判定 (2059)
+      if (passwordInput === '2059') {
+        authSection.classList.add('hidden');
+        logSection.classList.remove('hidden');
+        errorMsg.classList.add('hidden');
       } else {
-        statusEl.textContent = '判定中... (2059を入力してください)';
-        statusEl.className = 'status';
+        errorMsg.classList.remove('hidden');
       }
-    });
+    }
 
-    // キーボード押下ログ
-    inputEl.addEventListener('keydown', (e) => {
-      addLog(`Key: ${e.key} (Code: ${e.code})`);
-    });
-
-    function addLog(message) {
-      const p = document.createElement('div');
-      p.textContent = message;
-      logEl.prepend(p);
+    function logout() {
+      document.getElementById('password-input').value = '';
+      document.getElementById('auth-section').classList.remove('hidden');
+      document.getElementById('log-section').classList.add('hidden');
     }
   </script>
 
