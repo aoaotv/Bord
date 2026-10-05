@@ -270,11 +270,28 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
-
+#topNotification {
+  display: none;
+  position: fixed;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #27ae60;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 4000;
+  font-size: 14px;
+  font-weight: bold;
+  transition: top 0.4s ease;
+  white-space: nowrap;
+  pointer-events: none;
+}
 </style>
 </head>
 <body>
-
+<div id="topNotification"></div>
 <a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
     <img src="logo.png" alt="bord" style="height:60px;">
@@ -787,7 +804,18 @@ function showLoading(msg="読み込み中..."){
 function hideLoading(){ document.getElementById('loadingPopup').style.display='none'; }
 function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
 document.getElementById('loadingOkBtn').onclick = hideLoading;
-
+function showTopNotification(text) {
+  const notif = document.getElementById("topNotification");
+  notif.textContent = text;
+  notif.style.display = "block";
+  
+  setTimeout(() => { notif.style.top = "20px"; }, 10);
+  
+  setTimeout(() => {
+    notif.style.top = "-60px";
+    setTimeout(() => { notif.style.display = "none"; }, 400); 
+  }, 3000);
+}
 function clearFormFields(fieldId){
   if(fieldId==="threadFields"){
     document.getElementById('threadMemberId').value=nickName;
@@ -1029,6 +1057,8 @@ async function listenThreads(){
   const listenNormal = () => {
     if (threadsUnsub) threadsUnsub();
 
+    let isInitialLoad = true;
+
     const q = query(
       collection(db, currentRoom),
       orderBy("created_at", "desc"),
@@ -1036,6 +1066,16 @@ async function listenThreads(){
     );
 
     threadsUnsub = onSnapshot(q, snap => {
+      if (!isInitialLoad) {
+        snap.docChanges().forEach(change => {
+          if (change.type === "added") {
+            const newThread = change.doc.data();
+            showTopNotification(`新しいスレッド「${newThread.title}」が作成されました`);
+          }
+        });
+      }
+      isInitialLoad = false;
+
       threadsData = snap.docs.map(d => ({
         id: d.id,
         data: () => d.data()
@@ -1700,12 +1740,24 @@ function loadAllThreads(){
 
   if (threadsUnsub) threadsUnsub();
 
+  let isInitialLoadAll = true;
+
   const q = query(
     collection(db, currentRoom),
     orderBy("created_at", "desc")
   );
 
   threadsUnsub = onSnapshot(q, snapshot => {
+    if (!isInitialLoadAll) {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === "added") {
+          const newThread = change.doc.data();
+          showTopNotification(`新しいスレッド「${newThread.title}」が作成されました`);
+        }
+      });
+    }
+    isInitialLoadAll = false;
+
     threadsData = snapshot.docs.map(d => {
       const data = d.data();
       return { id: d.id, data: () => data };
