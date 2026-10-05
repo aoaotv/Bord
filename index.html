@@ -1380,13 +1380,15 @@ document.getElementById('createPostBtn').onclick=async()=>{
 
       // ログ保存
       // ログ保存
-await saveLog("create_post", { 
-  threadId: currentThreadId, 
-  postId: newPost.id, 
-  index: index, 
-  text: body, // ← 追加
-  hasImage: !!imageBase64 
-});
+// ログ保存
+      await saveLog("create_post", { 
+        threadId: currentThreadId, 
+        threadTitle: currentThreadTitle, // ← 追加（操作したスレッド名）
+        postId: newPost.id, 
+        index: index, 
+        text: body,
+        hasImage: !!imageBase64 
+      });
 
       closePopup();
       hideLoading();
@@ -1552,8 +1554,11 @@ document.getElementById('adminBtn').onclick = async () => {
     try {
       if (action === "single") {
         if (threadId) {
+          // 選択中のプルダウンからスレッド名を取得（追加）
+          const threadTitle = threadSelect.options[threadSelect.selectedIndex].textContent;
+          
           await deleteDoc(doc(db, currentRoom, threadId));
-          await saveLog("admin_delete_thread", { targetThreadId: threadId });
+          await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadTitle }); // targetThreadTitle を追加
         }
       } else if (action === "post") {
         if (threadId && postId) {
@@ -1844,12 +1849,14 @@ document.getElementById("quickSendBtn").onclick = async () => {
 
     // ログ保存
     // ログ保存
-await saveLog("quick_send_post", { 
-  threadId: currentThreadId, 
-  postId: newPost.id, 
-  index: index, 
-  text: text // ← textSnippet から text に変更して全文送信
-});
+// ログ保存
+    await saveLog("quick_send_post", { 
+      threadId: currentThreadId, 
+      threadTitle: currentThreadTitle, // ← 追加（操作したスレッド名）
+      postId: newPost.id, 
+      index: index, 
+      text: text
+    });
 
     input.value = "";
     hideLoading();
