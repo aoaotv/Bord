@@ -177,7 +177,7 @@
 
   <!-- 2. ログ閲覧画面 -->
   <div id="logSection">
-    <h1>システム操作・投稿履歴 ログ一覧</h1>
+    <h1>システム操作・投稿履歴 ログ一覧(直近10000件)</h1>
     <div class="controls">
       <div>
         <strong>状態:</strong> <span class="status-badge">🟢 リアルタイム自動更新中</span>
@@ -350,7 +350,7 @@ function login() {
   const q = query(
     collection(db, "logs"),
     orderBy("created_at", "desc"),
-    limit(100)
+    limit(10000)
   );
 
   logUnsub = onSnapshot(q, (snapshot) => {
