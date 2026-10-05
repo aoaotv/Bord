@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超魔改造クリッカーアドベンチャー</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-color: #161f33;
+            --accent-color: #3b82f6;
+            --text-color: #f3f4f6;
+            --gold-color: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Segoe UI', Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダーエリア */
+        header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            font-size: 1.1rem;
+        }
+
+        .stat-box span {
+            color: var(--gold-color);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        /* メインレイアウト */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 左側：バトルフィールド（クリックエリア） */
+        .battle-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: radial-gradient(circle, #1e1b4b 0%, #0f172a 100%);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .enemy-container {
+            text-align: center;
+            transition: transform 0.1s;
+        }
+
+        .enemy-container:active {
+            transform: scale(0.95);
+        }
+
+        .enemy-avatar {
+            font-size: 8rem;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.7));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .enemy-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* HPバー */
+        .hp-bar-container {
+            width: 250px;
+            height: 16px;
+            background-color: #334155;
+            border-radius: 8px;
+            margin-top: 10px;
+            overflow: hidden;
+            border: 2px solid #475569;
+        }
+
+        .hp-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f43f5e);
+            transition: width 0.1s ease-out;
+        }
+
+        /* 右側：ショップ・アップグレードパネル */
+        .shop-panel {
+            width: 380px;
+            background-color: var(--panel-color);
+            border-left: 2px solid #1e293b;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+
+        .shop-header {
+            padding: 15px;
+            background-color: #1e293b;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid #334155;
+            text-align: center;
+        }
+
+        .shop-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .shop-item {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .shop-item:hover {
+            border-color: var(--accent-color);
+            background-color: #24324d;
+        }
+
+        .item-info h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .item-info p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .buy-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .buy-btn:hover {
+            background-color: #2563eb;
+        }
+
+        .buy-btn:disabled {
+            background-color: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* エフェクト要素 */
+        .damage-pop {
+            position: absolute;
+            color: #f43f5e;
+            font-weight: 900;
+            font-size: 1.8rem;
+            font-family: 'Impact', sans-serif;
+            pointer-events: none;
+            text-shadow: 2px 2px 0px #000;
+            animation: popUp 0.8s ease-out forwards;
+        }
+
+        @keyframes popUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
+        }
+
+        .gold-pop {
+            position: absolute;
+            color: var(--gold-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            pointer-events: none;
+            animation: goldUp 1s ease-out forwards;
+        }
+
+        @keyframes goldUp {
+            0% { transform: translate(0, 0); opacity: 1; }
+            100% { transform: translate(30px, -50px); opacity: 0; }
+        }
+
+        /* ログエリア */
+        .log-box {
+            height: 80px;
+            background-color: #0f172a;
+            border-top: 1px solid #1e293b;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            overflow-y: hidden;
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ヘッダー：ステータス管理 -->
+    <header>
+        <h2>⚔️ エピック・クリッカー ⚔️</h2>
+        <div class="stats-container">
+            <div class="stat-box">ゴールド: <span id="gold-txt">0</span> G</div>
+            <div class="stat-box">撃破数: <span id="kills-txt">0</span></div>
+            <div class="stat-box">秒間自動攻撃(DPS): <span id="dps-txt">0</span></div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <div class="main-content">
+        
+        <!-- 左：モンスターを叩く場所 -->
+        <div class="battle-field" id="click-zone">
+            <div class="enemy-container">
+                <div class="enemy-avatar" id="enemy-img">👾</div>
+                <div class="enemy-name" id="enemy-name">スライム</div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar" id="hp-fill"></div>
+                </div>
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 5px;" id="hp-txt">10 / 10</div>
+            </div>
+        </div>
+
+        <!-- 右：お買い物パネル -->
+        <div class="shop-panel">
+            <div class="shop-header">鍛冶屋 ＆ ギルド勧誘</div>
+            <div class="shop-items">
+                
+                <!-- 強化1 -->
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h4 id="up1-name">鋭い短剣 (+1枠)</h4>
+                        <p>クリック攻撃力: <span id="click-pwr-txt">1</span></p>
+                    </div>
+                    <button class="buy-btn" id="up1-btn" onclick="buyUpgrade('click')">15 G</button>
+                </div>
+
+                <!-- 強化2 -->
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h4 id="up2-name">見習い魔術師</h4>
+                        <p>自動で毎秒 1 ダメージ</p>
+                    </div>
+                    <button class="buy-btn" id="up2-btn" onclick="buyUpgrade('dps1')">50 G</button>
+                </div>
+
+                <!-- 強化3 -->
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h4 id="up3-name">凄腕の弓使い</h4>
+                        <p>自動で毎秒 8 ダメージ</p>
+                    </div>
+                    <button class="buy-btn" id="up3-btn" onclick="buyUpgrade('dps2')">400 G</button>
+                </div>
+
+                <!-- 強化4 -->
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h4 id="up4-name">いにしえの巨竜</h4>
+                        <p>自動で毎秒 50 ダメージ</p>
+                    </div>
+                    <button class="buy-btn" id="up4-btn" onclick="buyUpgrade('dps3')">3000 G</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 下部：バトルログ -->
+    <div class="log-box" id="log-box">
+        [システム] 冒険が始まった！ 画面のモンスターをクリックして討伐せよ！
+    </div>
+
+    <script>
+        // --- ゲームデータ構成 ---
+        const game = {
+            gold: 0,
+            kills: 0,
+            clickPower: 1,
+            dps: 0,
+            
+            // アップグレード価格と所持数
+            upgrades: {
+                click: { count: 0, basePrice: 15, currentPrice: 15 },
+                dps1:  { count: 0, basePrice: 50, currentPrice: 50, power: 1 },
+                dps2:  { count: 0, basePrice: 400, currentPrice: 400, power: 8 },
+                dps3:  { count: 0, basePrice: 3000, currentPrice: 3000, power: 50 }
+            },
+
+            // 現在の敵
+            enemy: {
+                name: "スライム",
+                icon: "👾",
+                hp: 10,
+                maxHp: 10,
+goldReward: 5
+}
+};
+// モンスター図鑑（ループ出現用）
+const monsterList = [
+{ name: "スライム", icon: "👾", baseHp: 10, baseGold: 6 },
+{ name: "ゴブリン", icon: "👺", baseHp: 35, baseGold: 18 },
+{ name: "動く鎧", icon: "🤖", baseHp: 120, baseGold: 55 },
+{ name: "大蜘蛛", icon: "🕷️", baseHp: 450, baseGold: 210 },
+{ name: "邪悪な目玉", icon: "👁️", baseHp: 1800, baseGold: 850 },
+{ name: "大魔王", icon: "👑", baseHp: 8000, baseGold: 4000 }
+];
+// --- DOM要素取得 ---
+const elZone = document.getElementById('click-zone');
+const elHpFill = document.getElementById('hp-fill');
+const elHpTxt = document.getElementById('hp-txt');
+const elEnemyImg = document.getElementById('enemy-img');
+const elEnemyName = document.getElementById('enemy-name');
+const elGold = document.getElementById('gold-txt');
+const elKills = document.getElementById('kills-txt');
+const elDps = document.getElementById('dps-txt');
+const elLog = document.getElementById('log-box');
+// --- ゲームロジック ---
+// 画面クリック時の攻撃処理
+elZone.addEventListener('click', (e) => {
+// ショップボタンなどのクリックは除外
+if(e.target !== elZone && !elZone.contains(e.target)) return;
+if(e.clientY < 100) return; // ヘッダー付近の誤認防止
+dealDamage(game.clickPower, e.clientX, e.clientY);
+});
+// ダメージを与えるコア関数
+function dealDamage(amount, posX, posY) {
+game.enemy.hp -= amount;
+if (game.enemy.hp < 0) game.enemy.hp = 0;
+// 視覚エフェクト生成
+if (posX && posY) {
+createPopEffect(amount, posX, posY, 'damage-pop');
+} else {
+// 自動DPSの場合は敵の周辺にランダムポップ
+const rect = elEnemyImg.getBoundingClientRect();
+const rx = rect.left + Math.random() * rect.width;
+const ry = rect.top + Math.random() * rect.height;
+createPopEffect(amount, rx, ry, 'damage-pop');
+}
+// 敵死亡判定
+if (game.enemy.hp <= 0) {
+defeatEnemy();
+}
+updateUI();
+}
+// 敵を倒したときの処理
+function defeatEnemy() {
+game.gold += game.enemy.goldReward;
+game.kills++;
+addLog(【討伐】${game.enemy.name}を倒した！ ${game.enemy.goldReward}G を獲得。);
+// 報酬のポップ表示
+const rect = elEnemyImg.getBoundingClientRect();
+createPopEffect(+${game.enemy.goldReward}G, rect.left + 40, rect.top, 'gold-pop');
+// 次の敵を生成（撃破数に応じてHPがスケールアップ）
+const nextMon = monsterList[Math.floor(Math.random() * monsterList.length)];
+const scale = Math.pow(1.2, game.kills); // 1匹倒すごとに20%強くなる
+game.enemy.name = nextMon.name;
+game.enemy.icon = nextMon.icon;
+game.enemy.maxHp = Math.round(nextMon.baseHp * scale);
+game.enemy.hp = game.enemy.maxHp;
+game.enemy.goldReward = Math.round(nextMon.baseGold * scale);
+// 敵の登場演出
+elEnemyImg.style.transform = 'scale(1.3)';
+setTimeout(() => elEnemyImg.style.transform = 'scale(1)', 100);
+}
+// 視覚的テキストポップエフェクト
+function createPopEffect(text, x, y, className) {
+const pop = document.createElement('div');
+pop.className = className;
+pop.innerText = text;
+pop.style.left = ${x}px;
+pop.style.top = ${y}px;
+document.body.appendChild(pop);
+setTimeout(() => pop.remove(), 1000);
+}
+// アップグレード購入
+function buyUpgrade(type) {
+const up = game.upgrades[type];
+if (game.gold >= up.currentPrice) {
+game.gold -= up.currentPrice;
+up.count++;
+// 価格の上昇（1.5倍ずつ高くなる）
+up.currentPrice = Math.round(up.basePrice * Math.pow(1.5, up.count));
+if (type === 'click') {
+game.clickPower += 1;
+addLog(【強化】武器を鍛え直した。クリック攻撃力が ${game.clickPower} にアップ！);
+} else {
+recalculateDPS();
+addLog(【雇用】新たな仲間が加入した。秒間総ダメージが ${game.dps} にアップ！);
+}
+updateUI();
+}
+}
+// 秒間ダメージの再計算
+function recalculateDPS() {
+game.dps = (game.upgrades.dps1.count * game.upgrades.dps1.power) +
+(game.upgrades.dps2.count * game.upgrades.dps2.power) +
+(game.upgrades.dps3.count * game.upgrades.dps3.power);
+}
+// ログエリアにテキストを追加
+function addLog(msg) {
+elLog.innerHTML += <br>${msg};
+elLog.scrollTop = elLog.scrollHeight; // 常に最下部へスクロール
+}
+// 画面表示（UI）の更新
+function updateUI() {
+// ステータステキスト
+elGold.innerText = game.gold.toLocaleString();
+elKills.innerText = game.kills;
+elDps.innerText = game.dps;
+// モンスター情報
+elEnemyImg.innerText = game.enemy.icon;
+elEnemyName.innerText = game.enemy.name;
+elHpTxt.innerText = ${game.enemy.hp.toLocaleString()} / ${game.enemy.maxHp.toLocaleString()};
+const hpPercent = (game.enemy.hp / game.enemy.maxHp) * 100;
+elHpFill.style.width = ${hpPercent}%;
+// ボタンの有効・無効化と価格テキストの更新
+updateBtn('up1-btn', game.upgrades.click.currentPrice);
+updateBtn('up2-btn', game.upgrades.dps1.currentPrice);
+updateBtn('up3-btn', game.upgrades.dps2.currentPrice);
+updateBtn('up4-btn', game.upgrades.dps3.currentPrice);
+document.getElementById('click-pwr-txt').innerText = game.clickPower;
+}
+function updateBtn(id, price) {
+const btn = document.getElementById(id);
+btn.innerText = ${price.toLocaleString()} G;
+if (game.gold >= price) {
+btn.disabled = false;
+} else {
+btn.disabled = true;
+}
+}
+// --- ループ処理（タイマー） ---
+// 1秒ごとに自動ダメージを処理
+setInterval(() => {
+if (game.dps > 0) {
+dealDamage(game.dps);
+}
+}, 1000);
+// ボタンの活性状態をリアルタイムで監視するための高速ループ
+setInterval(() => {
+updateUI();
+}, 200);
+// 初期化実行
+updateUI();
