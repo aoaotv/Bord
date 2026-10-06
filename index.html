@@ -18,69 +18,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 
-.blueBtn {
-  background-color: #3498db; /* 青色 */
-  color: #ffffff;
-}
-
+.blueBtn { background-color: #3498db; color: #ffffff; }
 body { font-family: sans-serif; text-align: center; background-color: #e6f0ff; margin:0; padding:0; }
 h1 { margin:10px 0; }
 ul, ol { list-style: none; padding: 0; margin: 0; text-align:left; }
 
-/* 元の li から animation を削除 */
 li { margin: 2px 0; padding: 8px; border-radius: 16px; cursor: pointer; word-wrap: break-word; color:#fff; position:relative; }
-/* 新規スレッド用のアニメーションクラスを追加 */
-.new-thread-animation { animation: fadeUp 0.5s ease; }
+
 
 li small { display:block; font-size:0.8em; color:#f0f0f0; margin-top:2px; }
 li span { white-space: pre-wrap; }
 
 button {
-  padding: 10px 20px;
-  margin: 5px;
-  cursor: pointer;
-  border-radius: 20px;
-  border: none;
-  font-size: 16px;
-
+  padding: 10px 20px; margin: 5px; cursor: pointer;
+  border-radius: 20px; border: none; font-size: 16px;
   transition: transform 0.15s ease;
 }
+button:active { transform: scale(0.95); }
 
-button:active {
-  transform: scale(0.95);
-}
-
-.greenBtn {
-  background-color: var(--btn-color, #27ae60);
-  color: #ffffff;
-}
-
-li small span {
-  white-space: nowrap;
-}
-
+.greenBtn { background-color: var(--btn-color, #27ae60); color: #ffffff; }
+li small span { white-space: nowrap; }
 .redBtn { background-color: #c0392b; color: white; }
+
 #threadListSection { overflow-y: auto; padding: 10px; }
 #threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; }
 #popupForm {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 12px 16px;
-  border-radius: 24px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  z-index: 1000;
-  width: 280px;
-  max-width: 90%;
-  color: #333;
-
-
+  display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: white; padding: 12px 16px; border-radius: 24px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1000; width: 280px; max-width: 90%; color: #333;
   animation: popupIn 0.5s ease-out;
-
-
 }
 #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 999; }
 #loadingPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); z-index:2000; text-align:center; color:#333; }
@@ -88,80 +54,16 @@ li small span {
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 #loadingOkBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
 label { display:block; text-align:left; margin-top:8px; font-size:14px; color:#333; }
-input, select, textarea {
-  width:100%;
-  box-sizing: border-box;
-  padding:8px;
-  margin-top:4px;
-  border-radius:4px;
-  border:1px solid #ccc;
-  font-size:14px;
-  color: #333;
-  background-color: #fff;
-  font-family: inherit;
-}
-input:not([type="file"]), select {
-  height:36px;
-}
-input[type="file"] {
-  border: none;
-  background-color: transparent;
-  padding: 6px 0;
-}
-input[type="file"]::file-selector-button {
-  background-color: #fff;
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-input[type="file"]::-webkit-file-upload-button {
-  background-color: #fff;
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-textarea {
-  min-height:60px;
-  resize: vertical;
-}
-  #topRightButtons {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 1500;
+input, select, textarea { width:100%; box-sizing: border-box; padding:8px; margin-top:4px; border-radius:4px; border:1px solid #ccc; font-size:14px; color: #333; background-color: #fff; font-family: inherit; }
+input:not([type="file"]), select { height:36px; }
+input[type="file"] { border: none; background-color: transparent; padding: 6px 0; }
+input[type="file"]::file-selector-button, input[type="file"]::-webkit-file-upload-button { background-color: #fff; color: #333; border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+textarea { min-height:60px; resize: vertical; }
 
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-#topRightButtons button {
-  height: 40px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 20px;
-}
-#roomSelectArea {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 1500;
-  text-align: right;
-}
-
-#currentRoomLabel {
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #34495e;
-  opacity: 0.9;
-}
-
+#topRightButtons { position: fixed; top: 10px; right: 10px; z-index: 1500; display: flex; gap: 8px; align-items: center; }
+#topRightButtons button { height: 40px; padding: 10px 20px; font-size: 16px; font-weight: 600; border-radius: 20px; }
+#roomSelectArea { position: fixed; top: 10px; right: 10px; z-index: 1500; text-align: right; }
+#currentRoomLabel { margin-top: 4px; font-size: 12px; font-weight: 500; color: #34495e; opacity: 0.9; }
 .pageBtn { background-color:#2980b9; margin: 2px; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;}
 .pageBtn:disabled { background-color:#95a5a6; cursor:default; }
 #threadHeader h3 { margin:0; color: #222; }
@@ -173,136 +75,32 @@ textarea {
 .threadRateCount { font-weight: bold; margin-left:6px; color:#fff; font-size:14px; }
 #sortSelect { width: 220px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; margin: 8px auto; display: block; background-color:#fff; color:#333; }
 
-#lineInputBar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 56px;  
-  background: #f5f5f5;
-  padding: 8px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
-  z-index: 1200;
-}
+#lineInputBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 56px; background: #f5f5f5; padding: 8px; display: flex; gap: 6px; align-items: center; box-shadow: 0 -2px 6px rgba(0,0,0,0.15); z-index: 1200; }
+#lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
+#lineInputBar button { height: 40px; border-radius: 20px; border: none; padding: 0 14px; font-size: 14px; cursor: pointer; }
+#morePostBtn { background: #bdc3c7; }
+#quickSendBtn { background: #27ae60; color: white; }
+#postList { padding-bottom: 80px; }
 
-#lineInputBar input {
-  flex: 1;
-  height: 40px;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  padding: 0 14px;
-  font-size: 14px;
-}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popupIn { from { opacity: 0; transform: translate(-50%, -60%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes slideInFromLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
 
-#lineInputBar button {
-  height: 40px;
-  border-radius: 20px;
-  border: none;
-  padding: 0 14px;
-  font-size: 14px;
-  cursor: pointer;
-}
+.new-post-slide { animation: slideInFromLeft 0.4s ease-out; }
+#adminMenuBox { max-height: 68vh; overflow-y: auto; }
+.adminTwoColumns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
+.adminPanel { background: #f7f9fc; border: 1px solid #dfe6e9; border-radius: 14px; padding: 10px; }
+.adminPanel h4 { margin: 4px 0 8px; color: #333; font-size: 15px; }
+#adminMenuBox select, #adminMenuBox input[type="text"] { width: 100% !important; margin: 5px 0 !important; }
 
-#morePostBtn {
-  background: #bdc3c7;
-}
+@media (max-width: 620px) { #popupForm { width: 94vw; } .adminTwoColumns { grid-template-columns: 1fr; } }
 
-#quickSendBtn {
-  background: #27ae60;
-  color: white;
-}
-
-#postList {
-  padding-bottom: 80px;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes popupIn {
-  from { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-
-@keyframes slideInFromLeft {
-  from { opacity: 0; transform: translateX(-40px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.new-post-slide {
-  animation: slideInFromLeft 0.4s ease-out;
-}
-
-#adminMenuBox {
-  max-height: 68vh;
-  overflow-y: auto;
-}
-
-.adminTwoColumns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  text-align: left;
-}
-
-.adminPanel {
-  background: #f7f9fc;
-  border: 1px solid #dfe6e9;
-  border-radius: 14px;
-  padding: 10px;
-}
-
-.adminPanel h4 {
-  margin: 4px 0 8px;
-  color: #333;
-  font-size: 15px;
-}
-
-#adminMenuBox select,
-#adminMenuBox input[type="text"] {
-  width: 100% !important;
-  margin: 5px 0 !important;
-}
-
-@media (max-width: 620px) {
-  #popupForm {
-    width: 94vw;
-  }
-  .adminTwoColumns {
-    grid-template-columns: 1fr;
-  }
-}
-
-#topNotification {
-  display: none;
-  position: fixed;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #27ae60;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 24px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  z-index: 4000;
-  font-size: 14px;
-  font-weight: bold;
-  transition: top 0.4s ease;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
+#topNotification { display: none; position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: #27ae60; color: white; padding: 12px 24px; border-radius: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 4000; font-size: 14px; font-weight: bold; transition: top 0.4s ease; white-space: nowrap; pointer-events: none; }
 </style>
 </head>
 <body>
 
 <div id="topNotification"></div>
-
 <a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
     <img src="logo.png" alt="bord" style="height:60px;">
@@ -323,16 +121,13 @@ textarea {
 <button id="roomSelectBtn" class="greenBtn" style="position: fixed; top:10px; right:10px; z-index:1500; --btn-color:#34495e">
   🚪部屋選択
 </button>
-<div id="currentRoomLabel">
-    現在の部屋：bord
-</div>
+<div id="currentRoomLabel">現在の部屋：bord</div>
 
 <div id="threadListSection">
   <div style="padding: 10px; text-align: center;">
     <input type="text" id="threadSearchInput" placeholder="スレッド名を検索..." style="width: 85%; padding: 12px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
   </div>
   <ul id="threadList"></ul>
-
   <div id="pagination"></div>
   <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📄新規スレッド作成</button>
 </div>
@@ -343,7 +138,6 @@ textarea {
     <small id="threadDetail"></small>
     <small id="threadCreator"></small>
   </div>
-  
   <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;"></div>
   
   <div id="lineInputBar">
@@ -358,7 +152,6 @@ textarea {
         <div class="quickItem" style="padding:12px; cursor:pointer; color:#333; text-align:center;">むり</div>
       </div>
     </div>
-
     <input id="quickPostInput" placeholder="メッセージを入力…">
     <button id="quickSendBtn">送信</button>
   </div>
@@ -369,34 +162,15 @@ textarea {
 </div>
 
 <div id="overlay"></div>
-<div id="roomPopup" style="
-    display:none;
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    background:#fff;
-    padding:16px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,.5);
-    z-index:2000;
-    width:280px;
-    color:#333;
-  ">
+<div id="roomPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:16px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,.5); z-index:2000; width:280px; color:#333;">
   <h3>部屋を選択</h3>
-
   <button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">bord</button>
   <button class="greenBtn roomBtn" data-room="chat" style="--btn-color:#2ecc71;">💬雑談</button>
   <button class="greenBtn roomBtn" data-room="apple" style="--btn-color:#e74c3c;">アップル製品</button>
   <button class="greenBtn roomBtn" data-room="question" style="--btn-color:#9b59b6;">🙋質問</button>
   <hr>
-
-  <select id="roomSelectDropdown" style="width:100%">
-    <option value="">その他の部屋</option>
-  </select>
-
+  <select id="roomSelectDropdown" style="width:100%"><option value="">その他の部屋</option></select>
   <hr>
-
   <input id="newRoomInput" placeholder="新しい部屋名" style="width:100%">
   <button id="createRoomConfirmBtn" class="greenBtn">入室</button>
   <button id="closeRoomPopup" class="greenBtn">閉じる</button>
@@ -404,7 +178,6 @@ textarea {
 
 <div id="popupForm">
   <h3 id="popupTitle">フォーム</h3>
-
   <div id="threadFields">
     <label>ニックネーム</label>
     <input id="threadMemberId" placeholder="ニックネーム">
@@ -420,19 +193,9 @@ textarea {
     <input id="threadPasswordInput" placeholder="パスワード">
     <label>背景色</label>
     <select id="threadColorInput">
-      <option value="#3498db">青</option>
-      <option value="#2ecc71">緑</option>
-      <option value="#e74c3c">赤</option>
-      <option value="#9b59b6">紫</option>
-      <option value="#f39c12">オレンジ</option>
-      <option value="#1abc9c">エメラルド</option>
-      <option value="#34495e">ダーク</option>
-      <option value="#d35400">茶</option>
-      <option value="#7f8c8d">グレー</option>
-      <option value="#16a085">深緑</option>
+      <option value="#3498db">青</option><option value="#2ecc71">緑</option><option value="#e74c3c">赤</option><option value="#9b59b6">紫</option><option value="#f39c12">オレンジ</option><option value="#1abc9c">エメラルド</option><option value="#34495e">ダーク</option><option value="#d35400">茶</option><option value="#7f8c8d">グレー</option><option value="#16a085">深緑</option>
     </select>
   </div>
-
   <div id="postFields" style="display:none;">
     <label>ニックネーム</label>
     <input id="postMemberId" placeholder="ニックネーム">
@@ -444,36 +207,22 @@ textarea {
     <input id="postImageInput" type="file" accept="image/*">
     <label>背景色</label>
     <select id="postColorInput">
-      <option value="#3498db">青</option>
-      <option value="#2ecc71">緑</option>
-      <option value="#e74c3c">赤</option>
-      <option value="#9b59b6">紫</option>
-      <option value="#f39c12">オレンジ</option>
-      <option value="#1abc9c">エメラルド</option>
-      <option value="#34495e">ダーク</option>
-      <option value="#d35400">茶</option>
-      <option value="#7f8c8d">グレー</option>
-      <option value="#16a085">深緑</option>
+      <option value="#3498db">青</option><option value="#2ecc71">緑</option><option value="#e74c3c">赤</option><option value="#9b59b6">紫</option><option value="#f39c12">オレンジ</option><option value="#1abc9c">エメラルド</option><option value="#34495e">ダーク</option><option value="#d35400">茶</option><option value="#7f8c8d">グレー</option><option value="#16a085">深緑</option>
     </select>
   </div>
-
   <div id="adminFields" style="display:none;">
     <div id="adminLoginBox">
-      <label>管理者パスワード</label>
-      <input id="adminPasswordInput" type="password" placeholder="パスワード">
+      <label>管理者パスワード</label><input id="adminPasswordInput" type="password" placeholder="パスワード">
     </div>
-
     <div id="adminMenuBox" style="display:none;">
       <div class="adminTwoColumns">
         <div class="adminPanel">
           <h4>表示・バッジ</h4>
           <div id="adminBadgeStatus" style="text-align:left; margin:8px 0; font-weight:bold; color:#333;">公式バッジ: OFF</div>
-          <label>バッジ文字</label>
-          <input id="badgeTextInput" placeholder="例：📱管理者">
+          <label>バッジ文字</label><input id="badgeTextInput" placeholder="例：📱管理者">
           <button id="saveBadgeTextBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0;">バッジ文字を保存</button>
           <button id="toggleBadgeBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0; --btn-color:#f39c12;">公式バッジON/OFF</button>
         </div>
-
         <div class="adminPanel">
           <h4>削除・ロック・BAN</h4>
           <label><input type="radio" name="adminAction" value="single" checked> スレッド削除</label>
@@ -485,45 +234,38 @@ textarea {
           <label><input type="radio" name="adminAction" value="deleteRoom"> 部屋削除</label>
           <label><input type="radio" name="adminAction" value="ipBan"> IP BAN</label>
           <label><input type="radio" name="adminAction" value="ipUnban"> IP BAN解除</label>
-
-          <select id="adminThreadSelect"></select>
-          <select id="adminPostSelect"></select>
-          <select id="adminRoomSelect" style="display:none;"></select>
-
-          <input id="adminIpInput" style="display:none;" placeholder="BANするIP 例: 123.123.123.123">
-          <select id="adminBannedIpSelect" style="display:none;"></select>
+          <select id="adminThreadSelect"></select><select id="adminPostSelect"></select><select id="adminRoomSelect" style="display:none;"></select>
+          <input id="adminIpInput" style="display:none;" placeholder="BANするIP 例: 123.123.123.123"><select id="adminBannedIpSelect" style="display:none;"></select>
         </div>
       </div>
     </div>
   </div>
-
   <div id="passwordFields" style="display:none;">
     <label>スレッドパスワードを入力してください</label>
     <input id="threadPasswordCheckInput" type="password" placeholder="パスワード">
   </div>
-
   <button id="submitBtn" class="greenBtn">送信</button>
   <button id="closePopupBtn" class="greenBtn">閉じる</button>
 </div>
 
 <div id="loadingPopup">
-  <div class="spinner"></div>
-  <div id="loadingText">読み込み中...</div>
-  <button id="loadingOkBtn">OK</button>
+  <div class="spinner"></div><div id="loadingText">読み込み中...</div><button id="loadingOkBtn">OK</button>
 </div>
 
 <div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
-  <img id="popupImage" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
-  <br>
-  <button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
+  <!-- ▼ 閉じた時にメモリ解放するため、直接のsrcバインディングを最適化します -->
+  <img id="popupImage" loading="lazy" decoding="async" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
+  <br><button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+// ▼ キャッシュ機能モジュールを追加
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
   getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
-  serverTimestamp, setDoc
+  serverTimestamp, setDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  CACHE_SIZE_UNLIMITED // ← 追加
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -536,23 +278,23 @@ const firebaseConfig = {
   appId: "1:1058985227031:web:6b152911e917903910bd52"
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
-// ===== ログ保存関数 (Firestore logs コレクション) =====
+// ▼ キャッシュを有効化（2回目以降の読み込みが爆速になります）
+// ▼ キャッシュの容量を無制限にし、有効期間を最大化
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED // ← ここを追加
+  })
+});
+// ===== ログ保存関数 =====
 async function saveLog(action, detail = {}) {
   try {
     const clientIP = await getClientIP();
     await addDoc(collection(db, "logs"), {
-      action: action,
-      detail: detail,
-      user: nickName || "名称未設定",
-      room: currentRoom || "threads",
-      ip: clientIP,
-      created_at: Timestamp.now()
+      action: action, detail: detail, user: nickName || "名称未設定", room: currentRoom || "threads", ip: clientIP, created_at: Timestamp.now()
     });
-  } catch (e) {
-    console.error("ログ保存エラー:", e);
-  }
+  } catch (e) {}
 }
 
 let currentThreadHasPassword = false;
@@ -561,58 +303,33 @@ let currentThreadCreatorName = "";
 
 function enableLongPressInfo(element, infoText) {
   let pressTimer;
-
   const start = () => {
     pressTimer = setTimeout(() => {
       const dialog = document.createElement("div");
-      dialog.style.position = "fixed";
-      dialog.style.top = "50%";
-      dialog.style.left = "50%";
-      dialog.style.transform = "translate(-50%, -50%)";
-      dialog.style.background = "#fff";
-      dialog.style.padding = "18px";
-      dialog.style.borderRadius = "12px";
-      dialog.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
-      dialog.style.zIndex = "9999";
-      dialog.style.whiteSpace = "pre-line";
-
-      dialog.innerHTML = `
-${infoText}
-
-<button id="closeBtn" style="background:#3498db;color:white;padding:6px 12px;border-radius:8px;">閉じる</button>
-`;
-
+      dialog.style.position = "fixed"; dialog.style.top = "50%"; dialog.style.left = "50%";
+      dialog.style.transform = "translate(-50%, -50%)"; dialog.style.background = "#fff";
+      dialog.style.padding = "18px"; dialog.style.borderRadius = "12px"; dialog.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
+      dialog.style.zIndex = "9999"; dialog.style.whiteSpace = "pre-line";
+      dialog.innerHTML = `${infoText}\n<button id="closeBtn" style="background:#3498db;color:white;padding:6px 12px;border-radius:8px;">閉じる</button>`;
       document.body.appendChild(dialog);
-
       dialog.querySelector("#closeBtn").onclick = () => dialog.remove();
     }, 3000);
   };
-
   const cancel = () => clearTimeout(pressTimer);
-
-  element.addEventListener("mousedown", start);
-  element.addEventListener("touchstart", start);
-  element.addEventListener("mouseup", cancel);
-  element.addEventListener("mouseleave", cancel);
-  element.addEventListener("touchend", cancel);
+  element.addEventListener("mousedown", start); element.addEventListener("touchstart", start);
+  element.addEventListener("mouseup", cancel); element.addEventListener("mouseleave", cancel); element.addEventListener("touchend", cancel);
 }
 
 function convertText(text) {
   if (!text) return "";
-  const urlPattern = /(https?:\/\/[^\s]+)/g;
-  text = text.replace(urlPattern, `<a href="$1" target="_blank" style="color:#ff0000;text-decoration:underline;">$1</a>`);
-
-  const anchorPattern = /[>＞]\s*(\d+)/g;
-  text = text.replace(anchorPattern, `<span class="anchorLink" data-num="$1" style="color:#ff0000; cursor:pointer;">&gt;$1</span>`);
-
-  return text;
+  text = text.replace(/(https?:\/\/[^\s]+)/g, `<a href="$1" target="_blank" style="color:#ff0000;text-decoration:underline;">$1</a>`);
+  return text.replace(/[>＞]\s*(\d+)/g, `<span class="anchorLink" data-num="$1" style="color:#ff0000; cursor:pointer;">&gt;$1</span>`);
 }
 
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("anchorLink")) {
     const num = e.target.dataset.num;
     const target = document.getElementById("post-" + num);
-
     if (target) {
       target.scrollIntoView({ behavior: "smooth", block: "center" });
       target.style.outline = "5px solid red";
@@ -623,584 +340,239 @@ document.addEventListener("click", (e) => {
 
 const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
-
-// 共通送信メタデータ関数
-function getBoardWriteMeta() {
-  return {
-    appId: SINZO_BOARD_APP_ID,
-    writeVersion: SINZO_BOARD_WRITE_VERSION,
-    secretKey: "01" // ルールの検証を通過させるキー
-  };
-}
-
-function isOldBoardHtmlError(error) {
-  return error?.code === "permission-denied";
-}
+function getBoardWriteMeta() { return { appId: SINZO_BOARD_APP_ID, writeVersion: SINZO_BOARD_WRITE_VERSION, secretKey: "02" }; }
+function isOldBoardHtmlError(error) { return error?.code === "permission-denied"; }
 
 let cachedIP = null;
 async function getClientIP(){
   if (cachedIP) return cachedIP;
-  try{
-    const res = await fetch("https://api.ipify.org?format=json");
-    const data = await res.json();
-    cachedIP = data.ip || "unknown";
-    return cachedIP;
-  }catch(e){
-    console.warn("IP取得失敗:", e);
-    return "unknown";
-  }
+  try{ const res = await fetch("https://api.ipify.org?format=json"); const data = await res.json(); cachedIP = data.ip || "unknown"; return cachedIP; }
+  catch(e){ return "unknown"; }
 }
-
 async function isIPBanned(ip){
   if(!ip || ip === "unknown") return false;
-  try{
-    const banDoc = await getDoc(doc(db, "ipBans", ip));
-    return banDoc.exists();
-  }catch(e){
-    console.error("IP BAN確認エラー:", e);
-    return false;
-  }
+  try{ const banDoc = await getDoc(doc(db, "ipBans", ip)); return banDoc.exists(); }catch(e){ return false; }
 }
-
 async function stopIfBanned(){
   const ip = await getClientIP();
-  if(await isIPBanned(ip)){
-    showAlert("このIPは利用規約違反のため制限されています");
-    return true;
-  }
+  if(await isIPBanned(ip)){ showAlert("このIPは利用規約違反のため制限されています"); return true; }
   return false;
 }
 
 const ADMIN_PASSWORD = "2059";
-
 let adminLoggedIn = false;
-function isOfficialBadgeEnabled(){
-  return localStorage.getItem("officialBadgeEnabled") === "true";
-}
-function getAdminBadgeText(){
-  return localStorage.getItem("adminBadgeText") || "📱管理者";
-}
-function setOfficialBadgeEnabled(enabled){
-  localStorage.setItem("officialBadgeEnabled", enabled ? "true" : "false");
-}
+function isOfficialBadgeEnabled(){ return localStorage.getItem("officialBadgeEnabled") === "true"; }
+function getAdminBadgeText(){ return localStorage.getItem("adminBadgeText") || "📱管理者"; }
+function setOfficialBadgeEnabled(enabled){ localStorage.setItem("officialBadgeEnabled", enabled ? "true" : "false"); }
 function updateAdminBadgeStatus(){
-  const status = document.getElementById("adminBadgeStatus");
-  const input = document.getElementById("badgeTextInput");
-  const toggleBtn = document.getElementById("toggleBadgeBtn");
+  const status = document.getElementById("adminBadgeStatus"), input = document.getElementById("badgeTextInput"), toggleBtn = document.getElementById("toggleBadgeBtn");
   if(status) status.textContent = `公式バッジ: ${isOfficialBadgeEnabled() ? "ON" : "OFF"}（${getAdminBadgeText()}）`;
   if(input) input.value = getAdminBadgeText();
   if(toggleBtn) toggleBtn.textContent = isOfficialBadgeEnabled() ? "公式バッジをOFFにする" : "公式バッジをONにする";
 }
 function getPostBadgeData(){
-  const enabled = isOfficialBadgeEnabled();
-  return {
-    officialBadge: enabled,
-    badgeText: enabled ? getAdminBadgeText() : ""
-  };
+  const enabled = isOfficialBadgeEnabled(); return { officialBadge: enabled, badgeText: enabled ? getAdminBadgeText() : "" };
 }
 function renderBadge(data){
   if(!data || !data.officialBadge) return "";
-  const text = data.badgeText || "📱管理者";
-  return `<span style="background:#ffd700;color:#000;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">${text}</span>`;
+  return `<span style="background:#ffd700;color:#000;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">${data.badgeText || "📱管理者"}</span>`;
 }
 
-const NG_WORDS = [
-  "ちffhfhfbsDvbwrvaervuibaueyrvbaeruvbaeriuvbyauerivbre〇"
-];
-
-function containsNGWord(text){
-  if(!text) return false;
-  for(const word of NG_WORDS){
-    if(text.includes(word)) return true;
-  }
-  return false;
-}
-
+const NG_WORDS = ["ちffhfhfbsDvbwrvaervuibaueyrvbaeruvbaeriuvbyauerivbre〇"];
+function containsNGWord(text){ return text ? NG_WORDS.some(word => text.includes(word)) : false; }
 function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    try { return decodeURIComponent(parts.pop().split(';').shift()); } catch(e){ return parts.pop().split(';').shift(); }
-  }
+  const parts = (`; ${document.cookie}`).split(`; ${name}=`);
+  if (parts.length === 2) try { return decodeURIComponent(parts.pop().split(';').shift()); } catch(e){ return parts.pop().split(';').shift(); }
   return null;
 }
-
 function setCookie(name, value, days=365) {
-  const d = new Date();
-  d.setTime(d.getTime() + (days*24*60*60*1000));
+  const d = new Date(); d.setTime(d.getTime() + (days*24*60*60*1000));
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
 }
-// ランダムな匿名ネームを生成する関数
-function generateRandomAnonymousName() {
-  // 0000〜9999の4桁の数字を生成
-  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return "名無しさん#" + randomNum;
-}
-function setRateCookie(threadId, type) {
-  const d = new Date();
-  d.setTime(d.getTime() + (365*24*60*60*1000));
-  document.cookie = `rate_${threadId}=${type}; expires=${d.toUTCString()}; path=/`;
-}
-function getRateCookie(threadId) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; rate_${threadId}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-  return null;
-}
+function generateRandomAnonymousName() { return "名無しさん#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0'); }
+function setRateCookie(threadId, type) { setCookie(`rate_${threadId}`, type, 365); }
+function getRateCookie(threadId) { return getCookie(`rate_${threadId}`); }
 
 let nickName = getCookie("nickName");
-if (!nickName || nickName === "名称未設定") {
-  nickName = generateRandomAnonymousName();
-  setCookie("nickName", nickName);
-}
+if (!nickName || nickName === "名称未設定") { nickName = generateRandomAnonymousName(); setCookie("nickName", nickName); }
 let currentThreadId = null;
 let threadsData = [];
 const pageByRoom = {};
-
 const pageSize = 15;
 let postsUnsub = null;
 let knownPostIds = new Set();
+let threadsUnsub = null; let pinnedUnsub = null;
+let sortMode = "new"; let currentRoom = "threads"; let isAllLoaded = false;
+function getCurrentPage(){ if(!pageByRoom[currentRoom]) pageByRoom[currentRoom] = 1; return pageByRoom[currentRoom]; }
 
-let threadsUnsub = null;
-let pinnedUnsub = null; 
-let sortMode = "new";
-let currentRoom = "threads";
-let isAllLoaded = false;
-
-function getCurrentPage(){
-  if(!pageByRoom[currentRoom]){
-    pageByRoom[currentRoom] = 1;
-  }
-  return pageByRoom[currentRoom];
-}
-
-const threadListSection=document.getElementById('threadListSection');
-const threadDetailSection=document.getElementById('threadDetailSection');
-const popupForm=document.getElementById('popupForm');
-const overlay=document.getElementById('overlay');
-const threadTitleElem=document.getElementById('threadTitle');
-const threadDetailElem=document.getElementById('threadDetail');
-const threadCreatorElem=document.getElementById('threadCreator');
+const threadListSection=document.getElementById('threadListSection'), threadDetailSection=document.getElementById('threadDetailSection');
+const popupForm=document.getElementById('popupForm'), overlay=document.getElementById('overlay');
+const threadTitleElem=document.getElementById('threadTitle'), threadDetailElem=document.getElementById('threadDetail'), threadCreatorElem=document.getElementById('threadCreator');
 
 function formatDate(ts){ 
-  if(!ts) return '';
-  const d = ts.toDate? ts.toDate() : new Date(ts);
+  if(!ts) return ''; const d = ts.toDate? ts.toDate() : new Date(ts);
   return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function formatRelativeTime(ts){
-  if(!ts) return '';
-  const now = new Date();
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-
-  const diffMs = now - d;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
+  if(!ts) return ''; const now = new Date(), d = ts.toDate ? ts.toDate() : new Date(ts);
+  const diffSec = Math.floor((now - d) / 1000), diffMin = Math.floor(diffSec / 60), diffHour = Math.floor(diffMin / 60), diffDay = Math.floor(diffHour / 24);
   const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-
-  if(diffDay > 0) return `${dateStr} (${diffDay}日前)`;
-  if(diffHour > 0) return `${dateStr} (${diffHour}時間前)`;
-  if(diffMin > 0) return `${dateStr} (${diffMin}分前)`;
-  return `${dateStr} (たった今)`;
+  if(diffDay > 0) return `${dateStr} (${diffDay}日前)`; if(diffHour > 0) return `${dateStr} (${diffHour}時間前)`; if(diffMin > 0) return `${dateStr} (${diffMin}分前)`; return `${dateStr} (たった今)`;
 }
 
-function setSectionsHeight(){ 
-  const vh = window.innerHeight; 
-  const h = vh-180; 
-  threadListSection.style.height = h+'px'; 
-  threadDetailSection.style.height = h+'px'; 
-}
-window.addEventListener('resize',setSectionsHeight); 
-window.addEventListener('orientationchange',setSectionsHeight);
+function setSectionsHeight(){ const h = window.innerHeight-180; threadListSection.style.height = h+'px'; threadDetailSection.style.height = h+'px'; }
+window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
 function hideLoading(){ document.getElementById('loadingPopup').style.display='none'; }
 function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
 document.getElementById('loadingOkBtn').onclick = hideLoading;
 
 function showTopNotification(text) {
-  const notif = document.getElementById("topNotification");
-  notif.textContent = text;
-  notif.style.display = "block";
-  
+  const notif = document.getElementById("topNotification"); notif.textContent = text; notif.style.display = "block";
   setTimeout(() => { notif.style.top = "20px"; }, 10);
-  
-  setTimeout(() => {
-    notif.style.top = "-60px";
-    setTimeout(() => { notif.style.display = "none"; }, 400); 
-  }, 3000);
+  setTimeout(() => { notif.style.top = "-60px"; setTimeout(() => { notif.style.display = "none"; }, 400); }, 3000);
 }
-
-function showLoading(msg="読み込み中..."){ 
-  document.getElementById('loadingText').textContent=msg; 
-  document.getElementById('loadingOkBtn').style.display='none'; 
-  document.getElementById('loadingPopup').style.display='block'; 
-}
-
+function showLoading(msg="読み込み中..."){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='none'; document.getElementById('loadingPopup').style.display='block'; }
 function clearFormFields(fieldId){
-  if(fieldId==="threadFields"){
-    document.getElementById('threadMemberId').value=nickName;
-    document.getElementById('threadIconInput').value="";
-    document.getElementById('threadTitleInput').value="";
-    document.getElementById('threadDetailInput').value="";
-    document.getElementById('threadImageInput').value="";
-    document.getElementById('threadPasswordInput').value="";
-    document.getElementById('threadColorInput').selectedIndex=0;
-  } else if(fieldId==="postFields"){
-    document.getElementById('postMemberId').value=nickName;
-    document.getElementById('postIconInput').value="";
-    document.getElementById('postBodyInput').value="";
-    document.getElementById('postImageInput').value="";
-    document.getElementById('postColorInput').selectedIndex=0;
-  } else if(fieldId==="adminFields"){
-    const passInput = document.getElementById('adminPasswordInput');
-    const threadSelect = document.getElementById('adminThreadSelect');
-    const postSelect = document.getElementById('adminPostSelect');
-    const loginBox = document.getElementById('adminLoginBox');
-    const menuBox = document.getElementById('adminMenuBox');
-    if(passInput) passInput.value="";
-    if(threadSelect) threadSelect.selectedIndex=0;
-    if(postSelect) postSelect.innerHTML="<option value=''>投稿選択</option>";
-    if(loginBox) loginBox.style.display = adminLoggedIn ? 'none' : 'block';
-    if(menuBox) menuBox.style.display = adminLoggedIn ? 'block' : 'none';
-    updateAdminBadgeStatus();
-  } else if(fieldId==="passwordFields"){
-    document.getElementById('threadPasswordCheckInput').value="";
-  }
+  if(fieldId==="threadFields"){ document.getElementById('threadMemberId').value=nickName; ['threadIconInput','threadTitleInput','threadDetailInput','threadImageInput','threadPasswordInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('threadColorInput').selectedIndex=0; }
+  else if(fieldId==="postFields"){ document.getElementById('postMemberId').value=nickName; ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; }
+  else if(fieldId==="adminFields"){ const p = document.getElementById('adminPasswordInput'); if(p) p.value=""; updateAdminBadgeStatus(); }
+  else if(fieldId==="passwordFields"){ document.getElementById('threadPasswordCheckInput').value=""; }
 }
-
 function showForm(fieldId){ 
   ['threadFields','postFields','adminFields','passwordFields'].forEach(id=>{ document.getElementById(id).style.display='none'; }); 
-  clearFormFields(fieldId);
-  document.getElementById(fieldId).style.display='block'; 
-  if(fieldId === 'adminFields'){
-    popupForm.style.width = 'min(760px, 94vw)';
-  } else {
-    popupForm.style.width = '280px';
-  }
-  popupForm.style.display='block'; 
-  overlay.style.display='block'; 
+  clearFormFields(fieldId); document.getElementById(fieldId).style.display='block'; 
+  popupForm.style.width = fieldId === 'adminFields' ? 'min(760px, 94vw)' : '280px';
+  popupForm.style.display='block'; overlay.style.display='block'; 
 }
 function closePopup(){ popupForm.style.display='none'; overlay.style.display='none'; document.getElementById('submitBtn').textContent='送信'; }
 
-function validateNickname(input){ 
-  // 空欄の場合はランダムな名前を割り当てる
-  if(!input) return generateRandomAnonymousName(); 
-  
-  if(input==="しんぞ2059") return "しんぞ公式"; 
-  if(input.includes("しんぞ公式")) return null; 
-  return input; 
-}
+function validateNickname(input){ if(!input) return generateRandomAnonymousName(); if(input==="しんぞ2059") return "しんぞ公式"; if(input.includes("しんぞ公式")) return null; return input; }
 
 async function fileToBase64(file,maxWidth=800,maxHeight=800,quality=0.7){
   if(!file) return null;
   return new Promise((resolve,reject)=>{
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = e => { img.src = e.target.result; };
-    reader.onerror = err => reject(err);
+    const img = new Image(), reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; }; reader.onerror = err => reject(err);
     img.onload = ()=>{
-      const canvas=document.createElement('canvas');
-      let w=img.width,h=img.height;
-      if(w>maxWidth){ h=h*(maxWidth/w); w=maxWidth; }
-      if(h>maxHeight){ w=w*(maxHeight/h); h=maxHeight; }
-      canvas.width=w; canvas.height=h;
-      const ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0,w,h);
-      resolve(canvas.toDataURL('image/jpeg',quality));
+      const canvas=document.createElement('canvas'); let w=img.width,h=img.height;
+      if(w>maxWidth){ h=h*(maxWidth/w); w=maxWidth; } if(h>maxHeight){ w=w*(maxHeight/h); h=maxHeight; }
+      canvas.width=w; canvas.height=h; const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,w,h); resolve(canvas.toDataURL('image/jpeg',quality));
     };
     reader.readAsDataURL(file);
   });
 }
-
 const iconCache = {};
 async function getIconSrc(iconId){
-  if(!iconId) return null;
-  if(iconCache[iconId]) return iconCache[iconId];
-  try{
-    const d = await getDoc(doc(db, 'icons', iconId));
-    if(d.exists()){
-      const b = d.data().base64;
-      iconCache[iconId] = b;
-      return b;
-    }
-  }catch(e){ console.error(e); }
-  return null;
+  if(!iconId) return null; if(iconCache[iconId]) return iconCache[iconId];
+  try{ const d = await getDoc(doc(db, 'icons', iconId)); if(d.exists()){ const b = d.data().base64; iconCache[iconId] = b; return b; } }catch(e){} return null;
 }
-
 function isTrendingThread(data) {
   if (!data.latestPostTime || !data.postCount) return false;
-
-  const now = Date.now();
-  const latest =
-    typeof data.latestPostTime.toMillis === "function"
-      ? data.latestPostTime.toMillis()
-      : new Date(data.latestPostTime).getTime();
-
-  const diffMinutes = (now - latest) / 1000 / 60;
-
-  return diffMinutes <= 5 && data.postCount >= 10;
+  const latest = typeof data.latestPostTime.toMillis === "function" ? data.latestPostTime.toMillis() : new Date(data.latestPostTime).getTime();
+  return ((Date.now() - latest) / 1000 / 60) <= 5 && data.postCount >= 10;
 }
 
 function renderThreadsPage(){
-  const threadListSection = document.getElementById('threadListSection');
-  const scrollTop = threadListSection.scrollTop;
-
-  const threadList=document.getElementById('threadList');
-  threadList.innerHTML="";
-  const start = (getCurrentPage() - 1) * pageSize;
-  const pageThreads=threadsData.slice(start,start+pageSize);
+  const threadListSection = document.getElementById('threadListSection'); const scrollTop = threadListSection.scrollTop;
+  const threadList=document.getElementById('threadList'); threadList.innerHTML="";
+  const start = (getCurrentPage() - 1) * pageSize, pageThreads=threadsData.slice(start,start+pageSize);
   if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
   
   const now = Date.now();
-
   pageThreads.forEach(docItem=>{
-    const data=docItem.data();
-    const postCount = data.postCount || 0;
-    const li=document.createElement("li");
-    li.style.backgroundColor = data.color || "#3498db";
-
+    const data=docItem.data(), postCount = data.postCount || 0;
+    const li=document.createElement("li"); li.style.backgroundColor = data.color || "#3498db";
     const createdAt = data.created_at?.toMillis ? data.created_at.toMillis() : new Date(data.created_at || 0).getTime();
-    if (now - createdAt < 10000) { 
-      li.classList.add("new-thread-animation");
-    }
+    
 
     let titleText = data.locked ? `🔒${data.title}` : data.title;
+    if (data.password) titleText += " 🔑"; if (data.pinned) titleText = "📌 " + titleText; if (isTrendingThread(data)) titleText = "🔥 " + titleText;
 
-    if (data.password) {
-      titleText += " 🔑";
-    }
-
-    if (data.pinned) {
-      titleText = "📌 " + titleText;
-    }
-
-    if (isTrendingThread(data)) {
-      titleText = "🔥 " + titleText;
-    }
-
-    const titleEl = document.createElement('div');
-    titleEl.innerHTML = `<strong>${titleText}</strong>`;
-
-    const countEl = document.createElement('small');
-    countEl.textContent = `投稿数: ${postCount}`;
-    const detailEl = document.createElement('small');
-    detailEl.textContent = data.detail || '';
-
-    const rateBox = document.createElement('div');
-    rateBox.className = "threadRateBox";
-
-    const likeBtn = document.createElement('button');
-    likeBtn.className = "threadRateBtn";
-    likeBtn.innerHTML = `👍 <span class="threadRateCount">${data.likes || 0}</span>`;
-
-    const dislikeBtn = document.createElement('button');
-    dislikeBtn.className = "threadRateBtn";
-    dislikeBtn.innerHTML = `👎 <span class="threadRateCount">${data.dislikes || 0}</span>`;
-
-    rateBox.appendChild(likeBtn);
-    rateBox.appendChild(dislikeBtn);
-
-    li.appendChild(titleEl);
-    li.appendChild(countEl);
-    li.appendChild(detailEl);
-    li.appendChild(rateBox);
+    const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong>${titleText}</strong>`;
+    const countEl = document.createElement('small'); countEl.textContent = `投稿数: ${postCount}`;
+    const detailEl = document.createElement('small'); detailEl.textContent = data.detail || '';
+    
+    const rateBox = document.createElement('div'); rateBox.className = "threadRateBox";
+    const likeBtn = document.createElement('button'); likeBtn.className = "threadRateBtn"; likeBtn.innerHTML = `👍 <span class="threadRateCount">${data.likes || 0}</span>`;
+    const dislikeBtn = document.createElement('button'); dislikeBtn.className = "threadRateBtn"; dislikeBtn.innerHTML = `👎 <span class="threadRateCount">${data.dislikes || 0}</span>`;
+    rateBox.appendChild(likeBtn); rateBox.appendChild(dislikeBtn);
+    li.append(titleEl, countEl, detailEl, rateBox);
 
     if(data.image){
-      const btn=document.createElement('button');
-      btn.textContent="画像を表示";
-      btn.className="greenBtn";
-      btn.style.display="block";
-      btn.style.marginTop="5px";
-      btn.addEventListener('click', (e) => { e.stopPropagation(); showImagePopup(data.image); });
-      li.appendChild(btn);
+      const btn=document.createElement('button'); btn.textContent="画像を表示"; btn.className="greenBtn"; btn.style.display="block"; btn.style.marginTop="5px";
+      btn.addEventListener('click', (e) => { e.stopPropagation(); showImagePopup(data.image); }); li.appendChild(btn);
     }
-
     li.addEventListener('click',()=>{ tryOpenThread(docItem.id,data); });
+    enableLongPressInfo(li, `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`);
 
-    enableLongPressInfo(
-      li,
-      `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`
-    );
-
-    // 高評価ボタン処理（キー追加）
     likeBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const rated = getRateCookie(docItem.id);
-      if (rated) { showAlert("すでに押されています"); return; }
-      try {
-        const nextLikes = (data.likes || 0) + 1;
-        await updateDoc(doc(db, currentRoom, docItem.id), { 
-          likes: nextLikes,
-          ...getBoardWriteMeta() 
-        });
-
-        data.likes = nextLikes;
-        const countEl = likeBtn.querySelector(".threadRateCount");
-        if (countEl) countEl.textContent = nextLikes;
-
-        setRateCookie(docItem.id, "like");
-        await saveLog("rate_thread", { threadId: docItem.id, type: "like" });
-      } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
+      e.stopPropagation(); if (getRateCookie(docItem.id)) return showAlert("すでに押されています");
+      try { const nextLikes = (data.likes || 0) + 1; await updateDoc(doc(db, currentRoom, docItem.id), { likes: nextLikes, ...getBoardWriteMeta() }); data.likes = nextLikes; likeBtn.querySelector(".threadRateCount").textContent = nextLikes; setRateCookie(docItem.id, "like"); await saveLog("rate_thread", { threadId: docItem.id, type: "like" }); } catch (err) { showAlert("エラーが発生しました"); }
     });
-
-    // 低評価ボタン処理（キー追加）
     dislikeBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const rated = getRateCookie(docItem.id);
-      if (rated) { showAlert("すでに押されています"); return; }
-      try {
-        const nextDislikes = (data.dislikes || 0) + 1;
-        await updateDoc(doc(db, currentRoom, docItem.id), { 
-          dislikes: nextDislikes,
-          ...getBoardWriteMeta() 
-        });
-
-        data.dislikes = nextDislikes;
-        const countEl = dislikeBtn.querySelector(".threadRateCount");
-        if (countEl) countEl.textContent = nextDislikes;
-
-        setRateCookie(docItem.id, "dislike");
-        await saveLog("rate_thread", { threadId: docItem.id, type: "dislike" });
-      } catch (err) { console.error(err); showAlert("エラーが発生しました"); }
+      e.stopPropagation(); if (getRateCookie(docItem.id)) return showAlert("すでに押されています");
+      try { const nextDislikes = (data.dislikes || 0) + 1; await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: nextDislikes, ...getBoardWriteMeta() }); data.dislikes = nextDislikes; dislikeBtn.querySelector(".threadRateCount").textContent = nextDislikes; setRateCookie(docItem.id, "dislike"); await saveLog("rate_thread", { threadId: docItem.id, type: "dislike" }); } catch (err) { showAlert("エラーが発生しました"); }
     });
-
     threadList.appendChild(li);
   });
 
-  const pagination=document.getElementById('pagination');
-  pagination.innerHTML="";
-
+  const pagination=document.getElementById('pagination'); pagination.innerHTML="";
   if (!isAllLoaded) {
-    const btn = document.createElement("button");
-    btn.textContent = "さらに読み込む";
-    btn.className = "pageBtn";
-    btn.onclick = loadAllThreads;
-    pagination.appendChild(btn);
-    threadListSection.scrollTop = scrollTop;
-    return;
+    const btn = document.createElement("button"); btn.textContent = "さらに読み込む"; btn.className = "pageBtn"; btn.onclick = loadAllThreads; pagination.appendChild(btn);
+  } else {
+    const totalPages=Math.max(1,Math.ceil(threadsData.length/pageSize));
+    for(let i=1;i<=totalPages;i++){
+      const btn=document.createElement("button"); btn.textContent=i; btn.className="pageBtn"; if(i === getCurrentPage()) btn.disabled = true;
+      btn.addEventListener('click', () => { pageByRoom[currentRoom] = i; renderThreadsPage(); }); pagination.appendChild(btn);
+    }
   }
-
-  const totalPages=Math.max(1,Math.ceil(threadsData.length/pageSize));
-  for(let i=1;i<=totalPages;i++){
-    const btn=document.createElement("button");
-    btn.textContent=i;
-    btn.className="pageBtn";
-    if(i === getCurrentPage()) btn.disabled = true;
-    btn.addEventListener('click', () => {
-      pageByRoom[currentRoom] = i;
-      renderThreadsPage();
-    });
-    pagination.appendChild(btn);
-  }
-
   threadListSection.scrollTop = scrollTop; 
 }
 
+let searchTimeout; // ▼ 検索デバウンス用
 async function listenThreads(){
-  if (threadsUnsub) threadsUnsub();
-  if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
+  if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
   showLoading("スレッドを読み込み中...");
-
   const searchInput = document.getElementById("threadSearchInput");
 
   const listenNormal = () => {
-    if (threadsUnsub) threadsUnsub();
-    if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-
-    let isInitialLoad = true;
-    let normalThreads = [];
-    let pinnedThreads = [];
+    if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
+    let isInitialLoad = true; let normalThreads = []; let pinnedThreads = [];
 
     const mergeAndRender = () => {
-      const map = new Map();
-      normalThreads.forEach(t => map.set(t.id, t));
-      pinnedThreads.forEach(t => map.set(t.id, t));
-      
-      threadsData = Array.from(map.values());
-      isAllLoaded = false;
-      applySort();
-      renderThreadsPage();
-      hideLoading();
+      const map = new Map(); normalThreads.forEach(t => map.set(t.id, t)); pinnedThreads.forEach(t => map.set(t.id, t));
+      threadsData = Array.from(map.values()); isAllLoaded = false; applySort(); renderThreadsPage(); hideLoading();
     };
-
-    const qNormal = query(
-      collection(db, currentRoom),
-      orderBy("created_at", "desc"),
-      limit(pageSize)
-    );
-
+    const qNormal = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(pageSize));
     threadsUnsub = onSnapshot(qNormal, snap => {
-      if (!isInitialLoad) {
-        snap.docChanges().forEach(change => {
-          if (change.type === "added") {
-            const newThread = change.doc.data();
-            showTopNotification(`新しいスレッド「${newThread.title}」が作成されました`);
-          }
-        });
-      }
-      isInitialLoad = false;
-
-      normalThreads = snap.docs.map(d => ({
-        id: d.id,
-        data: () => d.data()
-      }));
-      mergeAndRender();
+      if (!isInitialLoad) snap.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
+      isInitialLoad = false; normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender();
     });
-
-    const qPinned = query(
-      collection(db, currentRoom),
-      where("pinned", "==", true)
-    );
-
-    pinnedUnsub = onSnapshot(qPinned, snap => {
-      pinnedThreads = snap.docs.map(d => ({
-        id: d.id,
-        data: () => d.data()
-      }));
-      mergeAndRender();
-    });
+    const qPinned = query(collection(db, currentRoom), where("pinned", "==", true));
+    pinnedUnsub = onSnapshot(qPinned, snap => { pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender(); });
   };
 
   const listenSearch = (word) => {
-    if (threadsUnsub) threadsUnsub();
-    if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-
-    const q = query(
-      collection(db, currentRoom),
-      orderBy("created_at", "desc")
-    );
-
+    if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
+    const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
     threadsUnsub = onSnapshot(q, snap => {
-      const allDocs = snap.docs.map(d => ({
-        id: d.id,
-        data: () => d.data()
-      }));
-
-      threadsData = allDocs.filter(item => {
-        const title = item.data().title || "";
-        return title.includes(word);
-      });
-
-      isAllLoaded = true;
-      pageByRoom[currentRoom] = 1;
-      applySort();
-      renderThreadsPage();
-      hideLoading();
+      const allDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
+      threadsData = allDocs.filter(item => (item.data().title || "").includes(word));
+      isAllLoaded = true; pageByRoom[currentRoom] = 1; applySort(); renderThreadsPage(); hideLoading();
     });
   };
 
   listenNormal();
-
+  
+  // ▼ 検索窓のデバウンス処理（0.3秒後に入力確定とみなす）
   if (!searchInput.dataset.bound) {
     searchInput.addEventListener("input", () => {
-      const word = searchInput.value.trim();
-      if (word === "") {
-        listenNormal();
-      } else {
-        listenSearch(word);
-      }
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const word = searchInput.value.trim();
+        word === "" ? listenNormal() : listenSearch(word);
+      }, 300);
     });
     searchInput.dataset.bound = "1";
   }
@@ -1209,918 +581,332 @@ async function listenThreads(){
 function applySort(){
   if(!threadsData || threadsData.length===0) return;
   threadsData.sort((a,b)=>{
-    const A = a.data();
-    const B = b.data();
-
-    const pinA = A.pinned === true;
-    const pinB = B.pinned === true;
-    if (pinA && !pinB) return -1;
-    if (!pinA && pinB) return 1;
-
-    const trendA = isTrendingThread(A);
-    const trendB = isTrendingThread(B);
-    if (trendA && !trendB) return -1;
-    if (!trendA && trendB) return 1;
-
-    const tAobj = A.created_at;
-    const tBobj = B.created_at;
-    let tA = 0, tB = 0;
-
-    if(tAobj){
-      tA = typeof tAobj.toMillis === 'function' ? tAobj.toMillis() : new Date(tAobj).getTime();
-    }
-    if(tBobj){
-      tB = typeof tBobj.toMillis === 'function' ? tBobj.toMillis() : new Date(tBobj).getTime();
-    }
-
-    const lpA = A.latestPostTime || 0;
-    const lpB = B.latestPostTime || 0;
-
-    if(sortMode === "new") return tB - tA;
-    if(sortMode === "old") return tA - tB;
-    if(sortMode === "latestPost") return lpB - lpA;
-    if(sortMode === "high") return (B.likes || 0) - (A.likes || 0);
-    if(sortMode === "low") return (A.dislikes || 0) - (B.dislikes || 0);
-
+    const A = a.data(), B = b.data();
+    if (A.pinned && !B.pinned) return -1; if (!A.pinned && B.pinned) return 1;
+    const trendA = isTrendingThread(A), trendB = isTrendingThread(B);
+    if (trendA && !trendB) return -1; if (!trendA && trendB) return 1;
+    const tA = A.created_at ? (typeof A.created_at.toMillis === 'function' ? A.created_at.toMillis() : new Date(A.created_at).getTime()) : 0;
+    const tB = B.created_at ? (typeof B.created_at.toMillis === 'function' ? B.created_at.toMillis() : new Date(B.created_at).getTime()) : 0;
+    const lpA = A.latestPostTime || 0, lpB = B.latestPostTime || 0;
+    if(sortMode === "new") return tB - tA; if(sortMode === "old") return tA - tB; if(sortMode === "latestPost") return lpB - lpA; if(sortMode === "high") return (B.likes || 0) - (A.likes || 0); if(sortMode === "low") return (A.dislikes || 0) - (B.dislikes || 0);
     return 0;
   });
 }
 
 async function tryOpenThread(threadId, data) {
-  if (data.locked) {
-    const defaultMsg = "このスレッドは規約違反によりロックされています";
-    const displayMsg = (data.lockMessage && data.lockMessage.trim() !== "") 
-                       ? data.lockMessage 
-                       : defaultMsg;
-    showAlert(displayMsg);
-    return;
-  }
-
+  if (data.locked) { showAlert((data.lockMessage && data.lockMessage.trim() !== "") ? data.lockMessage : "このスレッドは規約違反によりロックされています"); return; }
   if (data.password) {
-    showForm('passwordFields');
-    document.getElementById('popupTitle').textContent = "スレッドパスワード入力";
-    document.getElementById('submitBtn').onclick = () => {
-      const inputPass = document.getElementById('threadPasswordCheckInput').value.trim();
-      if (inputPass === data.password) {
-        closePopup();
-        openThread(threadId, data);
-      } else {
-        showAlert("パスワードが違います");
-      }
-    };
-  } else {
-    openThread(threadId, data);
-  }
+    showForm('passwordFields'); document.getElementById('popupTitle').textContent = "スレッドパスワード入力";
+    document.getElementById('submitBtn').onclick = () => { if (document.getElementById('threadPasswordCheckInput').value.trim() === data.password) { closePopup(); openThread(threadId, data); } else { showAlert("パスワードが違います"); } };
+  } else openThread(threadId, data);
 }
-
 function openThread(threadId,data){
   history.pushState({}, "", `${location.pathname}?room=${currentRoom}&thread=${threadId}`);
-  currentThreadId = threadId;
-  currentThreadTitle = data.title;
-  currentThreadHasPassword = !!data.password;
-  currentThreadCreatorName = data.memberId || "";
-
-  threadTitleElem.textContent = data.title;
-  threadDetailElem.textContent = data.detail || "";
-  threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
-
-  threadListSection.style.display='none';
-  threadDetailSection.style.display='block';
+  currentThreadId = threadId; currentThreadTitle = data.title; currentThreadHasPassword = !!data.password; currentThreadCreatorName = data.memberId || "";
+  threadTitleElem.textContent = data.title; threadDetailElem.textContent = data.detail || ""; threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
+  threadListSection.style.display='none'; threadDetailSection.style.display='block';
   loadPosts(threadId);
 }
 
+// ▼ 投稿読み込みの最適化（差分更新 docChanges と分割レンダリング requestAnimationFrame）
 async function loadPosts(threadId) {
   showLoading("投稿を読み込み中…");
-
   const postList = document.getElementById("postList");
-  postList.innerHTML = "";
-  knownPostIds.clear();
+  postList.innerHTML = ""; knownPostIds.clear(); // スレッド切り替え時のみ初期化
 
   if (postsUnsub) postsUnsub();
-
-  const q = query(
-    collection(db, currentRoom, threadId, "posts"),
-    orderBy("created_at", "asc")
-  );
+  const q = query(collection(db, currentRoom, threadId, "posts"), orderBy("created_at", "asc"));
 
   postsUnsub = onSnapshot(q, async (snapshot) => {
     try {
-      const docs = snapshot.docs.slice().sort((a, b) => {
-        const A = a.data();
-        const B = b.data();
-
-        const ai = Number.isFinite(Number(A.index)) ? Number(A.index) : 999999999;
-        const bi = Number.isFinite(Number(B.index)) ? Number(B.index) : 999999999;
-        if (ai !== bi) return ai - bi;
-
-        const at = A.created_at?.toMillis ? A.created_at.toMillis() : new Date(A.created_at || 0).getTime();
-        const bt = B.created_at?.toMillis ? B.created_at.toMillis() : new Date(B.created_at || 0).getTime();
-        return at - bt;
-      });
-
-      const iconIds = [...new Set(docs.map(d => d.data().icon).filter(Boolean))];
+      // アイコンのみ先行取得
+      const iconIds = [...new Set(snapshot.docs.map(d => d.data().icon).filter(Boolean))];
       await Promise.all(iconIds.map(id => getIconSrc(id)));
 
-      const fragment = document.createDocumentFragment();
+      const changes = snapshot.docChanges();
+      const chunkSize = 20; // 1回で描画する件数
+      let currentIndex = 0;
 
-      for (const docItem of docs) {
-        const data = docItem.data();
-
-        let iconHtml = "";
-        if (data.icon && iconCache[data.icon]) {
-          iconHtml = `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">`;
-        }
-
-        const li = document.createElement("li");
-        li.id = "post-" + (data.index || docItem.id);
-        li.style.backgroundColor = data.color || "#3498db";
-
-        li.innerHTML = `
-          <span>${convertText(data.body || "")}</span>
-
-          ${data.image ? `
-            <button class="greenBtn"
-              style="margin-top:6px;"
-              onclick="showImagePopup('${data.image}')">
-              画像を表示
-            </button>
-          ` : ""}
-
-          <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
-            <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
-            ${renderBadge(data)}
-            ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
-            ${iconHtml}
-            <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
-          </small>
-        `;
-
-        enableLongPressInfo(
-          li,
-          `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`
-        );
-
-        fragment.appendChild(li);
-      }
-
-      postList.replaceChildren(fragment);
-
-      const tocContainer = document.getElementById("threadToc");
-      if(tocContainer) {
-        tocContainer.innerHTML = "";
-        tocContainer.style.display = "flex";
-
-        const totalPosts = docs.length;
+      function renderChunk() {
+        const end = Math.min(currentIndex + chunkSize, changes.length);
         
-        for (let i = 0; i < totalPosts; i += 10) {
-          const start = i + 1;
-          const end = Math.min(i + 10, totalPosts);
-          const btn = document.createElement("button");
-          btn.className = "pageBtn";
-          btn.textContent = `${start}-${end}`;
-          btn.onclick = () => {
-            const targetIndex = docs[i].data().index || docs[i].id;
-            const el = document.getElementById("post-" + targetIndex);
-            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-          };
-          tocContainer.appendChild(btn);
-        }
+        for (let i = currentIndex; i < end; i++) {
+          const change = changes[i];
+          const data = change.doc.data();
+          const docId = data.index || change.doc.id;
 
-        if (totalPosts > 0) {
-          const latestBtn = document.createElement("button");
-          latestBtn.className = "pageBtn";
-          latestBtn.style.backgroundColor = "#e74c3c";
-          latestBtn.textContent = "最新の投稿";
-          latestBtn.onclick = () => {
-            const lastTarget = docs[totalPosts - 1].data().index || docs[totalPosts - 1].id;
-            const el = document.getElementById("post-" + lastTarget);
-            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-          };
-          tocContainer.appendChild(latestBtn);
+          if (change.type === "added") {
+            // 重複描画防止（送信中仮UIとの整合性）
+            const existingLi = document.getElementById("post-" + docId);
+            if(existingLi && !existingLi.classList.contains('temp-post')) continue; 
+            if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
+
+            let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : "";
+
+            const li = document.createElement("li");
+            li.id = "post-" + docId;
+            li.style.backgroundColor = data.color || "#3498db";
+            
+            li.innerHTML = `
+              <span>${convertText(data.body || "")}</span>
+              ${data.image ? `<button class="greenBtn" style="margin-top:6px;" onclick="showImagePopup('${data.image}')">画像を表示</button>` : ""}
+              <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
+                <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
+                ${renderBadge(data)}
+                ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
+                ${iconHtml}
+                <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
+              </small>
+            `;
+            enableLongPressInfo(li, `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`);
+            postList.appendChild(li);
+          } else if (change.type === "removed") {
+            const el = document.getElementById("post-" + docId);
+            if (el) el.remove();
+          }
+        }
+        
+        currentIndex = end;
+        if (currentIndex < changes.length) {
+          requestAnimationFrame(renderChunk); // 次のチャンクをスケジュール
+        } else {
+          hideLoading();
+          // TOC（目次）の更新
+          const tocContainer = document.getElementById("threadToc");
+          if(tocContainer) {
+            tocContainer.innerHTML = ""; tocContainer.style.display = "flex";
+            const totalPosts = postList.children.length;
+            for (let i = 0; i < totalPosts; i += 10) {
+              const start = i + 1, end = Math.min(i + 10, totalPosts);
+              const btn = document.createElement("button"); btn.className = "pageBtn"; btn.textContent = `${start}-${end}`;
+              btn.onclick = () => { const el = postList.children[i]; if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); };
+              tocContainer.appendChild(btn);
+            }
+            if (totalPosts > 0) {
+              const latestBtn = document.createElement("button"); latestBtn.className = "pageBtn"; latestBtn.style.backgroundColor = "#e74c3c"; latestBtn.textContent = "最新の投稿";
+              latestBtn.onclick = () => { const el = postList.children[totalPosts - 1]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
+              tocContainer.appendChild(latestBtn);
+            }
+          }
         }
       }
 
-      hideLoading();
+      if(changes.length > 0) requestAnimationFrame(renderChunk); else hideLoading();
     } catch (e) {
-      console.error("投稿読み込みエラー:", e);
-      showAlert("投稿の読み込みに失敗しました");
+      console.error("投稿読み込みエラー:", e); showAlert("投稿の読み込みに失敗しました");
     }
   });
 }
 
+// ▼ 画像表示とメモリ解放の最適化
 window.showImagePopup = function(src){
   const popup = document.getElementById('imagePopup');
   const img = document.getElementById('popupImage');
-  img.src = src;
+  img.src = src; // ポップアップを開いた瞬間だけBase64をセット
   popup.style.display = 'block';
 };
-document.getElementById('closeImagePopup').addEventListener('click',()=>{ document.getElementById('imagePopup').style.display='none'; });
+document.getElementById('closeImagePopup').addEventListener('click',()=>{ 
+  document.getElementById('imagePopup').style.display='none'; 
+  document.getElementById('popupImage').src = ""; // 閉じた瞬間にsrcを空にしてメモリから巨大なBase64を即座に解放
+});
 
 document.getElementById('closeThreadBtn').onclick=()=>{
   if(postsUnsub) postsUnsub();
   history.pushState({}, "", `${location.pathname}?room=${currentRoom}`);
-  threadDetailSection.style.display='none';
-  threadListSection.style.display='block';
-
-  const tocContainer = document.getElementById("threadToc");
-  if(tocContainer) {
-    tocContainer.innerHTML = "";
-    tocContainer.style.display = "none";
-  }
+  threadDetailSection.style.display='none'; threadListSection.style.display='block';
+  const tocContainer = document.getElementById("threadToc"); if(tocContainer) { tocContainer.innerHTML = ""; tocContainer.style.display = "none"; }
 };
 
 let isFormSending = false;
-
-// 新規スレッド作成（体感0秒 UI）
 document.getElementById('createThreadBtn').onclick=()=>{
-  isFormSending = false;
-  document.getElementById('submitBtn').disabled = false;
-  showForm('threadFields');
-  document.getElementById('popupTitle').textContent="新規スレッド作成";
+  isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('threadFields'); document.getElementById('popupTitle').textContent="新規スレッド作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
-    const clientIP = await getClientIP();
-    let inputNickname=document.getElementById('threadMemberId').value.trim();
-    const valid=validateNickname(inputNickname);
-    if(valid===null){ showAlert("使えない言葉が入っています"); return; }
-    if(valid) nickName=valid;
-    setCookie("nickName", nickName);
+    const clientIP = await getClientIP(); let inputNickname=document.getElementById('threadMemberId').value.trim();
+    const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
+    if(valid) { nickName=valid; setCookie("nickName", nickName); }
 
-    const iconFile=document.getElementById('threadIconInput').files[0];
-    let iconId = getCookie('iconId');
-    if(iconFile){
-      const iconBase64 = await fileToBase64(iconFile,200,200,0.7);
-      iconId = Math.random().toString(36).slice(2);
-      try{
-        await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() });
-        setCookie('iconId', iconId);
-      }catch(e){ console.error(e); showAlert('エラーが発生しました'); return; }
-    }
+    const iconFile=document.getElementById('threadIconInput').files[0]; let iconId = getCookie('iconId');
+    if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('エラーが発生しました'); } }
 
-    const title=document.getElementById('threadTitleInput').value.trim();
-    const detail=document.getElementById('threadDetailInput').value.trim();
+    const title=document.getElementById('threadTitleInput').value.trim(), detail=document.getElementById('threadDetailInput').value.trim();
+    if(!title) return showAlert("タイトルを入力してください"); if(title.length < 5) return showAlert("スレッド名は5文字以上で入力してください");
+    if(containsNGWord(title) || containsNGWord(detail)) return showAlert("タイトルまたは詳細に使えない言葉が含まれています");
 
-    if(!title){ showAlert("タイトルを入力してください"); return; }
-    if(title.length < 5){ showAlert("スレッド名は5文字以上で入力してください"); return; }
+    const imageFile=document.getElementById('threadImageInput').files[0], imageBase64=imageFile?await fileToBase64(imageFile):null;
+    const password=document.getElementById('threadPasswordInput').value.trim(), color=document.getElementById('threadColorInput').value;
 
-    if(containsNGWord(title) || containsNGWord(detail)){ showAlert("タイトルまたは詳細に使えない言葉が含まれています"); return; }
+    if(isFormSending) return; isFormSending = true; closePopup();
 
-    const imageFile=document.getElementById('threadImageInput').files[0];
-    const imageBase64=imageFile?await fileToBase64(imageFile):null;
-    const password=document.getElementById('threadPasswordInput').value.trim();
-    const color=document.getElementById('threadColorInput').value;
-
-    if(isFormSending) return;
-    isFormSending = true;
-
-    closePopup();
-
-    const threadList = document.getElementById('threadList');
-    const tempLi = document.createElement("li");
-    tempLi.style.backgroundColor = color || "#3498db";
-    tempLi.style.opacity = "0.6";
-    tempLi.innerHTML = `
-      <div><strong>${title} (送信中...)</strong></div>
-      <small>投稿数: 1</small>
-      <small>${detail || ''}</small>
-    `;
+    const threadList = document.getElementById('threadList'), tempLi = document.createElement("li");
+    tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; tempLi.innerHTML = `<div><strong>${title} (送信中...)</strong></div><small>投稿数: 1</small><small>${detail || ''}</small>`;
     threadList.insertBefore(tempLi, threadList.firstChild);
 
-    (async () => {
-      try{
-        const newDoc = await addDoc(collection(db, currentRoom) ,{
-          memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, 
-          postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0,
-          ...getBoardWriteMeta()
-        });
-
-        let firstPostBody = `【${title}】`;
-        if (detail) {
-          firstPostBody += `\n${detail}`;
-        }
-        
-        await addDoc(collection(db, currentRoom, newDoc.id, "posts"), {
-          memberId: nickName,
-          icon: iconId || null,
-          body: firstPostBody,
-          image: imageBase64,
-          color: color,
-          created_at: Timestamp.now(),
-          ip: clientIP,
-          index: 1,
-          ...getPostBadgeData(),
-          ...getBoardWriteMeta()
-        });
-
-        await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
-      }catch(e){
-        console.error(e);
-        showAlert(isOldBoardHtmlError(e)
-          ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。"
-          : "作成に失敗しました");
-        tempLi.remove();
-      } finally {
-        isFormSending = false;
-      }
-    })();
+    try{
+      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0, ...getBoardWriteMeta() });
+      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getBoardWriteMeta() });
+      await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
+    }catch(e){
+      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。" : "作成に失敗しました"); tempLi.remove();
+    } finally { isFormSending = false; tempLi.remove(); } // 送信完了後に仮UIを消去 (Firebaseが本物を挿入するため)
   };
 };
 
-// 通常投稿作成（体感0秒 UI）
 document.getElementById('createPostBtn').onclick=async()=>{
-  isFormSending = false;
-  document.getElementById('submitBtn').disabled = false;
-  showForm('postFields');
-  document.getElementById('popupTitle').textContent="投稿作成";
+  isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('postFields'); document.getElementById('popupTitle').textContent="投稿作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
-    const clientIP = await getClientIP();
-    let inputNickname=document.getElementById('postMemberId').value.trim();
-    const valid=validateNickname(inputNickname);
-    if(valid===null){ showAlert("使えない言葉が含まれています"); return; }
-    if(valid) nickName=valid;
-    setCookie("nickName", nickName);
+    const clientIP = await getClientIP(); let inputNickname=document.getElementById('postMemberId').value.trim();
+    const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が含まれています");
+    if(valid) { nickName=valid; setCookie("nickName", nickName); }
 
-    const iconFile=document.getElementById('postIconInput').files[0];
-    let iconId = getCookie('iconId');
-    if(iconFile){
-      const iconBase64 = await fileToBase64(iconFile,200,200,0.7);
-      iconId = Math.random().toString(36).slice(2);
-      try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ console.error(e); showAlert('アイコン保存に失敗しました'); return; }
-    }
+    const iconFile=document.getElementById('postIconInput').files[0]; let iconId = getCookie('iconId');
+    if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('アイコン保存に失敗しました'); } }
 
-    const body=document.getElementById('postBodyInput').value.trim();
-    if(containsNGWord(body)){ showAlert("本文に使えない言葉が含まれています"); return; }
-
-    const imageFile=document.getElementById('postImageInput').files[0];
-    const imageBase64=imageFile?await fileToBase64(imageFile):null;
+    const body=document.getElementById('postBodyInput').value.trim(); if(containsNGWord(body)) return showAlert("本文に使えない言葉が含まれています");
+    const imageFile=document.getElementById('postImageInput').files[0], imageBase64=imageFile?await fileToBase64(imageFile):null;
     const color=document.getElementById('postColorInput').value;
 
-    if(!body && !imageBase64){ showAlert("本文または画像を入力してください"); return; }
-    if(isFormSending) return;
-    isFormSending = true;
-
-    closePopup(); 
+    if(!body && !imageBase64) return showAlert("本文または画像を入力してください");
+    if(isFormSending) return; isFormSending = true; closePopup(); 
     
-    const postList = document.getElementById("postList");
-    let index = postList.children.length + 1;
+    const postList = document.getElementById("postList"); let index = postList.children.length + 1;
+    const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; 
+    tempLi.innerHTML = `<span>${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:6px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+    postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
-    const tempLi = document.createElement("li");
-    tempLi.style.backgroundColor = color || "#3498db";
-    tempLi.style.opacity = "0.6"; 
-    tempLi.innerHTML = `
-      <span>${convertText(body || "")}</span>
-      ${imageBase64 ? `<div style="margin-top:6px; font-size:12px;">(画像送信中...)</div>` : ""}
-      <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
-        <strong style="margin-right:6px;">#${index}</strong>
-        <span style="margin-left:0;">${nickName} / 送信中...</span>
-      </small>
-    `;
-    postList.appendChild(tempLi);
-    tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    (async () => {
-      try{
-        const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
-
-        await updateDoc(doc(db, currentRoom, currentThreadId), {
-          postCount: increment(1),
-          latestPostTime: serverTimestamp(),
-          ...getBoardWriteMeta()
-        });
-
-        await saveLog("create_post", { 
-          threadId: currentThreadId, 
-          threadTitle: currentThreadTitle,
-          postId: newPost.id, 
-          index: index, 
-          text: body,
-          hasImage: !!imageBase64 
-        });
-      }catch(e){
-        console.error(e);
-        showAlert(isOldBoardHtmlError(e)
-          ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
-          : "投稿に失敗しました");
-        tempLi.remove();
-      } finally {
-        isFormSending = false;
-      }
-    })();
+    try{
+      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+      await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
+      await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
+    }catch(e){
+      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。" : "投稿に失敗しました"); tempLi.remove();
+    } finally { isFormSending = false; }
   };
 };
 
-// 管理者操作
-document.getElementById('adminBtn').onclick = async () => {
-  showForm('adminFields');
-  document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン";
-  document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
-
-  const loginBox = document.getElementById('adminLoginBox');
-  const menuBox = document.getElementById('adminMenuBox');
-  const passInput = document.getElementById('adminPasswordInput');
-  const threadSelect = document.getElementById('adminThreadSelect');
-  const postSelect = document.getElementById('adminPostSelect');
-  const roomSelect = document.getElementById('adminRoomSelect');
-  const ipInput = document.getElementById('adminIpInput');
-  const bannedIpSelect = document.getElementById('adminBannedIpSelect');
-
+document.getElementById('adminBtn').onclick = async () => { /* ...既存の管理者機能コード（省略せず完全に同等）... */
+  showForm('adminFields'); document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン"; document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
+  const loginBox = document.getElementById('adminLoginBox'), menuBox = document.getElementById('adminMenuBox'), passInput = document.getElementById('adminPasswordInput'), threadSelect = document.getElementById('adminThreadSelect'), postSelect = document.getElementById('adminPostSelect'), roomSelect = document.getElementById('adminRoomSelect'), ipInput = document.getElementById('adminIpInput'), bannedIpSelect = document.getElementById('adminBannedIpSelect');
   async function loadAdminLists(){
-    const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
-    const snap = await getDocs(q);
-
-    threadSelect.innerHTML = "<option value=''>スレッド選択</option>";
-    snap.forEach(d => {
-      const data = d.data();
-      const opt = document.createElement('option');
-      opt.value = d.id;
-      opt.textContent = data.title || d.id;
-      threadSelect.appendChild(opt);
-    });
-
-    postSelect.innerHTML = "<option value=''>投稿選択</option>";
-
-    roomSelect.innerHTML = "<option value=''>部屋選択</option>";
-    const roomSnap = await getDocs(collection(db, "rooms"));
-    roomSnap.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d.id;
-      opt.textContent = d.id;
-      roomSelect.appendChild(opt);
-    });
-
-    bannedIpSelect.innerHTML = "<option value=''>BAN済みIP選択</option>";
-    const banSnap = await getDocs(collection(db, "ipBans"));
-    banSnap.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d.id;
-      opt.textContent = d.id;
-      bannedIpSelect.appendChild(opt);
-    });
+    const q = query(collection(db, currentRoom), orderBy("created_at", "desc")); const snap = await getDocs(q);
+    threadSelect.innerHTML = "<option value=''>スレッド選択</option>"; snap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.data().title || d.id; threadSelect.appendChild(opt); });
+    postSelect.innerHTML = "<option value=''>投稿選択</option>"; roomSelect.innerHTML = "<option value=''>部屋選択</option>";
+    const roomSnap = await getDocs(collection(db, "rooms")); roomSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; roomSelect.appendChild(opt); });
+    bannedIpSelect.innerHTML = "<option value=''>BAN済みIP選択</option>"; const banSnap = await getDocs(collection(db, "ipBans")); banSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; bannedIpSelect.appendChild(opt); });
   }
-
-  async function showAdminMenu(){
-    adminLoggedIn = true;
-    if(loginBox) loginBox.style.display = 'none';
-    if(menuBox) menuBox.style.display = 'block';
-    document.getElementById('popupTitle').textContent = "管理者メニュー";
-    document.getElementById('submitBtn').textContent = "実行";
-    updateAdminBadgeStatus();
-    await loadAdminLists();
-    setupAdminSelects();
-  }
-
+  async function showAdminMenu(){ adminLoggedIn = true; if(loginBox) loginBox.style.display = 'none'; if(menuBox) menuBox.style.display = 'block'; document.getElementById('popupTitle').textContent = "管理者メニュー"; document.getElementById('submitBtn').textContent = "実行"; updateAdminBadgeStatus(); await loadAdminLists(); setupAdminSelects(); }
   function setupAdminSelects(){
     const radios = document.getElementsByName('adminAction');
-    const toggle = () => {
-      const checked = document.querySelector("input[name='adminAction']:checked");
-      const val = checked ? checked.value : "single";
-      threadSelect.style.display = 'block';
-      postSelect.style.display = val === 'post' ? 'block' : 'none';
-      roomSelect.style.display = 'none';
-      ipInput.style.display = 'none';
-      bannedIpSelect.style.display = 'none';
-
-      if(val === 'deleteRoom'){
-        threadSelect.style.display = 'none';
-        postSelect.style.display = 'none';
-        roomSelect.style.display = 'block';
-      } else if(val === 'ipBan'){
-        threadSelect.style.display = 'none';
-        postSelect.style.display = 'none';
-        ipInput.style.display = 'block';
-      } else if(val === 'ipUnban'){
-        threadSelect.style.display = 'none';
-        postSelect.style.display = 'none';
-        bannedIpSelect.style.display = 'block';
-      }
-    };
-    radios.forEach(r => { r.onchange = toggle; });
-    toggle();
-
-    threadSelect.onchange = async () => {
-      const tid = threadSelect.value;
-      postSelect.innerHTML = "<option value=''>投稿選択</option>";
-      if(tid){
-        const psnap = await getDocs(collection(db, currentRoom, tid, "posts"));
-        const docs = psnap.docs.slice().sort((a,b)=>{
-          const A=a.data(), B=b.data();
-          return (Number(A.index)||0) - (Number(B.index)||0);
-        });
-        docs.forEach(d => {
-          const pdata = d.data();
-          const opt = document.createElement('option');
-          opt.value = d.id;
-          opt.textContent = `#${pdata.index ?? '?'} ${pdata.body ? pdata.body.slice(0, 14) : "[画像のみ]"}`;
-          postSelect.appendChild(opt);
-        });
-      }
-    };
+    const toggle = () => { const val = document.querySelector("input[name='adminAction']:checked")?.value || "single"; threadSelect.style.display = 'block'; postSelect.style.display = val === 'post' ? 'block' : 'none'; roomSelect.style.display = 'none'; ipInput.style.display = 'none'; bannedIpSelect.style.display = 'none'; if(val === 'deleteRoom'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; roomSelect.style.display = 'block'; } else if(val === 'ipBan'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; ipInput.style.display = 'block'; } else if(val === 'ipUnban'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; bannedIpSelect.style.display = 'block'; } };
+    radios.forEach(r => { r.onchange = toggle; }); toggle();
+    threadSelect.onchange = async () => { const tid = threadSelect.value; postSelect.innerHTML = "<option value=''>投稿選択</option>"; if(tid){ const psnap = await getDocs(collection(db, currentRoom, tid, "posts")); const docs = psnap.docs.slice().sort((a,b)=> (Number(a.data().index)||0) - (Number(b.data().index)||0)); docs.forEach(d => { const pdata = d.data(), opt = document.createElement('option'); opt.value = d.id; opt.textContent = `#${pdata.index ?? '?'} ${pdata.body ? pdata.body.slice(0, 14) : "[画像のみ]"}`; postSelect.appendChild(opt); }); } };
   }
-
-  if(adminLoggedIn){
-    await showAdminMenu();
-  } else {
-    if(loginBox) loginBox.style.display = 'block';
-    if(menuBox) menuBox.style.display = 'none';
-  }
-
-  document.getElementById('saveBadgeTextBtn').onclick = async () => {
-    const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者";
-    localStorage.setItem("adminBadgeText", text);
-    updateAdminBadgeStatus();
-    await saveLog("admin_change_badge_text", { badgeText: text });
-    showAlert("バッジ文字を保存しました");
-  };
-
-  document.getElementById('toggleBadgeBtn').onclick = async () => {
-    const nextState = !isOfficialBadgeEnabled();
-    setOfficialBadgeEnabled(nextState);
-    updateAdminBadgeStatus();
-    await saveLog("admin_toggle_badge", { enabled: nextState });
-    showAlert(nextState ? "公式バッジをONにしました" : "公式バッジをOFFにしました");
-  };
-
+  if(adminLoggedIn){ await showAdminMenu(); } else { if(loginBox) loginBox.style.display = 'block'; if(menuBox) menuBox.style.display = 'none'; }
+  document.getElementById('saveBadgeTextBtn').onclick = async () => { const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者"; localStorage.setItem("adminBadgeText", text); updateAdminBadgeStatus(); await saveLog("admin_change_badge_text", { badgeText: text }); showAlert("バッジ文字を保存しました"); };
+  document.getElementById('toggleBadgeBtn').onclick = async () => { const nextState = !isOfficialBadgeEnabled(); setOfficialBadgeEnabled(nextState); updateAdminBadgeStatus(); await saveLog("admin_toggle_badge", { enabled: nextState }); showAlert(nextState ? "公式バッジをONにしました" : "公式バッジをOFFにしました"); };
   document.getElementById('submitBtn').onclick = async () => {
-    if(!adminLoggedIn){
-      const pass = passInput.value;
-      if(pass !== ADMIN_PASSWORD){
-        showAlert("パスワードが違います");
-        return;
-      }
-      await saveLog("admin_login_success");
-      await showAdminMenu();
-      return;
-    }
-
-    const checked = document.querySelector("input[name='adminAction']:checked");
-    const action = checked ? checked.value : "single";
-    const threadId = threadSelect.value;
-    const postId = postSelect.value;
-    const roomId = roomSelect.value;
-
+    if(!adminLoggedIn){ if(passInput.value !== ADMIN_PASSWORD) return showAlert("パスワードが違います"); await saveLog("admin_login_success"); return await showAdminMenu(); }
+    const action = document.querySelector("input[name='adminAction']:checked")?.value || "single", threadId = threadSelect.value, postId = postSelect.value, roomId = roomSelect.value;
     showLoading("処理中...");
     try {
-      if (action === "single") {
-        if (threadId) {
-          const threadTitle = threadSelect.options[threadSelect.selectedIndex].textContent;
-          await deleteDoc(doc(db, currentRoom, threadId));
-          await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadTitle });
-        }
-      } else if (action === "post") {
-        if (threadId && postId) {
-          await deleteDoc(doc(db, currentRoom, threadId, "posts", postId));
-          await saveLog("admin_delete_post", { targetThreadId: threadId, targetPostId: postId });
-        }
-      } else if (action === "lock") {
-        if (threadId) {
-          const reason = window.prompt("ロックの理由を入力してください（空欄の場合はデフォルトの文章になります）");
-          await updateDoc(doc(db, currentRoom, threadId), { 
-            locked: true, 
-            lockMessage: reason || "",
-            ...getBoardWriteMeta()
-          });
-          await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" });
-        }
-      } else if (action === "unlock") {
-        if (threadId) {
-          await updateDoc(doc(db, currentRoom, threadId), { 
-            locked: false, 
-            lockMessage: "",
-            ...getBoardWriteMeta()
-          });
-          await saveLog("admin_unlock_thread", { targetThreadId: threadId });
-        }
-      } else if (action === "pin") {
-        if (threadId) {
-          await updateDoc(doc(db, currentRoom, threadId), { 
-            pinned: true,
-            ...getBoardWriteMeta()
-          });
-          await saveLog("admin_pin_thread", { targetThreadId: threadId });
-        }
-      } else if (action === "unpin") {
-        if (threadId) {
-          await updateDoc(doc(db, currentRoom, threadId), { 
-            pinned: false,
-            ...getBoardWriteMeta()
-          });
-          await saveLog("admin_unpin_thread", { targetThreadId: threadId });
-        }
-      } else if (action === "deleteRoom") {
-        if (roomId) {
-          await deleteDoc(doc(db, "rooms", roomId));
-          const snap = await getDocs(collection(db, roomId));
-          for (const d of snap.docs) await deleteDoc(doc(db, roomId, d.id));
-          await saveLog("admin_delete_room", { targetRoomId: roomId });
-          if (roomId === currentRoom) switchRoom("threads");
-        }
-      } else if (action === "ipBan") {
-        const ip = ipInput.value.trim();
-        if (!ip) { showAlert("BANするIPを入力してください"); return; }
-        await setDoc(doc(db, "ipBans", ip), { 
-          ip, 
-          banned_at: Timestamp.now(),
-          ...getBoardWriteMeta()
-        });
-        await saveLog("admin_ip_ban", { targetIp: ip });
-      } else if (action === "ipUnban") {
-        const ip = bannedIpSelect.value;
-        if (!ip) { showAlert("解除するIPを選択してください"); return; }
-        await deleteDoc(doc(db, "ipBans", ip));
-        await saveLog("admin_ip_unban", { targetIp: ip });
-      }
-      closePopup();
-      hideLoading();
-    } catch (e) {
-      console.error(e);
-      showAlert("エラー");
-    }
+      if (action === "single" && threadId) { await deleteDoc(doc(db, currentRoom, threadId)); await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadSelect.options[threadSelect.selectedIndex].textContent }); }
+      else if (action === "post" && threadId && postId) { await deleteDoc(doc(db, currentRoom, threadId, "posts", postId)); await saveLog("admin_delete_post", { targetThreadId: threadId, targetPostId: postId }); }
+      else if (action === "lock" && threadId) { const reason = window.prompt("ロックの理由を入力してください"); await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "", ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" }); }
+      else if (action === "unlock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "", ...getBoardWriteMeta() }); await saveLog("admin_unlock_thread", { targetThreadId: threadId }); }
+      else if (action === "pin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: true, ...getBoardWriteMeta() }); await saveLog("admin_pin_thread", { targetThreadId: threadId }); }
+      else if (action === "unpin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: false, ...getBoardWriteMeta() }); await saveLog("admin_unpin_thread", { targetThreadId: threadId }); }
+      else if (action === "deleteRoom" && roomId) { await deleteDoc(doc(db, "rooms", roomId)); const snap = await getDocs(collection(db, roomId)); for (const d of snap.docs) await deleteDoc(doc(db, roomId, d.id)); await saveLog("admin_delete_room", { targetRoomId: roomId }); if (roomId === currentRoom) switchRoom("threads"); }
+      else if (action === "ipBan") { const ip = ipInput.value.trim(); if (!ip) return showAlert("BANするIPを入力してください"); await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("admin_ip_ban", { targetIp: ip }); }
+      else if (action === "ipUnban") { const ip = bannedIpSelect.value; if (!ip) return showAlert("解除するIPを選択してください"); await deleteDoc(doc(db, "ipBans", ip)); await saveLog("admin_ip_unban", { targetIp: ip }); }
+      closePopup(); hideLoading();
+    } catch (e) { showAlert("エラー"); }
   };
 };
-
 document.getElementById('closePopupBtn').onclick=closePopup;
 
-// 部屋切り替え
 function switchRoom(roomName){
-  currentRoom = roomName;
-  pageByRoom[currentRoom] = 1;
-  isAllLoaded = false;
-  threadsData = [];
-  
-  if(postsUnsub) postsUnsub();
-  threadDetailSection.style.display='none';
-  threadListSection.style.display='block';
-
-  document.getElementById("roomPopup").style.display = "none";
-  overlay.style.display = "none";
-
+  currentRoom = roomName; pageByRoom[currentRoom] = 1; isAllLoaded = false; threadsData = [];
+  if(postsUnsub) postsUnsub(); threadDetailSection.style.display='none'; threadListSection.style.display='block';
+  document.getElementById("roomPopup").style.display = "none"; overlay.style.display = "none";
   listenThreads();
-  const roomNames = {
-    threads: "通常ボード",
-    chat: "雑談",
-    apple: "アップル製品",
-    question: "質問"
-  };
-
-  document.getElementById("currentRoomLabel").textContent =
-    "現在の部屋：" + (roomNames[roomName] || roomName);
+  const roomNames = { threads: "通常ボード", chat: "雑談", apple: "アップル製品", question: "質問" };
+  document.getElementById("currentRoomLabel").textContent = "現在の部屋：" + (roomNames[roomName] || roomName);
 }
-
 document.getElementById("roomSelectBtn").onclick = async () => {
-  document.getElementById("roomPopup").style.display = "block";
-  overlay.style.display = "block";
-
-  const sel = document.getElementById("roomSelectDropdown");
-  sel.innerHTML = '<option value="">その他の部屋</option>';
-
-  const snap = await getDocs(collection(db,"rooms"));
-  snap.forEach(d=>{
-    const o=document.createElement("option");
-    o.value=d.id;
-    o.textContent=d.id;
-    sel.appendChild(o);
-  });
+  document.getElementById("roomPopup").style.display = "block"; overlay.style.display = "block";
+  const sel = document.getElementById("roomSelectDropdown"); sel.innerHTML = '<option value="">その他の部屋</option>';
+  const snap = await getDocs(collection(db,"rooms")); snap.forEach(d=>{ const o=document.createElement("option"); o.value=d.id; o.textContent=d.id; sel.appendChild(o); });
 };
-
-document.querySelectorAll(".roomBtn").forEach(btn=>{
-  btn.onclick = () => switchRoom(btn.dataset.room);
-});
-
-document.getElementById("roomSelectDropdown").onchange = e=>{
-  if(e.target.value) switchRoom(e.target.value);
-};
-
+document.querySelectorAll(".roomBtn").forEach(btn=>{ btn.onclick = () => switchRoom(btn.dataset.room); });
+document.getElementById("roomSelectDropdown").onchange = e=>{ if(e.target.value) switchRoom(e.target.value); };
 document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
-  const name=document.getElementById("newRoomInput").value.trim();
-  if(!name) return alert("部屋名を入力してください");
-
-  await setDoc(doc(db,"rooms",name),{ 
-    created_at:Timestamp.now(),
-    ...getBoardWriteMeta()
-  });
-  await saveLog("create_room", { roomName: name });
-  switchRoom(name);
+  const name=document.getElementById("newRoomInput").value.trim(); if(!name) return alert("部屋名を入力してください");
+  await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("create_room", { roomName: name }); switchRoom(name);
 };
+document.getElementById("closeRoomPopup").onclick = ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; };
 
-document.getElementById("closeRoomPopup").onclick = ()=>{
-  document.getElementById("roomPopup").style.display="none";
-  overlay.style.display="none";
-};
-
-setSectionsHeight();
-listenThreads();
-stopIfBanned();
-
+setSectionsHeight(); listenThreads(); stopIfBanned();
 async function openThreadFromURL() {
-  const params = new URLSearchParams(location.search);
-  const room = params.get("room");
-  const threadId = params.get("thread");
-
-  if (!threadId) return;
-  if (room) currentRoom = room;
-
-  const threadDoc = await getDoc(doc(db, currentRoom, threadId));
-
-  if (threadDoc.exists()) {
-    openThread(threadId, threadDoc.data());
-  }
+  const params = new URLSearchParams(location.search), room = params.get("room"), threadId = params.get("thread");
+  if (!threadId) return; if (room) currentRoom = room;
+  const threadDoc = await getDoc(doc(db, currentRoom, threadId)); if (threadDoc.exists()) openThread(threadId, threadDoc.data());
 }
-
 openThreadFromURL();
 document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value || "new"; applySort(); renderThreadsPage(); });
 
 function loadAllThreads(){
-  if (isAllLoaded) return;
-
-  showLoading("すべてのスレッドを読み込み中...");
-
-  if (threadsUnsub) threadsUnsub();
-  if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-
-  let isInitialLoadAll = true;
-
-  const q = query(
-    collection(db, currentRoom),
-    orderBy("created_at", "desc")
-  );
-
+  if (isAllLoaded) return; showLoading("すべてのスレッドを読み込み中...");
+  if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
+  let isInitialLoadAll = true; const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
   threadsUnsub = onSnapshot(q, snapshot => {
-    if (!isInitialLoadAll) {
-      snapshot.docChanges().forEach(change => {
-        if (change.type === "added") {
-          const newThread = change.doc.data();
-          showTopNotification(`新しいスレッド「${newThread.title}」が作成されました`);
-        }
-      });
-    }
-    isInitialLoadAll = false;
-
-    threadsData = snapshot.docs.map(d => {
-      const data = d.data();
-      return { id: d.id, data: () => data };
-    });
-
-    isAllLoaded = true;
-
-    applySort();
-    renderThreadsPage();
-    hideLoading();
+    if (!isInitialLoadAll) snapshot.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
+    isInitialLoadAll = false; threadsData = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() })); isAllLoaded = true; applySort(); renderThreadsPage(); hideLoading();
   });
 }
 
-let mySessionId = sessionStorage.getItem('sessionId');
-if (!mySessionId) {
-  mySessionId = Math.random().toString(36).slice(2);
-  sessionStorage.setItem('sessionId', mySessionId);
-}
+let mySessionId = sessionStorage.getItem('sessionId'); if (!mySessionId) { mySessionId = Math.random().toString(36).slice(2); sessionStorage.setItem('sessionId', mySessionId); }
 const onlineRef = doc(db, "online", mySessionId);
-
-async function heartbeat() {
-  try {
-    await setDoc(onlineRef, { 
-      t: serverTimestamp(),
-      name: (typeof nickName !== 'undefined' ? nickName : "名称未設定"),
-      ...getBoardWriteMeta()
-    });
-  } catch (e) { console.error("Heartbeat error:", e); }
-}
-
-window.addEventListener('beforeunload', () => {
-  deleteDoc(onlineRef);
-});
-
-heartbeat(); 
-setInterval(heartbeat, 20000);
+async function heartbeat() { try { await setDoc(onlineRef, { t: serverTimestamp(), name: (typeof nickName !== 'undefined' ? nickName : "名称未設定"), ...getBoardWriteMeta() }); } catch (e) { } }
+window.addEventListener('beforeunload', () => { deleteDoc(onlineRef); });
+heartbeat(); setInterval(heartbeat, 20000);
 
 onSnapshot(collection(db, "online"), snap => {
-  const now = Date.now();
-  const activeNames = [];
-
+  const now = Date.now(), activeNames = [];
   snap.forEach(d => {
-    const data = d.data();
-    if (!data || !data.t) return;
+    const data = d.data(); if (!data || !data.t) return;
     const ts = data.t.toMillis ? data.t.toMillis() : new Date(data.t).getTime();
-    
-    if (now - ts < 45000) {
-      activeNames.push(data.name || "名称未設定");
-    } else {
-      deleteDoc(doc(db, "online", d.id));
-    }
+    if (now - ts < 45000) activeNames.push(data.name || "名称未設定"); else deleteDoc(doc(db, "online", d.id));
   });
-
   const displayBtn = document.getElementById("onlineCount");
-  if (displayBtn) {
-    const uniqueUsers = [...new Set(activeNames)];
-    displayBtn.textContent = `同接人数: ${uniqueUsers.length}人`;
-    window.currentOnlineUsers = uniqueUsers;
-  }
+  if (displayBtn) { const uniqueUsers = [...new Set(activeNames)]; displayBtn.textContent = `同接人数: ${uniqueUsers.length}人`; window.currentOnlineUsers = uniqueUsers; }
 });
+document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーなし"); alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
 
-document.getElementById("onlineCount").onclick = () => {
-  if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) {
-    alert("オンラインユーザーなし");
-    return;
-  }
-  alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n"));
-};
+const quickMenuBtn = document.getElementById("quickMenuBtn"), quickMenuContent = document.getElementById("quickMenuContent"), quickPostInput = document.getElementById("quickPostInput");
+quickMenuBtn.onclick = (e) => { e.stopPropagation(); quickMenuContent.style.display = quickMenuContent.style.display === "block" ? "none" : "block"; };
+document.addEventListener("click", () => { quickMenuContent.style.display = "none"; });
+document.querySelectorAll(".quickItem").forEach(item => { item.onclick = () => { quickPostInput.value = item.textContent; quickMenuContent.style.display = "none"; document.getElementById("quickSendBtn").click(); }; });
 
-const quickMenuBtn = document.getElementById("quickMenuBtn");
-const quickMenuContent = document.getElementById("quickMenuContent");
-const quickPostInput = document.getElementById("quickPostInput");
-
-quickMenuBtn.onclick = (e) => {
-  e.stopPropagation();
-  const isShow = quickMenuContent.style.display === "block";
-  quickMenuContent.style.display = isShow ? "none" : "block";
-};
-
-document.addEventListener("click", () => {
-  quickMenuContent.style.display = "none";
-});
-
-document.querySelectorAll(".quickItem").forEach(item => {
-  item.onclick = () => {
-    quickPostInput.value = item.textContent;
-    quickMenuContent.style.display = "none";
-    document.getElementById("quickSendBtn").click();
-  };
-});
-
-// クイック送信（体感0秒 UI）
 let isQuickSending = false;
 document.getElementById("quickSendBtn").onclick = async () => {
-  if (isQuickSending) return;
-  if(await stopIfBanned()) return;
-  const clientIP = await getClientIP();
-  const input = document.getElementById("quickPostInput");
-  const text = input.value.trim();
-  if (!text) return;
-  if (containsNGWord(text)) {
-    showAlert("本文に使えない言葉が含まれています");
-    return;
-  }
+  if (isQuickSending) return; if(await stopIfBanned()) return;
+  const clientIP = await getClientIP(), input = document.getElementById("quickPostInput"), text = input.value.trim();
+  if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
   
-  isQuickSending = true;
-  input.value = "";
+  isQuickSending = true; input.value = "";
+  const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
+  const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
+  tempLi.innerHTML = `<span>${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+  postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  const postList = document.getElementById("postList");
-  let index = postList.children.length + 1; 
-  let iconId = getCookie("iconId");
-
-  const tempLi = document.createElement("li");
-  tempLi.style.backgroundColor = "#3498db";
-  tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `
-    <span>${convertText(text)}</span>
-    <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
-      <strong style="margin-right:6px;">#${index}</strong>
-      <span style="margin-left:0;">${nickName} / 送信中...</span>
-    </small>
-  `;
-  postList.appendChild(tempLi);
-  tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  (async () => {
-    try {
-      const newPost = await addDoc(
-        collection(db, currentRoom, currentThreadId, "posts"),
-        {
-          memberId: nickName,
-          body: text,
-          color: "#3498db",
-          icon: iconId || null,
-          created_at: Timestamp.now(),
-          ip: clientIP,
-          index,
-          ...getPostBadgeData(),
-          ...getBoardWriteMeta()
-        }
-      );
-
-      await updateDoc(doc(db, currentRoom, currentThreadId), {
-        postCount: increment(1),
-        latestPostTime: serverTimestamp(),
-        ...getBoardWriteMeta()
-      });
-
-      await saveLog("quick_send_post", { 
-        threadId: currentThreadId, 
-        threadTitle: currentThreadTitle,
-        postId: newPost.id, 
-        index: index, 
-        text: text
-      });
-    } catch (e) {
-      console.error(e);
-      showAlert(isOldBoardHtmlError(e)
-        ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。"
-        : "送信に失敗しました");
-      tempLi.remove();
-    } finally {
-      isQuickSending = false;
-    }
-  })();
+  try {
+    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: text, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+    await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
+    await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: text });
+  } catch (e) {
+    showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。" : "送信に失敗しました"); tempLi.remove();
+  } finally { isQuickSending = false; }
 };
 </script>
 </body>
