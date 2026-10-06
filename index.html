@@ -548,9 +548,15 @@ async function listenThreads(){
     threadsUnsub = onSnapshot(qNormal, snap => {
       if (!isInitialLoad) snap.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
       isInitialLoad = false; normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender();
+    }, (error) => {
+      console.error(error); hideLoading();
     });
     const qPinned = query(collection(db, currentRoom), where("pinned", "==", true));
-    pinnedUnsub = onSnapshot(qPinned, snap => { pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender(); });
+    pinnedUnsub = onSnapshot(qPinned, snap => { 
+      pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender(); 
+    }, (error) => {
+      console.error(error); hideLoading();
+    });
   };
 
   const listenSearch = (word) => {
@@ -560,6 +566,8 @@ async function listenThreads(){
       const allDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
       threadsData = allDocs.filter(item => (item.data().title || "").includes(word));
       isAllLoaded = true; pageByRoom[currentRoom] = 1; applySort(); renderThreadsPage(); hideLoading();
+    }, (error) => {
+      console.error(error); hideLoading();
     });
   };
 
@@ -628,73 +636,82 @@ async function loadPosts(threadId) {
       let currentIndex = 0;
 
       function renderChunk() {
-        const end = Math.min(currentIndex + chunkSize, changes.length);
-        
-        for (let i = currentIndex; i < end; i++) {
-          const change = changes[i];
-          const data = change.doc.data();
-          const docId = data.index || change.doc.id;
+        try {
+          const end = Math.min(currentIndex + chunkSize, changes.length);
+          
+          for (let i = currentIndex; i < end; i++) {
+            const change = changes[i];
+            const data = change.doc.data();
+            const docId = data.index || change.doc.id;
 
-          if (change.type === "added") {
-            // 重複描画防止（送信中仮UIとの整合性）
-            const existingLi = document.getElementById("post-" + docId);
-            if(existingLi && !existingLi.classList.contains('temp-post')) continue; 
-            if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
+            if (change.type === "added") {
+              // 重複描画防止（送信中仮UIとの整合性）
+              const existingLi = document.getElementById("post-" + docId);
+              if(existingLi && !existingLi.classList.contains('temp-post')) continue; 
+              if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
 
-            let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : "";
+              let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : "";
 
-            const li = document.createElement("li");
-            li.id = "post-" + docId;
-            li.style.backgroundColor = data.color || "#3498db";
-            
-            li.innerHTML = `
-              <span>${convertText(data.body || "")}</span>
-              ${data.image ? `<button class="greenBtn" style="margin-top:6px;" onclick="showImagePopup('${data.image}')">画像を表示</button>` : ""}
-              <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
-                <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
-                ${renderBadge(data)}
-                ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
-                ${iconHtml}
-                <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
-              </small>
-            `;
-            enableLongPressInfo(li, `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`);
-            postList.appendChild(li);
-          } else if (change.type === "removed") {
-            const el = document.getElementById("post-" + docId);
-            if (el) el.remove();
+              const li = document.createElement("li");
+              li.id = "post-" + docId;
+              li.style.backgroundColor = data.color || "#3498db";
+              
+              li.innerHTML = `
+                <span>${convertText(data.body || "")}</span>
+                ${data.image ? `<button class="greenBtn" style="margin-top:6px;" onclick="showImagePopup('${data.image}')">画像を表示</button>` : ""}
+                <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
+                  <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
+                  ${renderBadge(data)}
+                  ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
+                  ${iconHtml}
+                  <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
+                </small>
+              `;
+              enableLongPressInfo(li, `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`);
+              postList.appendChild(li);
+            } else if (change.type === "removed") {
+              const el = document.getElementById("post-" + docId);
+              if (el) el.remove();
+            }
           }
-        }
-        
-        currentIndex = end;
-        if (currentIndex < changes.length) {
-          requestAnimationFrame(renderChunk); // 次のチャンクをスケジュール
-        } else {
+          
+          currentIndex = end;
+          if (currentIndex < changes.length) {
+            requestAnimationFrame(renderChunk); // 次のチャンクをスケジュール
+          } else {
+            hideLoading();
+            // TOC（目次）の更新
+            const tocContainer = document.getElementById("threadToc");
+            if(tocContainer) {
+              tocContainer.innerHTML = ""; tocContainer.style.display = "flex";
+              const totalPosts = postList.children.length;
+              for (let i = 0; i < totalPosts; i += 10) {
+                const start = i + 1, end = Math.min(i + 10, totalPosts);
+                const btn = document.createElement("button"); btn.className = "pageBtn"; btn.textContent = `${start}-${end}`;
+                btn.onclick = () => { const el = postList.children[i]; if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); };
+                tocContainer.appendChild(btn);
+              }
+              if (totalPosts > 0) {
+                const latestBtn = document.createElement("button"); latestBtn.className = "pageBtn"; latestBtn.style.backgroundColor = "#e74c3c"; latestBtn.textContent = "最新の投稿";
+                latestBtn.onclick = () => { const el = postList.children[totalPosts - 1]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
+                tocContainer.appendChild(latestBtn);
+              }
+            }
+          }
+        } catch (renderError) {
+          console.error("描画処理中にエラーが発生しました:", renderError);
           hideLoading();
-          // TOC（目次）の更新
-          const tocContainer = document.getElementById("threadToc");
-          if(tocContainer) {
-            tocContainer.innerHTML = ""; tocContainer.style.display = "flex";
-            const totalPosts = postList.children.length;
-            for (let i = 0; i < totalPosts; i += 10) {
-              const start = i + 1, end = Math.min(i + 10, totalPosts);
-              const btn = document.createElement("button"); btn.className = "pageBtn"; btn.textContent = `${start}-${end}`;
-              btn.onclick = () => { const el = postList.children[i]; if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); };
-              tocContainer.appendChild(btn);
-            }
-            if (totalPosts > 0) {
-              const latestBtn = document.createElement("button"); latestBtn.className = "pageBtn"; latestBtn.style.backgroundColor = "#e74c3c"; latestBtn.textContent = "最新の投稿";
-              latestBtn.onclick = () => { const el = postList.children[totalPosts - 1]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
-              tocContainer.appendChild(latestBtn);
-            }
-          }
         }
       }
 
       if(changes.length > 0) requestAnimationFrame(renderChunk); else hideLoading();
     } catch (e) {
-      console.error("投稿読み込みエラー:", e); showAlert("投稿の読み込みに失敗しました");
+      console.error("投稿読み込みエラー:", e); hideLoading(); showAlert("投稿の読み込みに失敗しました");
     }
+  }, (error) => {
+    console.error("Firebase Snapshotエラー:", error);
+    hideLoading();
+    showAlert("通信エラーまたはアクセス権限がありません。");
   });
 }
 
@@ -862,6 +879,8 @@ function loadAllThreads(){
   threadsUnsub = onSnapshot(q, snapshot => {
     if (!isInitialLoadAll) snapshot.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
     isInitialLoadAll = false; threadsData = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() })); isAllLoaded = true; applySort(); renderThreadsPage(); hideLoading();
+  }, (error) => {
+    console.error(error); hideLoading(); showAlert("スレッドの読み込みに失敗しました");
   });
 }
 
