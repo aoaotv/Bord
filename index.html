@@ -865,9 +865,40 @@ document.getElementById("closeRoomPopup").onclick = ()=>{ document.getElementByI
 
 setSectionsHeight(); listenThreads(); stopIfBanned();
 async function openThreadFromURL() {
-  const params = new URLSearchParams(location.search), room = params.get("room"), threadId = params.get("thread");
-  if (!threadId) return; if (room) currentRoom = room;
-  const threadDoc = await getDoc(doc(db, currentRoom, threadId)); if (threadDoc.exists()) openThread(threadId, threadDoc.data());
+  const params = new URLSearchParams(location.search);
+  const room = params.get("room");
+  const threadId = params.get("thread");
+
+  // ① リンクの後に何もない（パラメータがない）場合は通常部屋のURLに自動書き換え
+  if (!room && !threadId) {
+    history.replaceState({}, "", `${location.pathname}?room=threads`);
+    return; 
+  }
+
+  if (room) currentRoom = room;
+
+  // ② スレッドIDが指定されている場合の処理
+  if (threadId) {
+    showLoading("スレッドを確認中...");
+    try {
+      const threadDoc = await getDoc(doc(db, currentRoom, threadId));
+      hideLoading();
+      if (threadDoc.exists()) {
+        // スレッドが存在すれば開く
+        openThread(threadId, threadDoc.data());
+      } else {
+        // スレッドが消えている場合はアラートを出し、自動的に通常部屋へリダイレクト
+        showAlert("指定されたスレッドは削除されているか、存在しません。");
+        history.replaceState({}, "", `${location.pathname}?room=threads`);
+        switchRoom("threads");
+      }
+    } catch (error) {
+      hideLoading();
+      console.error("スレッド取得エラー:", error);
+      history.replaceState({}, "", `${location.pathname}?room=threads`);
+      switchRoom("threads");
+    }
+  }
 }
 openThreadFromURL();
 document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value || "new"; applySort(); renderThreadsPage(); });
