@@ -5,7 +5,6 @@
   <title>Bord | 完全匿名の掲示板ツール</title>
 <meta name="description" content="完全匿名の掲示板ツール Bord">
 <meta name="robots" content="index, follow">
-<!-- iPhone用のホーム画面表示名（11文字以内が推奨） -->
 <meta name="apple-mobile-web-app-title" content="Bord">
 
 <link rel="canonical" href="https://sinzo.site/">
@@ -17,21 +16,19 @@
 <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-
 .blueBtn { background-color: #3498db; color: #ffffff; }
-body { font-family: sans-serif; text-align: center; background-color: #e6f0ff; margin:0; padding:0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background-color: #e6f0ff; margin:0; padding:0; }
 h1 { margin:10px 0; }
 ul, ol { list-style: none; padding: 0; margin: 0; text-align:left; }
 
-li { margin: 2px 0; padding: 8px; border-radius: 16px; cursor: pointer; word-wrap: break-word; color:#fff; position:relative; }
-
+li { margin: 4px 0; padding: 10px 12px; border-radius: 16px; cursor: pointer; word-wrap: break-word; color:#fff; position:relative; }
 
 li small { display:block; font-size:0.8em; color:#f0f0f0; margin-top:2px; }
 li span { white-space: pre-wrap; }
 
 button {
-  padding: 10px 20px; margin: 5px; cursor: pointer;
-  border-radius: 20px; border: none; font-size: 16px;
+  padding: 8px 16px; margin: 4px; cursor: pointer;
+  border-radius: 20px; border: none; font-size: 15px;
   transition: transform 0.15s ease;
 }
 button:active { transform: scale(0.95); }
@@ -40,8 +37,8 @@ button:active { transform: scale(0.95); }
 li small span { white-space: nowrap; }
 .redBtn { background-color: #c0392b; color: white; }
 
-#threadListSection { overflow-y: auto; padding: 10px; }
-#threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; }
+#threadListSection { overflow-y: auto; padding: 10px; padding-bottom: 120px; }
+#threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; padding-bottom: 120px; }
 #popupForm {
   display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: white; padding: 12px 16px; border-radius: 24px;
@@ -70,15 +67,12 @@ textarea { min-height:60px; resize: vertical; }
 #threadHeader small { color:#555; display:block; margin-top:2px; }
 .nicknameWithIcon img { width:48px; height:48px; vertical-align:middle; margin-right:4px; border-radius:0; }
 #popupForm h3 { margin-top: 4px; margin-bottom: 8px; font-size: 18px; color: #333; }
-.threadRateBox { position: absolute; right: 12px; top: 12px; display:flex; gap:6px; align-items:center; }
-.threadRateBtn { background: rgba(255,255,255,0.18); border: none; color: #fff; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:14px; }
-.threadRateCount { font-weight: bold; margin-left:6px; color:#fff; font-size:14px; }
+
 #sortSelect { width: 220px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; margin: 8px auto; display: block; background-color:#fff; color:#333; }
 
-#lineInputBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 56px; background: #f5f5f5; padding: 8px; display: flex; gap: 6px; align-items: center; box-shadow: 0 -2px 6px rgba(0,0,0,0.15); z-index: 1200; }
+#lineInputBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 56px; background: #f5f5f5; padding: 8px; display: flex; gap: 6px; align-items: center; box-shadow: 0 -2px 6px rgba(0,0,0,0.15); z-index: 1200; box-sizing: border-box; }
 #lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
 #lineInputBar button { height: 40px; border-radius: 20px; border: none; padding: 0 14px; font-size: 14px; cursor: pointer; }
-#morePostBtn { background: #bdc3c7; }
 #quickSendBtn { background: #27ae60; color: white; }
 #postList { padding-bottom: 80px; }
 
@@ -110,12 +104,6 @@ textarea { min-height:60px; resize: vertical; }
 <button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:150px; z-index:1500;">
   同接人数: 0人
 </button>
-<select id="sortSelect" aria-label="スレッド表示順">
-  <option value="new">スレッド作成日（新しい順）</option>
-  <option value="old">スレッド作成日（古い順）</option>
-  <option value="latestPost">最新投稿順</option>
-  <option value="high">高評価順</option>
-</select>
 
 <button id="adminBtn" class="redBtn" style="position: fixed; top:10px; left:10px;">管理者操作</button>
 <button id="roomSelectBtn" class="greenBtn" style="position: fixed; top:10px; right:10px; z-index:1500; --btn-color:#34495e">
@@ -129,7 +117,7 @@ textarea { min-height:60px; resize: vertical; }
   </div>
   <ul id="threadList"></ul>
   <div id="pagination"></div>
-  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📄新規スレッド作成</button>
+  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📄新規スレッド作成</button>
 </div>
 
 <div id="threadDetailSection">
@@ -152,13 +140,26 @@ textarea { min-height:60px; resize: vertical; }
         <div class="quickItem" style="padding:12px; cursor:pointer; color:#333; text-align:center;">むり</div>
       </div>
     </div>
+    
+    <div id="stampMenuWrapper" style="position: relative;">
+      <button id="stampMenuBtn" style="background: #f1c40f; color: white; width: 40px; padding: 0; border-radius: 20px;">😀</button>
+      <div id="stampMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:180px; padding: 10px; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😀</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😊</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😅</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">🎉</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">👍</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">👀</div>
+      </div>
+    </div>
+
     <input id="quickPostInput" placeholder="メッセージを入力…">
     <button id="quickSendBtn">送信</button>
   </div>
 
   <ol id="postList"></ol>
-  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px;">📝投稿</button>
-  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px;">戻る</button>
+  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📝投稿</button>
+  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px; z-index: 1100;">戻る</button>
 </div>
 
 <div id="overlay"></div>
@@ -183,7 +184,7 @@ textarea { min-height:60px; resize: vertical; }
     <input id="threadMemberId" placeholder="ニックネーム">
     <label>アイコン</label>
     <input id="threadIconInput" type="file" accept="image/*">
-    <label>タイトル（2文字以上）</label>
+    <label>タイトル</label>
     <input id="threadTitleInput" placeholder="タイトル">
     <label>詳細</label>
     <textarea id="threadDetailInput" placeholder="詳細"></textarea>
@@ -280,7 +281,7 @@ const app = initializeApp(firebaseConfig);
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager(),
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED 
   })
 });
 
@@ -297,23 +298,15 @@ let currentThreadHasPassword = false;
 let currentThreadTitle = "";
 let currentThreadCreatorName = "";
 
-function enableLongPressInfo(element, infoText) {
-  let pressTimer;
-  const start = () => {
-    pressTimer = setTimeout(() => {
-      const dialog = document.createElement("div");
-      dialog.style.position = "fixed"; dialog.style.top = "50%"; dialog.style.left = "50%";
-      dialog.style.transform = "translate(-50%, -50%)"; dialog.style.background = "#fff";
-      dialog.style.padding = "18px"; dialog.style.borderRadius = "12px"; dialog.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
-      dialog.style.zIndex = "9999"; dialog.style.whiteSpace = "pre-line";
-      dialog.innerHTML = `${infoText}\n<button id="closeBtn" style="background:#3498db;color:white;padding:6px 12px;border-radius:8px;">閉じる</button>`;
-      document.body.appendChild(dialog);
-      dialog.querySelector("#closeBtn").onclick = () => dialog.remove();
-    }, 3000);
-  };
-  const cancel = () => clearTimeout(pressTimer);
-  element.addEventListener("mousedown", start); element.addEventListener("touchstart", start);
-  element.addEventListener("mouseup", cancel); element.addEventListener("mouseleave", cancel); element.addEventListener("touchend", cancel);
+function showInfoDialog(infoText) {
+  const dialog = document.createElement("div");
+  dialog.style.position = "fixed"; dialog.style.top = "50%"; dialog.style.left = "50%";
+  dialog.style.transform = "translate(-50%, -50%)"; dialog.style.background = "#fff";
+  dialog.style.padding = "18px"; dialog.style.borderRadius = "12px"; dialog.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
+  dialog.style.zIndex = "9999"; dialog.style.whiteSpace = "pre-line"; dialog.style.color = "#333"; dialog.style.textAlign = "left";
+  dialog.innerHTML = `${infoText}\n<div style="text-align:center;"><button id="closeInfoBtn" style="background:#3498db;color:white;padding:6px 20px;border-radius:8px;border:none;margin-top:15px;cursor:pointer;font-weight:bold;">閉じる</button></div>`;
+  document.body.appendChild(dialog);
+  dialog.querySelector("#closeInfoBtn").onclick = () => dialog.remove();
 }
 
 function convertText(text) {
@@ -386,8 +379,6 @@ function setCookie(name, value, days=365) {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${d.toUTCString()}; path=/`;
 }
 function generateRandomAnonymousName() { return "名無しさん#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0'); }
-function setRateCookie(threadId, type) { setCookie(`rate_${threadId}`, type, 365); }
-function getRateCookie(threadId) { return getCookie(`rate_${threadId}`); }
 
 let nickName = getCookie("nickName");
 if (!nickName || nickName === "名称未設定") { nickName = generateRandomAnonymousName(); setCookie("nickName", nickName); }
@@ -398,7 +389,7 @@ const pageSize = 15;
 let postsUnsub = null;
 let knownPostIds = new Set();
 let threadsUnsub = null; let pinnedUnsub = null;
-let sortMode = "new"; let currentRoom = "threads"; let isAllLoaded = false;
+let currentRoom = "threads"; let isAllLoaded = false;
 function getCurrentPage(){ if(!pageByRoom[currentRoom]) pageByRoom[currentRoom] = 1; return pageByRoom[currentRoom]; }
 
 const threadListSection=document.getElementById('threadListSection'), threadDetailSection=document.getElementById('threadDetailSection');
@@ -482,31 +473,30 @@ function renderThreadsPage(){
     let titleText = data.locked ? `🔒${data.title}` : data.title;
     if (data.password) titleText += " 🔑"; if (data.pinned) titleText = "📌 " + titleText; if (isTrendingThread(data)) titleText = "🔥 " + titleText;
 
-    const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong>${titleText}</strong>`;
+    const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; display: inline-block; padding-right: 36px;">${titleText}</strong>`;
     const countEl = document.createElement('small'); countEl.textContent = `投稿数: ${postCount}`;
     const detailEl = document.createElement('small'); detailEl.textContent = data.detail || '';
     
-    const rateBox = document.createElement('div'); rateBox.className = "threadRateBox";
-    const likeBtn = document.createElement('button'); likeBtn.className = "threadRateBtn"; likeBtn.innerHTML = `👍 <span class="threadRateCount">${data.likes || 0}</span>`;
-    const dislikeBtn = document.createElement('button'); dislikeBtn.className = "threadRateBtn"; dislikeBtn.innerHTML = `👎 <span class="threadRateCount">${data.dislikes || 0}</span>`;
-    rateBox.appendChild(likeBtn); rateBox.appendChild(dislikeBtn);
-    li.append(titleEl, countEl, detailEl, rateBox);
+    li.append(titleEl, countEl, detailEl);
+
+    const actionBox = document.createElement('div');
+    actionBox.style.cssText = "position: absolute; right: 10px; top: 10px; z-index: 10;";
+    const infoBtn = document.createElement('button');
+    infoBtn.textContent = "i";
+    infoBtn.style.cssText = "background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;";
+    infoBtn.onclick = (e) => {
+      e.stopPropagation();
+      showInfoDialog(`【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`);
+    };
+    actionBox.appendChild(infoBtn);
+    li.appendChild(actionBox);
 
     if(data.image){
       const btn=document.createElement('button'); btn.textContent="画像を表示"; btn.className="greenBtn"; btn.style.display="block"; btn.style.marginTop="5px";
       btn.addEventListener('click', (e) => { e.stopPropagation(); showImagePopup(data.image); }); li.appendChild(btn);
     }
     li.addEventListener('click',()=>{ tryOpenThread(docItem.id,data); });
-    enableLongPressInfo(li, `【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`);
 
-    likeBtn.addEventListener("click", async (e) => {
-      e.stopPropagation(); if (getRateCookie(docItem.id)) return showAlert("すでに押されています");
-      try { const nextLikes = (data.likes || 0) + 1; await updateDoc(doc(db, currentRoom, docItem.id), { likes: nextLikes, ...getBoardWriteMeta() }); data.likes = nextLikes; likeBtn.querySelector(".threadRateCount").textContent = nextLikes; setRateCookie(docItem.id, "like"); await saveLog("rate_thread", { threadId: docItem.id, type: "like" }); } catch (err) { showAlert("エラーが発生しました"); }
-    });
-    dislikeBtn.addEventListener("click", async (e) => {
-      e.stopPropagation(); if (getRateCookie(docItem.id)) return showAlert("すでに押されています");
-      try { const nextDislikes = (data.dislikes || 0) + 1; await updateDoc(doc(db, currentRoom, docItem.id), { dislikes: nextDislikes, ...getBoardWriteMeta() }); data.dislikes = nextDislikes; dislikeBtn.querySelector(".threadRateCount").textContent = nextDislikes; setRateCookie(docItem.id, "dislike"); await saveLog("rate_thread", { threadId: docItem.id, type: "dislike" }); } catch (err) { showAlert("エラーが発生しました"); }
-    });
     threadList.appendChild(li);
   });
 
@@ -534,19 +524,46 @@ async function listenThreads(){
     let isInitialLoad = true; let normalThreads = []; let pinnedThreads = [];
 
     const mergeAndRender = () => {
-      const map = new Map(); normalThreads.forEach(t => map.set(t.id, t)); pinnedThreads.forEach(t => map.set(t.id, t));
-      threadsData = Array.from(map.values()); isAllLoaded = false; applySort(); renderThreadsPage(); hideLoading();
+      const map = new Map();
+      pinnedThreads.forEach(t => map.set(t.id, t));
+      normalThreads.forEach(t => {
+        if (!map.has(t.id)) {
+          map.set(t.id, t);
+        }
+      });
+
+      const allArray = Array.from(map.values());
+      allArray.sort((a, b) => {
+        const aPinned = a.data().pinned ? 1 : 0;
+        const bPinned = b.data().pinned ? 1 : 0;
+        if (aPinned !== bPinned) {
+          return bPinned - aPinned;
+        }
+        const aTime = a.data().created_at?.toMillis ? a.data().created_at.toMillis() : 0;
+        const bTime = b.data().created_at?.toMillis ? b.data().created_at.toMillis() : 0;
+        return bTime - aTime;
+      });
+
+      threadsData = allArray;
+      isAllLoaded = false; 
+      renderThreadsPage(); 
+      hideLoading();
     };
+
     const qNormal = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(pageSize));
     threadsUnsub = onSnapshot(qNormal, snap => {
       if (!isInitialLoad) snap.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
-      isInitialLoad = false; normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender();
+      isInitialLoad = false; 
+      normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); 
+      mergeAndRender();
     }, (error) => {
       console.error(error); hideLoading();
     });
+
     const qPinned = query(collection(db, currentRoom), where("pinned", "==", true));
     pinnedUnsub = onSnapshot(qPinned, snap => { 
-      pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); mergeAndRender(); 
+      pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); 
+      mergeAndRender(); 
     }, (error) => {
       console.error(error); hideLoading();
     });
@@ -557,15 +574,27 @@ async function listenThreads(){
     const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
     threadsUnsub = onSnapshot(q, snap => {
       const allDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
-      threadsData = allDocs.filter(item => (item.data().title || "").includes(word));
-      isAllLoaded = true; pageByRoom[currentRoom] = 1; applySort(); renderThreadsPage(); hideLoading();
+      const filtered = allDocs.filter(item => (item.data().title || "").includes(word));
+      
+      filtered.sort((a, b) => {
+        const aPinned = a.data().pinned ? 1 : 0;
+        const bPinned = b.data().pinned ? 1 : 0;
+        if (aPinned !== bPinned) return bPinned - aPinned;
+        return 0;
+      });
+
+      threadsData = filtered;
+      isAllLoaded = true; 
+      pageByRoom[currentRoom] = 1; 
+      renderThreadsPage(); 
+      hideLoading();
     }, (error) => {
       console.error(error); hideLoading();
     });
   };
 
   listenNormal();
-
+  
   if (!searchInput.dataset.bound) {
     searchInput.addEventListener("input", () => {
       clearTimeout(searchTimeout);
@@ -576,21 +605,6 @@ async function listenThreads(){
     });
     searchInput.dataset.bound = "1";
   }
-}
-
-function applySort(){
-  if(!threadsData || threadsData.length===0) return;
-  threadsData.sort((a,b)=>{
-    const A = a.data(), B = b.data();
-    if (A.pinned && !B.pinned) return -1; if (!A.pinned && B.pinned) return 1;
-    const trendA = isTrendingThread(A), trendB = isTrendingThread(B);
-    if (trendA && !trendB) return -1; if (!trendA && trendB) return 1;
-    const tA = A.created_at ? (typeof A.created_at.toMillis === 'function' ? A.created_at.toMillis() : new Date(A.created_at).getTime()) : 0;
-    const tB = B.created_at ? (typeof B.created_at.toMillis === 'function' ? B.created_at.toMillis() : new Date(B.created_at).getTime()) : 0;
-    const lpA = A.latestPostTime || 0, lpB = B.latestPostTime || 0;
-    if(sortMode === "new") return tB - tA; if(sortMode === "old") return tA - tB; if(sortMode === "latestPost") return lpB - lpA; if(sortMode === "high") return (B.likes || 0) - (A.likes || 0); if(sortMode === "low") return (A.dislikes || 0) - (B.dislikes || 0);
-    return 0;
-  });
 }
 
 async function tryOpenThread(threadId, data) {
@@ -611,7 +625,7 @@ function openThread(threadId,data){
 async function loadPosts(threadId) {
   showLoading("投稿を読み込み中…");
   const postList = document.getElementById("postList");
-  postList.innerHTML = ""; knownPostIds.clear();
+  postList.innerHTML = ""; knownPostIds.clear(); 
 
   if (postsUnsub) postsUnsub();
   const q = query(collection(db, currentRoom, threadId, "posts"), orderBy("created_at", "asc"));
@@ -622,7 +636,7 @@ async function loadPosts(threadId) {
       await Promise.all(iconIds.map(id => getIconSrc(id)));
 
       const changes = snapshot.docChanges();
-      const chunkSize = 20;
+      const chunkSize = 20; 
       let currentIndex = 0;
 
       function renderChunk() {
@@ -645,18 +659,35 @@ async function loadPosts(threadId) {
               li.id = "post-" + docId;
               li.style.backgroundColor = data.color || "#3498db";
               
+              let displayBody = convertText(data.body || "");
+              if (data.body && data.body.startsWith("[STAMP:") && data.body.endsWith("]")) {
+                const stampText = data.body.slice(7, -1).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                displayBody = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span>`;
+              }
+
+              const actionBox = `<div style="position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; align-items: center; z-index: 10;">
+                <button class="reply-btn" data-index="${data.index}" style="background: rgba(0,0,0,0.25); border: none; color: white; border-radius: 10px; padding: 2px 8px; cursor: pointer; font-size: 11px;">返信</button>
+                <button class="info-btn" data-info="【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
+              </div>`;
+
               li.innerHTML = `
-                <span>${convertText(data.body || "")}</span>
-                ${data.image ? `<button class="greenBtn" style="margin-top:6px;" onclick="showImagePopup('${data.image}')">画像を表示</button>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;">
-                  <strong style="margin-right:6px;">#${data.index ?? "?"}</strong>
-                  ${renderBadge(data)}
-                  ${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}
-                  ${iconHtml}
-                  <span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span>
-                </small>
+                ${actionBox}
+                <div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>
+                ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span></small>
               `;
-              enableLongPressInfo(li, `【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}`);
+              
+              li.querySelector('.reply-btn').onclick = (e) => {
+                e.stopPropagation();
+                const input = document.getElementById("quickPostInput");
+                input.value = `>${e.target.dataset.index} ` + input.value;
+                input.focus();
+              };
+              li.querySelector('.info-btn').onclick = (e) => {
+                e.stopPropagation();
+                showInfoDialog(e.target.dataset.info);
+              };
+
               postList.appendChild(li);
             } else if (change.type === "removed") {
               const el = document.getElementById("post-" + docId);
@@ -666,7 +697,7 @@ async function loadPosts(threadId) {
           
           currentIndex = end;
           if (currentIndex < changes.length) {
-            requestAnimationFrame(renderChunk);
+            requestAnimationFrame(renderChunk); 
           } else {
             hideLoading();
             const tocContainer = document.getElementById("threadToc");
@@ -706,12 +737,12 @@ async function loadPosts(threadId) {
 window.showImagePopup = function(src){
   const popup = document.getElementById('imagePopup');
   const img = document.getElementById('popupImage');
-  img.src = src;
+  img.src = src; 
   popup.style.display = 'block';
 };
 document.getElementById('closeImagePopup').addEventListener('click',()=>{ 
   document.getElementById('imagePopup').style.display='none'; 
-  document.getElementById('popupImage').src = "";
+  document.getElementById('popupImage').src = ""; 
 });
 
 document.getElementById('closeThreadBtn').onclick=()=>{
@@ -734,7 +765,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('エラーが発生しました'); } }
 
     const title=document.getElementById('threadTitleInput').value.trim(), detail=document.getElementById('threadDetailInput').value.trim();
-    if(!title) return showAlert("タイトルを入力してください"); if(title.length < 2) return showAlert("スレッド名は2文字以上で入力してください");
+    if(!title) return showAlert("タイトルを入力してください");
     if(containsNGWord(title) || containsNGWord(detail)) return showAlert("タイトルまたは詳細に使えない言葉が含まれています");
 
     const imageFile=document.getElementById('threadImageInput').files[0], imageBase64=imageFile?await fileToBase64(imageFile):null;
@@ -743,16 +774,16 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(isFormSending) return; isFormSending = true; closePopup();
 
     const threadList = document.getElementById('threadList'), tempLi = document.createElement("li");
-    tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; tempLi.innerHTML = `<div><strong>${title} (送信中...)</strong></div><small>投稿数: 1</small><small>${detail || ''}</small>`;
+    tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; tempLi.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; display: inline-block; padding-right: 36px;">${title} (送信中...)</strong><small>投稿数: 1</small><small>${detail || ''}</small>`;
     threadList.insertBefore(tempLi, threadList.firstChild);
 
     try{
-      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, likes:0, dislikes:0, ...getBoardWriteMeta() });
+      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
       await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
       showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。" : "作成に失敗しました"); tempLi.remove();
-    } finally { isFormSending = false; tempLi.remove(); }
+    } finally { isFormSending = false; tempLi.remove(); } 
   };
 };
 
@@ -776,7 +807,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
     
     const postList = document.getElementById("postList"); let index = postList.children.length + 1;
     const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; 
-    tempLi.innerHTML = `<span>${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:6px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
     postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
     try{
@@ -789,7 +820,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
   };
 };
 
-document.getElementById('adminBtn').onclick = async () => {
+document.getElementById('adminBtn').onclick = async () => { 
   showForm('adminFields'); document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン"; document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
   const loginBox = document.getElementById('adminLoginBox'), menuBox = document.getElementById('adminMenuBox'), passInput = document.getElementById('adminPasswordInput'), threadSelect = document.getElementById('adminThreadSelect'), postSelect = document.getElementById('adminPostSelect'), roomSelect = document.getElementById('adminRoomSelect'), ipInput = document.getElementById('adminIpInput'), bannedIpSelect = document.getElementById('adminBannedIpSelect');
   async function loadAdminLists(){
@@ -884,7 +915,6 @@ async function openThreadFromURL() {
   }
 }
 openThreadFromURL();
-document.getElementById('sortSelect').addEventListener('change', (e) => { sortMode = e.target.value || "new"; applySort(); renderThreadsPage(); });
 
 function loadAllThreads(){
   if (isAllLoaded) return; showLoading("すべてのスレッドを読み込み中...");
@@ -892,7 +922,7 @@ function loadAllThreads(){
   let isInitialLoadAll = true; const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
   threadsUnsub = onSnapshot(q, snapshot => {
     if (!isInitialLoadAll) snapshot.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
-    isInitialLoadAll = false; threadsData = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() })); isAllLoaded = true; applySort(); renderThreadsPage(); hideLoading();
+    isInitialLoadAll = false; threadsData = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() })); isAllLoaded = true; renderThreadsPage(); hideLoading();
   }, (error) => {
     console.error(error); hideLoading(); showAlert("スレッドの読み込みに失敗しました");
   });
@@ -917,11 +947,43 @@ onSnapshot(collection(db, "online"), snap => {
 document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーなし"); alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
 
 const quickMenuBtn = document.getElementById("quickMenuBtn"), quickMenuContent = document.getElementById("quickMenuContent"), quickPostInput = document.getElementById("quickPostInput");
-quickMenuBtn.onclick = (e) => { e.stopPropagation(); quickMenuContent.style.display = quickMenuContent.style.display === "block" ? "none" : "block"; };
-document.addEventListener("click", () => { quickMenuContent.style.display = "none"; });
+quickMenuBtn.onclick = (e) => { e.stopPropagation(); quickMenuContent.style.display = quickMenuContent.style.display === "block" ? "none" : "block"; stampMenuContent.style.display = "none"; };
 document.querySelectorAll(".quickItem").forEach(item => { item.onclick = () => { quickPostInput.value = item.textContent; quickMenuContent.style.display = "none"; document.getElementById("quickSendBtn").click(); }; });
 
+const stampMenuBtn = document.getElementById("stampMenuBtn"), stampMenuContent = document.getElementById("stampMenuContent");
+stampMenuBtn.onclick = (e) => { e.stopPropagation(); stampMenuContent.style.display = stampMenuContent.style.display === "grid" ? "none" : "grid"; quickMenuContent.style.display = "none"; };
+document.querySelectorAll(".stampItem").forEach(item => {
+  item.onclick = async () => {
+    stampMenuContent.style.display = "none";
+    await sendStamp(item.textContent);
+  };
+});
+
+document.addEventListener("click", () => { quickMenuContent.style.display = "none"; stampMenuContent.style.display = "none"; });
+
 let isQuickSending = false;
+
+async function sendStamp(stampText) {
+  if (isQuickSending) return; if(await stopIfBanned()) return;
+  const clientIP = await getClientIP();
+  isQuickSending = true;
+  const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
+  
+  const body = `[STAMP:${stampText}]`;
+  
+  const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
+  tempLi.innerHTML = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+  postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  try {
+    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: body, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+    await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
+    await saveLog("quick_send_stamp", { threadId: currentThreadId, postId: newPost.id, index: index, stamp: stampText });
+  } catch (e) {
+    showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。" : "送信に失敗しました"); tempLi.remove();
+  } finally { isQuickSending = false; }
+}
+
 document.getElementById("quickSendBtn").onclick = async () => {
   if (isQuickSending) return; if(await stopIfBanned()) return;
   const clientIP = await getClientIP(), input = document.getElementById("quickPostInput"), text = input.value.trim();
@@ -930,7 +992,7 @@ document.getElementById("quickSendBtn").onclick = async () => {
   isQuickSending = true; input.value = "";
   const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
   const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span>${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:5px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+  tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
@@ -938,7 +1000,7 @@ document.getElementById("quickSendBtn").onclick = async () => {
     await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
     await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: text });
   } catch (e) {
-    showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。" : "送信に失敗しました"); tempLi.remove();
+    showAlert(isOldBoardHtmlError(e) ? "This HTML is outdated." : "送信に失敗しました"); tempLi.tempLi?.remove();
   } finally { isQuickSending = false; }
 };
 </script>
