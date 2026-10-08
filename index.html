@@ -183,7 +183,7 @@ textarea { min-height:60px; resize: vertical; }
     <input id="threadMemberId" placeholder="ニックネーム">
     <label>アイコン</label>
     <input id="threadIconInput" type="file" accept="image/*">
-    <label>タイトル（5文字以上）</label>
+    <label>タイトル（2文字以上）</label>
     <input id="threadTitleInput" placeholder="タイトル">
     <label>詳細</label>
     <textarea id="threadDetailInput" placeholder="詳細"></textarea>
@@ -253,19 +253,17 @@ textarea { min-height:60px; resize: vertical; }
 </div>
 
 <div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
-  <!-- ▼ 閉じた時にメモリ解放するため、直接のsrcバインディングを最適化します -->
   <img id="popupImage" loading="lazy" decoding="async" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
   <br><button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-// ▼ キャッシュ機能モジュールを追加
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
   getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
   serverTimestamp, setDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  CACHE_SIZE_UNLIMITED // ← 追加
+  CACHE_SIZE_UNLIMITED
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -279,15 +277,13 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 
-// ▼ キャッシュを有効化（2回目以降の読み込みが爆速になります）
-// ▼ キャッシュの容量を無制限にし、有効期間を最大化
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager(),
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED // ← ここを追加
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED
   })
 });
-// ===== ログ保存関数 =====
+
 async function saveLog(action, detail = {}) {
   try {
     const clientIP = await getClientIP();
@@ -479,12 +475,9 @@ function renderThreadsPage(){
   const start = (getCurrentPage() - 1) * pageSize, pageThreads=threadsData.slice(start,start+pageSize);
   if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
   
-  const now = Date.now();
   pageThreads.forEach(docItem=>{
     const data=docItem.data(), postCount = data.postCount || 0;
     const li=document.createElement("li"); li.style.backgroundColor = data.color || "#3498db";
-    const createdAt = data.created_at?.toMillis ? data.created_at.toMillis() : new Date(data.created_at || 0).getTime();
-    
 
     let titleText = data.locked ? `🔒${data.title}` : data.title;
     if (data.password) titleText += " 🔑"; if (data.pinned) titleText = "📌 " + titleText; if (isTrendingThread(data)) titleText = "🔥 " + titleText;
@@ -530,7 +523,7 @@ function renderThreadsPage(){
   threadListSection.scrollTop = scrollTop; 
 }
 
-let searchTimeout; // ▼ 検索デバウンス用
+let searchTimeout;
 async function listenThreads(){
   if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
   showLoading("スレッドを読み込み中...");
@@ -572,8 +565,7 @@ async function listenThreads(){
   };
 
   listenNormal();
-  
-  // ▼ 検索窓のデバウンス処理（0.3秒後に入力確定とみなす）
+
   if (!searchInput.dataset.bound) {
     searchInput.addEventListener("input", () => {
       clearTimeout(searchTimeout);
@@ -616,23 +608,21 @@ function openThread(threadId,data){
   loadPosts(threadId);
 }
 
-// ▼ 投稿読み込みの最適化（差分更新 docChanges と分割レンダリング requestAnimationFrame）
 async function loadPosts(threadId) {
   showLoading("投稿を読み込み中…");
   const postList = document.getElementById("postList");
-  postList.innerHTML = ""; knownPostIds.clear(); // スレッド切り替え時のみ初期化
+  postList.innerHTML = ""; knownPostIds.clear();
 
   if (postsUnsub) postsUnsub();
   const q = query(collection(db, currentRoom, threadId, "posts"), orderBy("created_at", "asc"));
 
   postsUnsub = onSnapshot(q, async (snapshot) => {
     try {
-      // アイコンのみ先行取得
       const iconIds = [...new Set(snapshot.docs.map(d => d.data().icon).filter(Boolean))];
       await Promise.all(iconIds.map(id => getIconSrc(id)));
 
       const changes = snapshot.docChanges();
-      const chunkSize = 20; // 1回で描画する件数
+      const chunkSize = 20;
       let currentIndex = 0;
 
       function renderChunk() {
@@ -645,7 +635,6 @@ async function loadPosts(threadId) {
             const docId = data.index || change.doc.id;
 
             if (change.type === "added") {
-              // 重複描画防止（送信中仮UIとの整合性）
               const existingLi = document.getElementById("post-" + docId);
               if(existingLi && !existingLi.classList.contains('temp-post')) continue; 
               if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
@@ -677,10 +666,9 @@ async function loadPosts(threadId) {
           
           currentIndex = end;
           if (currentIndex < changes.length) {
-            requestAnimationFrame(renderChunk); // 次のチャンクをスケジュール
+            requestAnimationFrame(renderChunk);
           } else {
             hideLoading();
-            // TOC（目次）の更新
             const tocContainer = document.getElementById("threadToc");
             if(tocContainer) {
               tocContainer.innerHTML = ""; tocContainer.style.display = "flex";
@@ -715,16 +703,15 @@ async function loadPosts(threadId) {
   });
 }
 
-// ▼ 画像表示とメモリ解放の最適化
 window.showImagePopup = function(src){
   const popup = document.getElementById('imagePopup');
   const img = document.getElementById('popupImage');
-  img.src = src; // ポップアップを開いた瞬間だけBase64をセット
+  img.src = src;
   popup.style.display = 'block';
 };
 document.getElementById('closeImagePopup').addEventListener('click',()=>{ 
   document.getElementById('imagePopup').style.display='none'; 
-  document.getElementById('popupImage').src = ""; // 閉じた瞬間にsrcを空にしてメモリから巨大なBase64を即座に解放
+  document.getElementById('popupImage').src = "";
 });
 
 document.getElementById('closeThreadBtn').onclick=()=>{
@@ -747,7 +734,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('エラーが発生しました'); } }
 
     const title=document.getElementById('threadTitleInput').value.trim(), detail=document.getElementById('threadDetailInput').value.trim();
-    if(!title) return showAlert("タイトルを入力してください"); if(title.length < 5) return showAlert("スレッド名は5文字以上で入力してください");
+    if(!title) return showAlert("タイトルを入力してください"); if(title.length < 2) return showAlert("スレッド名は2文字以上で入力してください");
     if(containsNGWord(title) || containsNGWord(detail)) return showAlert("タイトルまたは詳細に使えない言葉が含まれています");
 
     const imageFile=document.getElementById('threadImageInput').files[0], imageBase64=imageFile?await fileToBase64(imageFile):null;
@@ -765,7 +752,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
       showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。" : "作成に失敗しました"); tempLi.remove();
-    } finally { isFormSending = false; tempLi.remove(); } // 送信完了後に仮UIを消去 (Firebaseが本物を挿入するため)
+    } finally { isFormSending = false; tempLi.remove(); }
   };
 };
 
@@ -802,7 +789,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
   };
 };
 
-document.getElementById('adminBtn').onclick = async () => { /* ...既存の管理者機能コード（省略せず完全に同等）... */
+document.getElementById('adminBtn').onclick = async () => {
   showForm('adminFields'); document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン"; document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
   const loginBox = document.getElementById('adminLoginBox'), menuBox = document.getElementById('adminMenuBox'), passInput = document.getElementById('adminPasswordInput'), threadSelect = document.getElementById('adminThreadSelect'), postSelect = document.getElementById('adminPostSelect'), roomSelect = document.getElementById('adminRoomSelect'), ipInput = document.getElementById('adminIpInput'), bannedIpSelect = document.getElementById('adminBannedIpSelect');
   async function loadAdminLists(){
@@ -869,7 +856,6 @@ async function openThreadFromURL() {
   const room = params.get("room");
   const threadId = params.get("thread");
 
-  // ① リンクの後に何もない（パラメータがない）場合は通常部屋のURLに自動書き換え
   if (!room && !threadId) {
     history.replaceState({}, "", `${location.pathname}?room=threads`);
     return; 
@@ -877,17 +863,14 @@ async function openThreadFromURL() {
 
   if (room) currentRoom = room;
 
-  // ② スレッドIDが指定されている場合の処理
   if (threadId) {
     showLoading("スレッドを確認中...");
     try {
       const threadDoc = await getDoc(doc(db, currentRoom, threadId));
       hideLoading();
       if (threadDoc.exists()) {
-        // スレッドが存在すれば開く
         openThread(threadId, threadDoc.data());
       } else {
-        // スレッドが消えている場合はアラートを出し、自動的に通常部屋へリダイレクト
         showAlert("指定されたスレッドは削除されているか、存在しません。");
         history.replaceState({}, "", `${location.pathname}?room=threads`);
         switchRoom("threads");
