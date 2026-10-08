@@ -297,6 +297,7 @@ async function saveLog(action, detail = {}) {
 let currentThreadHasPassword = false;
 let currentThreadTitle = "";
 let currentThreadCreatorName = "";
+let currentThreadLocked = false;
 
 function showInfoDialog(infoText) {
   const dialog = document.createElement("div");
@@ -329,7 +330,7 @@ document.addEventListener("click", (e) => {
 
 const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
-function getBoardWriteMeta() { return { appId: SINZO_BOARD_APP_ID, writeVersion: SINZO_BOARD_WRITE_VERSION, secretKey: "02" }; }
+function getBoardWriteMeta() { return { appId: SINZO_BOARD_APP_ID, writeVersion: SINZO_BOARD_WRITE_VERSION, secretKey: "04" }; }
 function isOldBoardHtmlError(error) { return error?.code === "permission-denied"; }
 
 let cachedIP = null;
@@ -470,7 +471,7 @@ function renderThreadsPage(){
     const data=docItem.data(), postCount = data.postCount || 0;
     const li=document.createElement("li"); li.style.backgroundColor = data.color || "#3498db";
 
-    let titleText = data.locked ? `🔒${data.title}` : data.title;
+    let titleText = data.locked ? `🔒 ${data.title}` : data.title;
     if (data.password) titleText += " 🔑"; if (data.pinned) titleText = "📌 " + titleText; if (isTrendingThread(data)) titleText = "🔥 " + titleText;
 
     const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; display: inline-block; padding-right: 36px;">${titleText}</strong>`;
@@ -608,17 +609,81 @@ async function listenThreads(){
 }
 
 async function tryOpenThread(threadId, data) {
-  if (data.locked) { showAlert((data.lockMessage && data.lockMessage.trim() !== "") ? data.lockMessage : "このスレッドは規約違反によりロックされています"); return; }
   if (data.password) {
     showForm('passwordFields'); document.getElementById('popupTitle').textContent = "スレッドパスワード入力";
     document.getElementById('submitBtn').onclick = () => { if (document.getElementById('threadPasswordCheckInput').value.trim() === data.password) { closePopup(); openThread(threadId, data); } else { showAlert("パスワードが違います"); } };
   } else openThread(threadId, data);
 }
-function openThread(threadId,data){
+
+function updateLockUIState(isLocked) {
+  const quickInput = document.getElementById('quickPostInput');
+  const quickSendBtn = document.getElementById('quickSendBtn');
+  const quickMenuBtn = document.getElementById('quickMenuBtn');
+  const stampMenuBtn = document.getElementById('stampMenuBtn');
+  const createPostBtn = document.getElementById('createPostBtn');
+
+  if (isLocked) {
+    quickInput.disabled = true;
+    quickInput.placeholder = "このスレッドはロックされているため投稿できません";
+    quickInput.style.backgroundColor = "#e0e0e0";
+    
+    quickSendBtn.disabled = true;
+    quickSendBtn.style.backgroundColor = "#95a5a6";
+    quickSendBtn.style.cursor = "not-allowed";
+
+    quickMenuBtn.disabled = true;
+    quickMenuBtn.style.backgroundColor = "#95a5a6";
+    quickMenuBtn.style.cursor = "not-allowed";
+
+    stampMenuBtn.disabled = true;
+    stampMenuBtn.style.backgroundColor = "#95a5a6";
+    stampMenuBtn.style.cursor = "not-allowed";
+
+    createPostBtn.disabled = true;
+    createPostBtn.style.backgroundColor = "#95a5a6";
+    createPostBtn.style.cursor = "not-allowed";
+    createPostBtn.textContent = "🔒ロック中";
+  } else {
+    quickInput.disabled = false;
+    quickInput.placeholder = "メッセージを入力…";
+    quickInput.style.backgroundColor = "#fff";
+
+    quickSendBtn.disabled = false;
+    quickSendBtn.style.backgroundColor = "#27ae60";
+    quickSendBtn.style.cursor = "pointer";
+
+    quickMenuBtn.disabled = false;
+    quickMenuBtn.style.backgroundColor = "#bdc3c7";
+    quickMenuBtn.style.cursor = "pointer";
+
+    stampMenuBtn.disabled = false;
+    stampMenuBtn.style.backgroundColor = "#f1c40f";
+    stampMenuBtn.style.cursor = "pointer";
+
+    createPostBtn.disabled = false;
+    createPostBtn.style.backgroundColor = "";
+    createPostBtn.style.cursor = "pointer";
+    createPostBtn.textContent = "📝投稿";
+  }
+}
+
+function openThread(threadId, data){
   history.pushState({}, "", `${location.pathname}?room=${currentRoom}&thread=${threadId}`);
-  currentThreadId = threadId; currentThreadTitle = data.title; currentThreadHasPassword = !!data.password; currentThreadCreatorName = data.memberId || "";
-  threadTitleElem.textContent = data.title; threadDetailElem.textContent = data.detail || ""; threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
-  threadListSection.style.display='none'; threadDetailSection.style.display='block';
+  currentThreadId = threadId; 
+  currentThreadTitle = data.title; 
+  currentThreadHasPassword = !!data.password; 
+  currentThreadCreatorName = data.memberId || "";
+  currentThreadLocked = !!data.locked;
+
+  const displayTitle = currentThreadLocked ? `🔒 ${data.title}` : data.title;
+  threadTitleElem.textContent = displayTitle;
+  threadDetailElem.textContent = data.detail || ""; 
+  threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
+  
+  updateLockUIState(currentThreadLocked);
+
+  threadListSection.style.display='none'; 
+  threadDetailSection.style.display='block';
   loadPosts(threadId);
 }
 
@@ -665,24 +730,30 @@ async function loadPosts(threadId) {
                 displayBody = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span>`;
               }
 
+              // 【修正部分】本文が存在する場合のみdiv要素を生成する（画像のみレスでの余分な空行を削除）
+              const bodyHtml = data.body ? `<div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>` : "";
+
+              const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: rgba(0,0,0,0.25); cursor: pointer;";
               const actionBox = `<div style="position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; align-items: center; z-index: 10;">
-                <button class="reply-btn" data-index="${data.index}" style="background: rgba(0,0,0,0.25); border: none; color: white; border-radius: 10px; padding: 2px 8px; cursor: pointer; font-size: 11px;">返信</button>
+                <button class="reply-btn" data-index="${data.index}" style="${replyBtnStyle} border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px;" ${currentThreadLocked ? 'disabled' : ''}>→</button>
                 <button class="info-btn" data-info="【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
               </div>`;
 
               li.innerHTML = `
                 ${actionBox}
-                <div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>
+                ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
                 <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
-              li.querySelector('.reply-btn').onclick = (e) => {
-                e.stopPropagation();
-                const input = document.getElementById("quickPostInput");
-                input.value = `>${e.target.dataset.index} ` + input.value;
-                input.focus();
-              };
+              if (!currentThreadLocked) {
+                li.querySelector('.reply-btn').onclick = (e) => {
+                  e.stopPropagation();
+                  const input = document.getElementById("quickPostInput");
+                  input.value = `>${e.target.dataset.index} ` + input.value;
+                  input.focus();
+                };
+              }
               li.querySelector('.info-btn').onclick = (e) => {
                 e.stopPropagation();
                 showInfoDialog(e.target.dataset.info);
@@ -788,6 +859,7 @@ document.getElementById('createThreadBtn').onclick=()=>{
 };
 
 document.getElementById('createPostBtn').onclick=async()=>{
+  if (currentThreadLocked) return showAlert("このスレッドはロックされているため投稿できません");
   isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('postFields'); document.getElementById('popupTitle').textContent="投稿作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
@@ -962,13 +1034,24 @@ onSnapshot(collection(db, "online"), snap => {
 document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーなし"); alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
 
 const quickMenuBtn = document.getElementById("quickMenuBtn"), quickMenuContent = document.getElementById("quickMenuContent"), quickPostInput = document.getElementById("quickPostInput");
-quickMenuBtn.onclick = (e) => { e.stopPropagation(); quickMenuContent.style.display = quickMenuContent.style.display === "block" ? "none" : "block"; stampMenuContent.style.display = "none"; };
+quickMenuBtn.onclick = (e) => { 
+  if (currentThreadLocked) return;
+  e.stopPropagation(); 
+  quickMenuContent.style.display = quickMenuContent.style.display === "block" ? "none" : "block"; 
+  stampMenuContent.style.display = "none"; 
+};
 document.querySelectorAll(".quickItem").forEach(item => { item.onclick = () => { quickPostInput.value = item.textContent; quickMenuContent.style.display = "none"; document.getElementById("quickSendBtn").click(); }; });
 
 const stampMenuBtn = document.getElementById("stampMenuBtn"), stampMenuContent = document.getElementById("stampMenuContent");
-stampMenuBtn.onclick = (e) => { e.stopPropagation(); stampMenuContent.style.display = stampMenuContent.style.display === "grid" ? "none" : "grid"; quickMenuContent.style.display = "none"; };
+stampMenuBtn.onclick = (e) => { 
+  if (currentThreadLocked) return;
+  e.stopPropagation(); 
+  stampMenuContent.style.display = stampMenuContent.style.display === "grid" ? "none" : "grid"; 
+  quickMenuContent.style.display = "none"; 
+};
 document.querySelectorAll(".stampItem").forEach(item => {
   item.onclick = async () => {
+    if (currentThreadLocked) return;
     stampMenuContent.style.display = "none";
     await sendStamp(item.textContent);
   };
@@ -979,6 +1062,7 @@ document.addEventListener("click", () => { quickMenuContent.style.display = "non
 let isQuickSending = false;
 
 async function sendStamp(stampText) {
+  if (currentThreadLocked) return;
   if (isQuickSending) return; if(await stopIfBanned()) return;
   const clientIP = await getClientIP();
   isQuickSending = true;
@@ -1000,6 +1084,7 @@ async function sendStamp(stampText) {
 }
 
 document.getElementById("quickSendBtn").onclick = async () => {
+  if (currentThreadLocked) return;
   if (isQuickSending) return; if(await stopIfBanned()) return;
   const clientIP = await getClientIP(), input = document.getElementById("quickPostInput"), text = input.value.trim();
   if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
