@@ -887,7 +887,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
       await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
       await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
     }catch(e){
-      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。" : "投稿に失敗しました"); tempLi.remove();
+      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のBordを開いてください。" : "投稿に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; }
   };
 };
