@@ -3,7 +3,7 @@
 <head>
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
-  <title>🔥卍 Bord | 超絶完全匿名的最強掲示板ツール 卍🔥</title>
+  <title>Bord | 完全匿名の掲示板ツール</title>
 <meta name="description" content="完全匿名の掲示板ツール Bord">
 <meta name="robots" content="index, follow">
 <meta name="apple-mobile-web-app-title" content="Bord">
@@ -17,75 +17,22 @@
 <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
-/* 🌈 目がチカチカする高速レインボー背景 */
-@keyframes rainbowBg {
-  0% { background-color: #ff0000; }
-  16% { background-color: #ff7f00; }
-  33% { background-color: #ffff00; }
-  50% { background-color: #00ff00; }
-  66% { background-color: #0000ff; }
-  83% { background-color: #4b0082; }
-  100% { background-color: #9400d3; }
-}
-
-/* 💥 全てをブルブル震わせるアニメーション */
-@keyframes buruburu {
-  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  25% { transform: translate(-5px, 5px) rotate(-5deg) scale(1.1); }
-  50% { transform: translate(5px, -5px) rotate(5deg) scale(0.9); }
-  75% { transform: translate(-5px, -5px) rotate(-5deg) scale(1.1); }
-  100% { transform: translate(5px, 5px) rotate(5deg) scale(1); }
-}
-
 .blueBtn { background-color: #3498db; color: #ffffff; }
-body { 
-  font-family: "Comic Sans MS", "Pop", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important; 
-  animation: rainbowBg 0.5s infinite !important; 
-  text-align: center; 
-  margin:0; 
-  padding:0; 
-  color: #fff !important;
-}
-
-h1, h3 { 
-  animation: buruburu 0.05s infinite !important; 
-  font-size: 40px !important;
-  text-shadow: 3px 3px 0px #ff0000, -3px -3px 0px #0000ff !important;
-  margin:10px 0; 
-}
-
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background-color: #e6f0ff; margin:0; padding:0; }
+h1 { margin:10px 0; }
 ul, ol { list-style: none; padding: 0; margin: 0; text-align:left; }
 
-li { 
-  margin: 8px 0; 
-  padding: 14px 16px; 
-  border-radius: 16px; 
-  cursor: pointer; 
-  word-wrap: break-word; 
-  color:#fff !important; 
-  position:relative; 
-  border: 3px dashed #ffff00 !important; 
-  background-color: rgba(0, 0, 0, 0.85) !important; 
-  box-shadow: 5px 5px 0px #00ff00 !important;
-}
+li { margin: 4px 0; padding: 10px 12px; border-radius: 16px; cursor: pointer; word-wrap: break-word; color:#fff; position:relative; }
 
-li small { display:block; font-size:0.9em; color:#ffff00; margin-top:4px; font-weight: bold; }
+li small { display:block; font-size:0.8em; color:#f0f0f0; margin-top:2px; }
 li span { white-space: pre-wrap; }
 
 button {
-  animation: buruburu 0.1s infinite !important;
-  padding: 10px 20px; 
-  margin: 4px; 
-  cursor: pointer;
-  border-radius: 20px; 
-  border: 4px solid #ffff00 !important; 
-  font-size: 18px;
-  font-weight: 900 !important;
-  box-shadow: 0 0 15px #ff00ff, 0 0 30px #00ffff !important;
-  text-shadow: 2px 2px 0px #000 !important;
+  padding: 8px 16px; margin: 4px; cursor: pointer;
+  border-radius: 20px; border: none; font-size: 15px;
   transition: transform 0.15s ease;
 }
-button:active { transform: scale(0.85); }
+button:active { transform: scale(0.95); }
 
 .greenBtn { background-color: var(--btn-color, #27ae60); color: #ffffff; }
 li small span { white-space: nowrap; }
@@ -95,38 +42,39 @@ li small span { white-space: nowrap; }
 #threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; padding-bottom: 120px; }
 #popupForm {
   display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: #222; border: 4px solid #00ffff; padding: 16px 20px; border-radius: 24px;
-  box-shadow: 0 0 30px #ff00ff; z-index: 2500; width: 280px; max-width: 90%; color: #fff;
-  animation: popupIn 0.3s ease-out;
+  background: white; padding: 12px 16px; border-radius: 24px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 2500; width: 280px; max-width: 90%; color: #333;
+  animation: popupIn 0.5s ease-out;
 }
-#overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 2400; }
-#loadingPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border: 4px solid #ffff00; padding:30px; border-radius:15px; box-shadow:0 0 30px #00ff00; z-index:3000; text-align:center; color:#fff; }
-.spinner { border:6px solid #f3f3f3; border-top:6px solid #ff0000; border-radius:50%; width:60px; height:60px; animation:spin 0.5s linear infinite; margin:0 auto 15px; }
+#overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 2400; }
+#loadingPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); z-index:3000; text-align:center; color:#333; }
+.spinner { border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 10px; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-#loadingOkBtn { display:none; margin-top:10px; padding:8px 16px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
-#forceReloadBtn { display:none; margin-top:10px; padding:8px 16px; border:none; border-radius:6px; background:#e74c3c; color:#fff; cursor:pointer; }
-label { display:block; text-align:left; margin-top:8px; font-size:15px; font-weight: bold; color:#00ffff; }
-input, select, textarea { width:100%; box-sizing: border-box; padding:8px; margin-top:4px; border-radius:6px; border:2px solid #ff00ff; font-size:14px; color: #fff; background-color: #333; font-family: inherit; }
-input:not([type="file"]), select { height:38px; }
-input[type="file"] { border: none; background-color: transparent; padding: 6px 0; color: #fff; }
-input[type="file"]::file-selector-button, input[type="file"]::-webkit-file-upload-button { background-color: #fff; color: #333; border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-weight: bold; }
+#loadingOkBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
+#forceReloadBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#e74c3c; color:#fff; cursor:pointer; }
+label { display:block; text-align:left; margin-top:8px; font-size:14px; color:#333; }
+input, select, textarea { width:100%; box-sizing: border-box; padding:8px; margin-top:4px; border-radius:4px; border:1px solid #ccc; font-size:14px; color: #333; background-color: #fff; font-family: inherit; }
+input:not([type="file"]), select { height:36px; }
+input[type="file"] { border: none; background-color: transparent; padding: 6px 0; }
+input[type="file"]::file-selector-button, input[type="file"]::-webkit-file-upload-button { background-color: #fff; color: #333; border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
 textarea { min-height:60px; resize: vertical; }
 
 #topRightButtons { position: fixed; top: 10px; right: 10px; z-index: 1500; display: flex; gap: 8px; align-items: center; }
+#topRightButtons button { height: 40px; padding: 10px 20px; font-size: 16px; font-weight: 600; border-radius: 20px; }
 #roomSelectArea { position: fixed; top: 10px; right: 10px; z-index: 1500; text-align: right; }
-#currentRoomLabel { margin-top: 4px; font-size: 16px; font-weight: 900; color: #ffff00; text-shadow: 2px 2px #000; opacity: 1; }
-.pageBtn { background-color:#2980b9; margin: 2px; color:white; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-weight: bold;}
+#currentRoomLabel { margin-top: 4px; font-size: 12px; font-weight: 500; color: #34495e; opacity: 0.9; }
+.pageBtn { background-color:#2980b9; margin: 2px; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;}
 .pageBtn:disabled { background-color:#95a5a6; cursor:default; }
-#threadHeader h3 { margin:0; color: #ffff00; }
-#threadHeader small { color:#fff; display:block; margin-top:2px; font-weight: bold; }
+#threadHeader h3 { margin:0; color: #222; }
+#threadHeader small { color:#555; display:block; margin-top:2px; }
 .nicknameWithIcon img { width:48px; height:48px; vertical-align:middle; margin-right:4px; border-radius:0; }
-#popupForm h3 { margin-top: 4px; margin-bottom: 8px; font-size: 20px; color: #ffff00; }
+#popupForm h3 { margin-top: 4px; margin-bottom: 8px; font-size: 18px; color: #333; }
 
 #sortSelect { width: 220px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; margin: 8px auto; display: block; background-color:#fff; color:#333; }
 
-#lineInputBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.9); padding: 8px; display: flex; gap: 6px; align-items: center; box-shadow: 0 -4px 15px rgba(255,0,255,0.5); z-index: 1200; box-sizing: border-box; }
-#lineInputBar input { flex: 1; height: 42px; border-radius: 20px; border: 2px solid #00ffff; padding: 0 14px; font-size: 15px; background: #222; color: #fff; }
-#lineInputBar button { height: 42px; border-radius: 20px; border: none; padding: 0 14px; font-size: 15px; cursor: pointer; }
+#lineInputBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 56px; background: #f5f5f5; padding: 8px; display: flex; gap: 6px; align-items: center; box-shadow: 0 -2px 6px rgba(0,0,0,0.15); z-index: 1200; box-sizing: border-box; }
+#lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
+#lineInputBar button { height: 40px; border-radius: 20px; border: none; padding: 0 14px; font-size: 14px; cursor: pointer; }
 #quickSendBtn { background: #27ae60; color: white; }
 #postList { padding-bottom: 80px; }
 
@@ -137,13 +85,13 @@ textarea { min-height:60px; resize: vertical; }
 .new-post-slide { animation: slideInFromLeft 0.4s ease-out; }
 #adminMenuBox { max-height: 68vh; overflow-y: auto; }
 .adminTwoColumns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; }
-.adminPanel { background: #1a1a1a; border: 2px solid #ff00ff; border-radius: 14px; padding: 10px; }
-.adminPanel h4 { margin: 4px 0 8px; color: #ffff00; font-size: 16px; }
+.adminPanel { background: #f7f9fc; border: 1px solid #dfe6e9; border-radius: 14px; padding: 10px; }
+.adminPanel h4 { margin: 4px 0 8px; color: #333; font-size: 15px; }
 #adminMenuBox select, #adminMenuBox input[type="text"] { width: 100% !important; margin: 5px 0 !important; }
 
 @media (max-width: 620px) { #popupForm { width: 94vw; } .adminTwoColumns { grid-template-columns: 1fr; } }
 
-#topNotification { display: none; position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: #ff0000; color: white; padding: 12px 24px; border-radius: 24px; border: 3px solid #ffff00; box-shadow: 0 4px 20px rgba(255,0,0,0.8); z-index: 4000; font-size: 16px; font-weight: 900; transition: top 0.4s ease; white-space: nowrap; pointer-events: none; }
+#topNotification { display: none; position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: #27ae60; color: white; padding: 12px 24px; border-radius: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 4000; font-size: 14px; font-weight: bold; transition: top 0.4s ease; white-space: nowrap; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -151,27 +99,27 @@ textarea { min-height:60px; resize: vertical; }
 <div id="topNotification"></div>
 <a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
-    <img src="logo.png" alt="bord" style="height:60px; filter: drop-shadow(0 0 10px #ffff00);"> <span>🔥BORD🔥</span>
+    <img src="logo.png" alt="bord" style="height:60px;">
   </h1>
 </a>
 
 <button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:150px; z-index:1500;">
-  👁️ 同接人数: 0人大暴れ中 👁️
+  同接人数: 0人
 </button>
 
-<button id="adminBtn" class="redBtn" style="position: fixed; top:10px; left:10px;">👑 神の操作</button>
+<button id="adminBtn" class="redBtn" style="position: fixed; top:10px; left:10px;">管理者操作</button>
 <button id="roomSelectBtn" class="greenBtn" style="position: fixed; top:10px; right:10px; z-index:1500; --btn-color:#34495e">
-  🚪💥 部屋を選ぶぞオラァ!!
+  🚪部屋選択
 </button>
-<div id="currentRoomLabel">💥 現在の戦場：bord 💥</div>
+<div id="currentRoomLabel">現在の部屋：bord</div>
 
 <div id="threadListSection">
   <div style="padding: 10px; text-align: center;">
-    <input type="text" id="threadSearchInput" placeholder="🔍 ヤバいスレッドを検索..." style="width: 85%; padding: 12px; border-radius: 25px; border: 3px solid #ffff00; font-size: 16px; outline: none; background: #111; color: #fff; box-shadow: 0 0 15px #00ffff;">
+    <input type="text" id="threadSearchInput" placeholder="スレッド名を検索..." style="width: 85%; padding: 12px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
   </div>
   <ul id="threadList"></ul>
   <div id="pagination"></div>
-  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">🔥卍 新規スレ立てる 卍🔥</button>
+  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📄新規スレッド作成</button>
 </div>
 
 <div id="threadDetailSection">
@@ -180,24 +128,24 @@ textarea { min-height:60px; resize: vertical; }
     <small id="threadDetail"></small>
     <small id="threadCreator"></small>
   </div>
-  <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.8); border: 2px solid #ff00ff; border-radius: 8px;"></div>
+  <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;"></div>
   
   <div id="lineInputBar">
     <div id="quickMenuWrapper" style="position: relative;">
       <button id="quickMenuBtn" style="background: #bdc3c7; color: white; width: 40px; padding: 0; border-radius: 20px;">···</button>
-      <div id="quickMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:#222; border:2px solid #00ffff; border-radius:12px; box-shadow:0 -2px 15px rgba(0,255,255,0.5); z-index:1300; width:100px;">
-        <div class="quickItem" style="padding:12px; border-bottom:1px solid #444; cursor:pointer; color:#fff; text-align:center; font-weight:bold;">うん</div>
-        <div class="quickItem" style="padding:12px; border-bottom:1px solid #444; cursor:pointer; color:#fff; text-align:center; font-weight:bold;">はい</div>
-        <div class="quickItem" style="padding:12px; border-bottom:1px solid #444; cursor:pointer; color:#fff; text-align:center; font-weight:bold;">いいえ</div>
-        <div class="quickItem" style="padding:12px; border-bottom:1px solid #444; cursor:pointer; color:#fff; text-align:center; font-weight:bold;">おけ</div>
-        <div class="quickItem" style="padding:12px; border-bottom:1px solid #444; cursor:pointer; color:#fff; text-align:center; font-weight:bold;">いいね</div>
-        <div class="quickItem" style="padding:12px; cursor:pointer; color:#fff; text-align:center; font-weight:bold;">むり</div>
+      <div id="quickMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:100px;">
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">うん</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">はい</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいえ</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">おけ</div>
+        <div class="quickItem" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; text-align:center;">いいね</div>
+        <div class="quickItem" style="padding:12px; cursor:pointer; color:#333; text-align:center;">むり</div>
       </div>
     </div>
     
     <div id="stampMenuWrapper" style="position: relative;">
       <button id="stampMenuBtn" style="background: #f1c40f; color: white; width: 40px; padding: 0; border-radius: 20px;">😀</button>
-      <div id="stampMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:#222; border:2px solid #ffff00; border-radius:12px; box-shadow:0 -2px 15px rgba(255,255,0,0.5); z-index:1300; width:180px; padding: 10px; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+      <div id="stampMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:180px; padding: 10px; grid-template-columns: repeat(3, 1fr); gap: 8px;">
         <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😀</div>
         <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😊</div>
         <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😅</div>
@@ -207,35 +155,35 @@ textarea { min-height:60px; resize: vertical; }
       </div>
     </div>
 
-    <input id="quickPostInput" placeholder="爆速メッセージを入力…">
-    <button id="quickSendBtn">爆誕送信</button>
+    <input id="quickPostInput" placeholder="メッセージを入力…">
+    <button id="quickSendBtn">送信</button>
   </div>
 
   <ol id="postList"></ol>
-  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📝 カキコするゥゥ!!</button>
-  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px; z-index: 1100;">🔙 逃げる</button>
+  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📝投稿</button>
+  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px; z-index: 1100;">戻る</button>
 </div>
 
 <div id="overlay"></div>
-<div id="roomPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#111; border: 4px solid #ffff00; padding:20px; border-radius:15px; box-shadow:0 0 30px #ff00ff; z-index:2000; width:280px; color:#fff;">
-  <h3 style="color:#ffff00;">🚪💥 部屋を選ぶぞオラァ!!</h3>
-  <button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db; width:100%;">bord</button>
-  <button class="greenBtn roomBtn" data-room="chat" style="--btn-color:#2ecc71; width:100%;">💬 雑談</button>
-  <button class="greenBtn roomBtn" data-room="apple" style="--btn-color:#e74c3c; width:100%;"> アップル製品</button>
-  <button class="greenBtn roomBtn" data-room="question" style="--btn-color:#9b59b6; width:100%;">🙋 質問</button>
-  <hr style="border-color:#555;">
+<div id="roomPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:16px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,.5); z-index:2600; width:280px; color:#333;">
+  <h3>部屋を選択</h3>
+  <button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">bord</button>
+  <button class="greenBtn roomBtn" data-room="chat" style="--btn-color:#2ecc71;">💬雑談</button>
+  <button class="greenBtn roomBtn" data-room="apple" style="--btn-color:#e74c3c;">アップル製品</button>
+  <button class="greenBtn roomBtn" data-room="question" style="--btn-color:#9b59b6;">🙋質問</button>
+  <hr>
   <select id="roomSelectDropdown" style="width:100%"><option value="">その他の部屋</option></select>
-  <hr style="border-color:#555;">
-  <input id="newRoomInput" placeholder="新しい部屋名を作れ!!" style="width:100%">
-  <button id="createRoomConfirmBtn" class="greenBtn" style="width:100%; margin-top:8px;">突撃入室!!</button>
-  <button id="closeRoomPopup" class="greenBtn" style="width:100%; margin-top:4px; --btn-color:#c0392b;">閉じる</button>
+  <hr>
+  <input id="newRoomInput" placeholder="新しい部屋名" style="width:100%">
+  <button id="createRoomConfirmBtn" class="greenBtn">入室</button>
+  <button id="closeRoomPopup" class="greenBtn">閉じる</button>
 </div>
 
 <div id="popupForm">
   <h3 id="popupTitle">フォーム</h3>
   <div id="threadFields">
     <label>ニックネーム</label>
-    <input id="threadMemberId" placeholder="名前">
+    <input id="threadMemberId" placeholder="ニックネーム">
     <label>アイコン</label>
     <input id="threadIconInput" type="file" accept="image/*">
     <label>タイトル</label>
@@ -253,7 +201,7 @@ textarea { min-height:60px; resize: vertical; }
   </div>
   <div id="postFields" style="display:none;">
     <label>ニックネーム</label>
-    <input id="postMemberId" placeholder="名前">
+    <input id="postMemberId" placeholder="ニックネーム">
     <label>アイコン</label>
     <input id="postIconInput" type="file" accept="image/*">
     <label>本文</label>
@@ -273,7 +221,7 @@ textarea { min-height:60px; resize: vertical; }
       <div class="adminTwoColumns">
         <div class="adminPanel">
           <h4>表示・バッジ</h4>
-          <div id="adminBadgeStatus" style="text-align:left; margin:8px 0; font-weight:bold; color:#ffff00;">公式バッジ: OFF</div>
+          <div id="adminBadgeStatus" style="text-align:left; margin:8px 0; font-weight:bold; color:#333;">公式バッジ: OFF</div>
           <label>バッジ文字</label><input id="badgeTextInput" placeholder="例：📱管理者">
           <button id="saveBadgeTextBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0;">バッジ文字を保存</button>
           <button id="toggleBadgeBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0; --btn-color:#f39c12;">公式バッジON/OFF</button>
@@ -299,20 +247,20 @@ textarea { min-height:60px; resize: vertical; }
     <label>スレッドパスワードを入力してください</label>
     <input id="threadPasswordCheckInput" type="password" placeholder="パスワード">
   </div>
-  <button id="submitBtn" class="greenBtn" style="width:100%; margin-top:10px;">爆誕送信</button>
-  <button id="closePopupBtn" class="greenBtn" style="width:100%; margin-top:6px; --btn-color:#c0392b;">閉じる</button>
+  <button id="submitBtn" class="greenBtn">送信</button>
+  <button id="closePopupBtn" class="greenBtn">閉じる</button>
 </div>
 
 <div id="loadingPopup">
   <div class="spinner"></div>
-  <div id="loadingText" style="font-size: 22px; font-weight: 900; color: #ffff00;">🌀 超絶爆速読み込み中ゥゥゥ!!! 🌀</div>
-  <button id="loadingOkBtn">おけまる水産!!</button>
-  <button id="forceReloadBtn">💢 ぶっ壊して再読み込み!!</button>
+  <div id="loadingText">読み込み中...</div>
+  <button id="loadingOkBtn">OK</button>
+  <button id="forceReloadBtn">データを更新</button>
 </div>
 
-<div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; text-align:center;">
-  <img id="popupImage" loading="lazy" decoding="async" src="" style="max-width:90%; max-height:90%; margin-top:5%; border: 4px solid #ffff00;">
-  <br><button id="closeImagePopup" class="greenBtn" style="margin-top:10px; --btn-color:#c0392b;">閉じる</button>
+<div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
+  <img id="popupImage" loading="lazy" decoding="async" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
+  <br><button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
 </div>
 
 <script type="module">
@@ -359,19 +307,18 @@ let currentThreadLocked = false;
 function showInfoDialog(infoText) {
   const dialog = document.createElement("div");
   dialog.style.position = "fixed"; dialog.style.top = "50%"; dialog.style.left = "50%";
-  dialog.style.transform = "translate(-50%, -50%)"; dialog.style.background = "#222";
-  dialog.style.border = "4px solid #ffff00";
-  dialog.style.padding = "18px"; dialog.style.borderRadius = "12px"; dialog.style.boxShadow = "0 0 20px #ff00ff";
-  dialog.style.zIndex = "9999"; dialog.style.whiteSpace = "pre-line"; dialog.style.color = "#fff"; dialog.style.textAlign = "left";
-  dialog.innerHTML = `${infoText}\n<div style="text-align:center;"><button id="closeInfoBtn" style="background:#e74c3c;color:white;padding:6px 20px;border-radius:8px;border:none;margin-top:15px;cursor:pointer;font-weight:bold;">閉じる</button></div>`;
+  dialog.style.transform = "translate(-50%, -50%)"; dialog.style.background = "#fff";
+  dialog.style.padding = "18px"; dialog.style.borderRadius = "12px"; dialog.style.boxShadow = "0 0 10px rgba(0,0,0,0.4)";
+  dialog.style.zIndex = "9999"; dialog.style.whiteSpace = "pre-line"; dialog.style.color = "#333"; dialog.style.textAlign = "left";
+  dialog.innerHTML = `${infoText}\n<div style="text-align:center;"><button id="closeInfoBtn" style="background:#3498db;color:white;padding:6px 20px;border-radius:8px;border:none;margin-top:15px;cursor:pointer;font-weight:bold;">閉じる</button></div>`;
   document.body.appendChild(dialog);
   dialog.querySelector("#closeInfoBtn").onclick = () => dialog.remove();
 }
 
 function convertText(text) {
   if (!text) return "";
-  text = text.replace(/(https?:\/\/[^\s]+)/g, `<a href="$1" target="_blank" style="color:#ffff00;text-decoration:underline;">$1</a>`);
-  return text.replace(/[>＞]\s*(\d+)/g, `<span class="anchorLink" data-num="$1" style="color:#ffff00; cursor:pointer; font-weight:bold;">&gt;$1</span>`);
+  text = text.replace(/(https?:\/\/[^\s]+)/g, `<a href="$1" target="_blank" style="color:#ff0000;text-decoration:underline;">$1</a>`);
+  return text.replace(/[>＞]\s*(\d+)/g, `<span class="anchorLink" data-num="$1" style="color:#ff0000; cursor:pointer;">&gt;$1</span>`);
 }
 
 document.addEventListener("click", (e) => {
@@ -380,7 +327,7 @@ document.addEventListener("click", (e) => {
     const target = document.getElementById("post-" + num);
     if (target) {
       target.scrollIntoView({ behavior: "smooth", block: "center" });
-      target.style.outline = "5px solid yellow";
+      target.style.outline = "5px solid red";
       setTimeout(() => { target.style.outline = "none"; }, 1500);
     }
   }
@@ -423,7 +370,7 @@ function getPostBadgeData(){
 }
 function renderBadge(data){
   if(!data || !data.officialBadge) return "";
-  return `<span style="background:#ff00ff;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;border:1px solid #ffff00;">${data.badgeText || "📱管理者"}</span>`;
+  return `<span style="background:#ffd700;color:#000;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">${data.badgeText || "📱管理者"}</span>`;
 }
 
 const NG_WORDS = ["ちffhfhfbsDvbwrvaervuibaueyrvbaeruvbaeriuvbyauerivbre〇"];
@@ -478,6 +425,7 @@ function showLoading(msg="読み込み中..."){
   document.getElementById('loadingPopup').style.display = 'block';
 
   if (loadingTimer) clearTimeout(loadingTimer);
+  // 5秒（5000ms）経過しても読み込みが終わらない場合に「データを更新」ボタンを表示
   loadingTimer = setTimeout(() => {
     const popup = document.getElementById('loadingPopup');
     if (popup.style.display === 'block') {
@@ -498,12 +446,15 @@ function hideLoading(){
 document.getElementById('forceReloadBtn').onclick = async () => {
   showLoading("キャッシュをクリアして再読み込み中...");
   try {
+    // Firestoreのローカルキャッシュを削除
     await clearIndexedDbPersistence(db);
   } catch (e) {
     console.error("キャッシュクリアエラー:", e);
   }
+  // メモリ上のスレッドおよびレス情報をリセット
   threadsData = [];
   knownPostIds.clear();
+  // ページを再読み込み
   window.location.reload();
 };
 
@@ -527,7 +478,7 @@ function showForm(fieldId){
   popupForm.style.width = fieldId === 'adminFields' ? 'min(760px, 94vw)' : '280px';
   popupForm.style.display='block'; overlay.style.display='block'; 
 }
-function closePopup(){ popupForm.style.display='none'; overlay.style.display='none'; document.getElementById('submitBtn').textContent='爆誕送信'; }
+function closePopup(){ popupForm.style.display='none'; overlay.style.display='none'; document.getElementById('submitBtn').textContent='送信'; }
 
 function validateNickname(input){ if(!input) return generateRandomAnonymousName(); if(input==="しんぞ2059") return "しんぞ公式"; if(input.includes("しんぞ公式")) return null; return input; }
 
@@ -559,7 +510,7 @@ function renderThreadsPage(){
   const threadListSection = document.getElementById('threadListSection'); const scrollTop = threadListSection.scrollTop;
   const threadList=document.getElementById('threadList'); threadList.innerHTML="";
   const start = (getCurrentPage() - 1) * pageSize, pageThreads=threadsData.slice(start,start+pageSize);
-  if(pageThreads.length===0){ threadList.innerHTML="<li>まだスレッドがないぞオラァ!!</li>"; return; }
+  if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
   
   pageThreads.forEach(docItem=>{
     const data=docItem.data(), postCount = data.postCount || 0;
@@ -568,8 +519,8 @@ function renderThreadsPage(){
     let titleText = data.locked ? `🔒 ${data.title}` : data.title;
     if (data.password) titleText += " 🔑"; if (data.pinned) titleText = "📌 " + titleText; if (isTrendingThread(data)) titleText = "🔥 " + titleText;
 
-    const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong style="font-weight: 900; font-size: 1.15em; display: inline-block; padding-right: 36px; color:#ffff00;">${titleText}</strong>`;
-    const countEl = document.createElement('small'); countEl.textContent = `⚡ 投稿数: ${postCount}`;
+    const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; display: inline-block; padding-right: 36px;">${titleText}</strong>`;
+    const countEl = document.createElement('small'); countEl.textContent = `投稿数: ${postCount}`;
     const detailEl = document.createElement('small'); detailEl.textContent = data.detail || '';
     
     li.append(titleEl, countEl, detailEl);
@@ -578,7 +529,7 @@ function renderThreadsPage(){
     actionBox.style.cssText = "position: absolute; right: 10px; top: 10px; z-index: 10;";
     const infoBtn = document.createElement('button');
     infoBtn.textContent = "i";
-    infoBtn.style.cssText = "background: #e74c3c; border: 2px solid #ffff00; color: white; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; padding: 0; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center;";
+    infoBtn.style.cssText = "background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;";
     infoBtn.onclick = (e) => {
       e.stopPropagation();
       showInfoDialog(`【スレッド情報】\nID: ${docItem.id}\n作成日時: ${formatDate(data.created_at)}\n投稿数: ${postCount}\n色: ${data.color}\nIP: ${data.ip || data.created_ip || "未取得"}`);
@@ -587,7 +538,7 @@ function renderThreadsPage(){
     li.appendChild(actionBox);
 
     if(data.image){
-      const btn=document.createElement('button'); btn.textContent="🔥 画像を表示する!!"; btn.className="greenBtn"; btn.style.display="block"; btn.style.marginTop="5px";
+      const btn=document.createElement('button'); btn.textContent="画像を表示"; btn.className="greenBtn"; btn.style.display="block"; btn.style.marginTop="5px";
       btn.addEventListener('click', (e) => { e.stopPropagation(); showImagePopup(data.image); }); li.appendChild(btn);
     }
     li.addEventListener('click',()=>{ tryOpenThread(docItem.id,data); });
@@ -597,7 +548,7 @@ function renderThreadsPage(){
 
   const pagination=document.getElementById('pagination'); pagination.innerHTML="";
   if (!isAllLoaded) {
-    const btn = document.createElement("button"); btn.textContent = "🔥 さらに読み込むゥ!!"; btn.className = "pageBtn"; btn.onclick = loadAllThreads; pagination.appendChild(btn);
+    const btn = document.createElement("button"); btn.textContent = "さらに読み込む"; btn.className = "pageBtn"; btn.onclick = loadAllThreads; pagination.appendChild(btn);
   } else {
     const totalPages=Math.max(1,Math.ceil(threadsData.length/pageSize));
     for(let i=1;i<=totalPages;i++){
@@ -611,7 +562,7 @@ function renderThreadsPage(){
 let searchTimeout;
 async function listenThreads(){
   if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-  showLoading("スレッドを爆速読み込み中...");
+  showLoading("スレッドを読み込み中...");
   const searchInput = document.getElementById("threadSearchInput");
 
   const listenNormal = () => {
@@ -647,7 +598,7 @@ async function listenThreads(){
 
     const qNormal = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(pageSize));
     threadsUnsub = onSnapshot(qNormal, snap => {
-      if (!isInitialLoad) snap.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`🔥 新スレッド「${change.doc.data().title}」が爆誕したぞオラァ!!`); });
+      if (!isInitialLoad) snap.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
       isInitialLoad = false; 
       normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); 
       mergeAndRender();
@@ -704,8 +655,8 @@ async function listenThreads(){
 
 async function tryOpenThread(threadId, data) {
   if (data.password) {
-    showForm('passwordFields'); document.getElementById('popupTitle').textContent = "🔒 パスワード入れろオラァ!!";
-    document.getElementById('submitBtn').onclick = () => { if (document.getElementById('threadPasswordCheckInput').value.trim() === data.password) { closePopup(); openThread(threadId, data); } else { showAlert("パスワードが違うぞボケ!!"); } };
+    showForm('passwordFields'); document.getElementById('popupTitle').textContent = "スレッドパスワード入力";
+    document.getElementById('submitBtn').onclick = () => { if (document.getElementById('threadPasswordCheckInput').value.trim() === data.password) { closePopup(); openThread(threadId, data); } else { showAlert("パスワードが違います"); } };
   } else openThread(threadId, data);
 }
 
@@ -718,8 +669,8 @@ function updateLockUIState(isLocked) {
 
   if (isLocked) {
     quickInput.disabled = true;
-    quickInput.placeholder = "🔒 ロック中につき投稿不可能!!";
-    quickInput.style.backgroundColor = "#555";
+    quickInput.placeholder = "このスレッドはロックされているため投稿できません";
+    quickInput.style.backgroundColor = "#e0e0e0";
     
     quickSendBtn.disabled = true;
     quickSendBtn.style.backgroundColor = "#95a5a6";
@@ -736,11 +687,11 @@ function updateLockUIState(isLocked) {
     createPostBtn.disabled = true;
     createPostBtn.style.backgroundColor = "#95a5a6";
     createPostBtn.style.cursor = "not-allowed";
-    createPostBtn.textContent = "🔒 ロック中";
+    createPostBtn.textContent = "🔒ロック中";
   } else {
     quickInput.disabled = false;
-    quickInput.placeholder = "爆速メッセージを入力…";
-    quickInput.style.backgroundColor = "#222";
+    quickInput.placeholder = "メッセージを入力…";
+    quickInput.style.backgroundColor = "#fff";
 
     quickSendBtn.disabled = false;
     quickSendBtn.style.backgroundColor = "#27ae60";
@@ -757,7 +708,7 @@ function updateLockUIState(isLocked) {
     createPostBtn.disabled = false;
     createPostBtn.style.backgroundColor = "";
     createPostBtn.style.cursor = "pointer";
-    createPostBtn.textContent = "📝 カキコするゥゥ!!";
+    createPostBtn.textContent = "📝投稿";
   }
 }
 
@@ -782,7 +733,7 @@ function openThread(threadId, data){
 }
 
 async function loadPosts(threadId) {
-  showLoading("投稿を爆速読み込み中…");
+  showLoading("投稿を読み込み中…");
   const postList = document.getElementById("postList");
   postList.innerHTML = ""; knownPostIds.clear(); 
 
@@ -826,17 +777,17 @@ async function loadPosts(threadId) {
 
               const bodyHtml = data.body ? `<div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>` : "";
 
-              const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: #e74c3c; cursor: pointer; border: 2px solid #ffff00;";
+              const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: rgba(0,0,0,0.25); cursor: pointer;";
               const actionBox = `<div style="position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; align-items: center; z-index: 10;">
-                <button class="reply-btn" data-index="${data.index}" style="${replyBtnStyle} color: white; border-radius: 10px; padding: 2px 8px; font-size: 12px; font-weight: bold;" ${currentThreadLocked ? 'disabled' : ''}>→ 返信</button>
-                <button class="info-btn" data-info="【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}" style="background: #3498db; border: 2px solid #ffff00; color: white; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; padding: 0; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
+                <button class="reply-btn" data-index="${data.index}" style="${replyBtnStyle} border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px;" ${currentThreadLocked ? 'disabled' : ''}>→</button>
+                <button class="info-btn" data-info="【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
               </div>`;
 
               li.innerHTML = `
                 ${actionBox}
                 ${bodyHtml}
-                ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">🔥 画像を表示する!!</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:nowrap;"><strong style="margin-right:6px; color:#ffff00;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#ff0000;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;border:1px solid #ffff00;">👑 スレ主</span>` : ""}${iconHtml}<span style="margin-left:0; color:#fff;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span></small>
+                ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
               if (!currentThreadLocked) {
@@ -875,7 +826,7 @@ async function loadPosts(threadId) {
                 tocContainer.appendChild(btn);
               }
               if (totalPosts > 0) {
-                const latestBtn = document.createElement("button"); latestBtn.className = "pageBtn"; latestBtn.style.backgroundColor = "#e74c3c"; latestBtn.textContent = "🔥 最新の投稿";
+                const latestBtn = document.createElement("button"); latestBtn.className = "pageBtn"; latestBtn.style.backgroundColor = "#e74c3c"; latestBtn.textContent = "最新の投稿";
                 latestBtn.onclick = () => { const el = postList.children[totalPosts - 1]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
                 tocContainer.appendChild(latestBtn);
               }
@@ -918,19 +869,19 @@ document.getElementById('closeThreadBtn').onclick=()=>{
 
 let isFormSending = false;
 document.getElementById('createThreadBtn').onclick=()=>{
-  isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('threadFields'); document.getElementById('popupTitle').textContent="🔥 新規スレッド爆誕作成 卍";
+  isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('threadFields'); document.getElementById('popupTitle').textContent="新規スレッド作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
     const clientIP = await getClientIP(); let inputNickname=document.getElementById('threadMemberId').value.trim();
-    const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っているぞオラァ!!");
+    const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
     if(valid) { nickName=valid; setCookie("nickName", nickName); }
 
     const iconFile=document.getElementById('threadIconInput').files[0]; let iconId = getCookie('iconId');
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('エラーが発生しました'); } }
 
     const title=document.getElementById('threadTitleInput').value.trim(), detail=document.getElementById('threadDetailInput').value.trim();
-    if(!title) return showAlert("タイトルを入れろボケ!!");
-    if(containsNGWord(title) || containsNGWord(detail)) return showAlert("NGワードが含まれています");
+    if(!title) return showAlert("タイトルを入力してください");
+    if(containsNGWord(title) || containsNGWord(detail)) return showAlert("タイトルまたは詳細に使えない言葉が含まれています");
 
     const imageFile=document.getElementById('threadImageInput').files[0], imageBase64=imageFile?await fileToBase64(imageFile):null;
     const password=document.getElementById('threadPasswordInput').value.trim(), color=document.getElementById('threadColorInput').value;
@@ -938,22 +889,22 @@ document.getElementById('createThreadBtn').onclick=()=>{
     if(isFormSending) return; isFormSending = true; closePopup();
 
     const threadList = document.getElementById('threadList'), tempLi = document.createElement("li");
-    tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; tempLi.innerHTML = `<strong style="font-weight: 900; font-size: 1.15em; display: inline-block; padding-right: 36px; color:#ffff00;">${title} (爆誕送信中...)</strong><small>⚡ 投稿数: 1</small><small>${detail || ''}</small>`;
+    tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; tempLi.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; display: inline-block; padding-right: 36px;">${title} (送信中...)</strong><small>投稿数: 1</small><small>${detail || ''}</small>`;
     threadList.insertBefore(tempLi, threadList.firstChild);
 
     try{
       const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
-      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image:imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getBoardWriteMeta() });
+      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
-      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版を開いてください。" : "作成に失敗しました"); tempLi.remove();
+      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。" : "作成に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; tempLi.remove(); } 
   };
 };
 
 document.getElementById('createPostBtn').onclick=async()=>{
   if (currentThreadLocked) return showAlert("このスレッドはロックされているため投稿できません");
-  isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('postFields'); document.getElementById('popupTitle').textContent="📝 カキコ爆誕作成";
+  isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('postFields'); document.getElementById('popupTitle').textContent="投稿作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
     const clientIP = await getClientIP(); let inputNickname=document.getElementById('postMemberId').value.trim();
@@ -963,16 +914,16 @@ document.getElementById('createPostBtn').onclick=async()=>{
     const iconFile=document.getElementById('postIconInput').files[0]; let iconId = getCookie('iconId');
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('アイコン保存に失敗しました'); } }
 
-    const body=document.getElementById('postBodyInput').value.trim(); if(containsNGWord(body)) return showAlert("本文にNGワードが含まれています");
+    const body=document.getElementById('postBodyInput').value.trim(); if(containsNGWord(body)) return showAlert("本文に使えない言葉が含まれています");
     const imageFile=document.getElementById('postImageInput').files[0], imageBase64=imageFile?await fileToBase64(imageFile):null;
     const color=document.getElementById('postColorInput').value;
 
-    if(!body && !imageBase64) return showAlert("本文か画像を入力しろオラァ!!");
+    if(!body && !imageBase64) return showAlert("本文または画像を入力してください");
     if(isFormSending) return; isFormSending = true; closePopup(); 
     
     const postList = document.getElementById("postList"); let index = postList.children.length + 1;
     const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; 
-    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(🔥 画像爆誕送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:nowrap;"><strong style="margin-right:6px; color:#ffff00;">#${index}</strong><span style="margin-left:0; color:#fff;">${nickName} / 送信中...</span></small>`;
+    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
     postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
     try{
@@ -980,13 +931,13 @@ document.getElementById('createPostBtn').onclick=async()=>{
       await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
       await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
     }catch(e){
-      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。" : "投稿に失敗しました"); tempLi.remove();
+      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。" : "投稿に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; }
   };
 };
 
 document.getElementById('adminBtn').onclick = async () => { 
-  showForm('adminFields'); document.getElementById('popupTitle').textContent = adminLoggedIn ? "👑 神の管理者メニュー" : "👑 管理者ログイン"; document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行するオラァ!!" : "ログイン";
+  showForm('adminFields'); document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン"; document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
   const loginBox = document.getElementById('adminLoginBox'), menuBox = document.getElementById('adminMenuBox'), passInput = document.getElementById('adminPasswordInput'), threadSelect = document.getElementById('adminThreadSelect'), postSelect = document.getElementById('adminPostSelect'), roomSelect = document.getElementById('adminRoomSelect'), ipInput = document.getElementById('adminIpInput'), bannedIpSelect = document.getElementById('adminBannedIpSelect');
   async function loadAdminLists(){
     const q = query(collection(db, currentRoom), orderBy("created_at", "desc")); const snap = await getDocs(q);
@@ -995,7 +946,7 @@ document.getElementById('adminBtn').onclick = async () => {
     const roomSnap = await getDocs(collection(db, "rooms")); roomSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; roomSelect.appendChild(opt); });
     bannedIpSelect.innerHTML = "<option value=''>BAN済みIP選択</option>"; const banSnap = await getDocs(collection(db, "ipBans")); banSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; bannedIpSelect.appendChild(opt); });
   }
-  async function showAdminMenu(){ adminLoggedIn = true; if(loginBox) loginBox.style.display = 'none'; if(menuBox) menuBox.style.display = 'block'; document.getElementById('popupTitle').textContent = "👑 神の管理者メニュー"; document.getElementById('submitBtn').textContent = "実行するオラァ!!"; updateAdminBadgeStatus(); await loadAdminLists(); setupAdminSelects(); }
+  async function showAdminMenu(){ adminLoggedIn = true; if(loginBox) loginBox.style.display = 'none'; if(menuBox) menuBox.style.display = 'block'; document.getElementById('popupTitle').textContent = "管理者メニュー"; document.getElementById('submitBtn').textContent = "実行"; updateAdminBadgeStatus(); await loadAdminLists(); setupAdminSelects(); }
   function setupAdminSelects(){
     const radios = document.getElementsByName('adminAction');
     const toggle = () => { const val = document.querySelector("input[name='adminAction']:checked")?.value || "single"; threadSelect.style.display = 'block'; postSelect.style.display = val === 'post' ? 'block' : 'none'; roomSelect.style.display = 'none'; ipInput.style.display = 'none'; bannedIpSelect.style.display = 'none'; if(val === 'deleteRoom'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; roomSelect.style.display = 'block'; } else if(val === 'ipBan'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; ipInput.style.display = 'block'; } else if(val === 'ipUnban'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; bannedIpSelect.style.display = 'block'; } };
@@ -1003,24 +954,24 @@ document.getElementById('adminBtn').onclick = async () => {
     threadSelect.onchange = async () => { const tid = threadSelect.value; postSelect.innerHTML = "<option value=''>投稿選択</option>"; if(tid){ const psnap = await getDocs(collection(db, currentRoom, tid, "posts")); const docs = psnap.docs.slice().sort((a,b)=> (Number(a.data().index)||0) - (Number(b.data().index)||0)); docs.forEach(d => { const pdata = d.data(), opt = document.createElement('option'); opt.value = d.id; opt.textContent = `#${pdata.index ?? '?'} ${pdata.body ? pdata.body.slice(0, 14) : "[画像のみ]"}`; postSelect.appendChild(opt); }); } };
   }
   if(adminLoggedIn){ await showAdminMenu(); } else { if(loginBox) loginBox.style.display = 'block'; if(menuBox) menuBox.style.display = 'none'; }
-  document.getElementById('saveBadgeTextBtn').onclick = async () => { const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者"; localStorage.setItem("adminBadgeText", text); updateAdminBadgeStatus(); await saveLog("admin_change_badge_text", { badgeText: text }); showAlert("バッジ文字を保存したぞ!!"); };
-  document.getElementById('toggleBadgeBtn').onclick = async () => { const nextState = !isOfficialBadgeEnabled(); setOfficialBadgeEnabled(nextState); updateAdminBadgeStatus(); await saveLog("admin_toggle_badge", { enabled: nextState }); showAlert(nextState ? "公式バッジをONにしたぞ!!" : "公式バッジをOFFにしたぞ!!"); };
+  document.getElementById('saveBadgeTextBtn').onclick = async () => { const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者"; localStorage.setItem("adminBadgeText", text); updateAdminBadgeStatus(); await saveLog("admin_change_badge_text", { badgeText: text }); showAlert("バッジ文字を保存しました"); };
+  document.getElementById('toggleBadgeBtn').onclick = async () => { const nextState = !isOfficialBadgeEnabled(); setOfficialBadgeEnabled(nextState); updateAdminBadgeStatus(); await saveLog("admin_toggle_badge", { enabled: nextState }); showAlert(nextState ? "公式バッジをONにしました" : "公式バッジをOFFにしました"); };
   document.getElementById('submitBtn').onclick = async () => {
-    if(!adminLoggedIn){ if(passInput.value !== ADMIN_PASSWORD) return showAlert("パスワードが違うぞボケ!!"); await saveLog("admin_login_success"); return await showAdminMenu(); }
+    if(!adminLoggedIn){ if(passInput.value !== ADMIN_PASSWORD) return showAlert("パスワードが違います"); await saveLog("admin_login_success"); return await showAdminMenu(); }
     const action = document.querySelector("input[name='adminAction']:checked")?.value || "single", threadId = threadSelect.value, postId = postSelect.value, roomId = roomSelect.value;
-    showLoading("神の裁きを下し中...");
+    showLoading("処理中...");
     try {
       if (action === "single" && threadId) { await deleteDoc(doc(db, currentRoom, threadId)); await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadSelect.options[threadSelect.selectedIndex].textContent }); }
       else if (action === "post" && threadId && postId) { await deleteDoc(doc(db, currentRoom, threadId, "posts", postId)); await saveLog("admin_delete_post", { targetThreadId: threadId, targetPostId: postId }); }
-      else if (action === "lock" && threadId) { const reason = window.prompt("ロックの理由を入力しろオラァ!!"); await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "", ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" }); }
+      else if (action === "lock" && threadId) { const reason = window.prompt("ロックの理由を入力してください"); await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "", ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" }); }
       else if (action === "unlock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "", ...getBoardWriteMeta() }); await saveLog("admin_unlock_thread", { targetThreadId: threadId }); }
       else if (action === "pin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: true, ...getBoardWriteMeta() }); await saveLog("admin_pin_thread", { targetThreadId: threadId }); }
       else if (action === "unpin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: false, ...getBoardWriteMeta() }); await saveLog("admin_unpin_thread", { targetThreadId: threadId }); }
       else if (action === "deleteRoom" && roomId) { await deleteDoc(doc(db, "rooms", roomId)); const snap = await getDocs(collection(db, roomId)); for (const d of snap.docs) await deleteDoc(doc(db, roomId, d.id)); await saveLog("admin_delete_room", { targetRoomId: roomId }); if (roomId === currentRoom) switchRoom("threads"); }
-      else if (action === "ipBan") { const ip = ipInput.value.trim(); if (!ip) return showAlert("BANするIPを入れろ!!"); await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("admin_ip_ban", { targetIp: ip }); }
-      else if (action === "ipUnban") { const ip = bannedIpSelect.value; if (!ip) return showAlert("解除するIPを選べ!!"); await deleteDoc(doc(db, "ipBans", ip)); await saveLog("admin_ip_unban", { targetIp: ip }); }
+      else if (action === "ipBan") { const ip = ipInput.value.trim(); if (!ip) return showAlert("BANするIPを入力してください"); await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("admin_ip_ban", { targetIp: ip }); }
+      else if (action === "ipUnban") { const ip = bannedIpSelect.value; if (!ip) return showAlert("解除するIPを選択してください"); await deleteDoc(doc(db, "ipBans", ip)); await saveLog("admin_ip_unban", { targetIp: ip }); }
       closePopup(); hideLoading();
-    } catch (e) { showAlert("エラー発生!!"); }
+    } catch (e) { showAlert("エラー"); }
   };
 };
 document.getElementById('closePopupBtn').onclick=closePopup;
@@ -1030,8 +981,8 @@ function switchRoom(roomName){
   if(postsUnsub) postsUnsub(); threadDetailSection.style.display='none'; threadListSection.style.display='block';
   document.getElementById("roomPopup").style.display = "none"; overlay.style.display = "none";
   listenThreads();
-  const roomNames = { threads: "bord", chat: "雑談", apple: "アップル製品", question: "質問" };
-  document.getElementById("currentRoomLabel").textContent = "💥 現在の戦場：" + (roomNames[roomName] || roomName) + " 💥";
+  const roomNames = { threads: "通常ボード", chat: "雑談", apple: "アップル製品", question: "質問" };
+  document.getElementById("currentRoomLabel").textContent = "現在の部屋：" + (roomNames[roomName] || roomName);
 }
 document.getElementById("roomSelectBtn").onclick = async () => {
   document.getElementById("roomPopup").style.display = "block"; overlay.style.display = "block";
@@ -1041,7 +992,7 @@ document.getElementById("roomSelectBtn").onclick = async () => {
 document.querySelectorAll(".roomBtn").forEach(btn=>{ btn.onclick = () => switchRoom(btn.dataset.room); });
 document.getElementById("roomSelectDropdown").onchange = e=>{ if(e.target.value) switchRoom(e.target.value); };
 document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
-  const name=document.getElementById("newRoomInput").value.trim(); if(!name) return alert("部屋名を入力しろオラァ!!");
+  const name=document.getElementById("newRoomInput").value.trim(); if(!name) return alert("部屋名を入力してください");
   await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("create_room", { roomName: name }); switchRoom(name);
 };
 document.getElementById("closeRoomPopup",).onclick = ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; };
@@ -1067,7 +1018,7 @@ async function openThreadFromURL() {
       if (threadDoc.exists()) {
         openThread(threadId, threadDoc.data());
       } else {
-        showAlert("スレッドが存在しないか消されてるぞ!!");
+        showAlert("指定されたスレッドは削除されているか、存在しません。");
         history.replaceState({}, "", `${location.pathname}?room=threads`);
         switchRoom("threads");
       }
@@ -1082,11 +1033,11 @@ async function openThreadFromURL() {
 openThreadFromURL();
 
 function loadAllThreads(){
-  if (isAllLoaded) return; showLoading("すべてのスレッドを爆速読み込み中...");
+  if (isAllLoaded) return; showLoading("すべてのスレッドを読み込み中...");
   if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
   let isInitialLoadAll = true; const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
   threadsUnsub = onSnapshot(q, snapshot => {
-    if (!isInitialLoadAll) snapshot.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`🔥 新スレッド「${change.doc.data().title}」が爆誕したぞオラァ!!`); });
+    if (!isInitialLoadAll) snapshot.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
     isInitialLoadAll = false; 
     
     const allDocs = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() }));
@@ -1122,9 +1073,9 @@ onSnapshot(collection(db, "online"), snap => {
     if (now - ts < 45000) activeNames.push(data.name || "名称未設定"); else deleteDoc(doc(db, "online", d.id));
   });
   const displayBtn = document.getElementById("onlineCount");
-  if (displayBtn) { const uniqueUsers = [...new Set(activeNames)]; displayBtn.textContent = `👁️ 同接人数: ${uniqueUsers.length}人大暴れ中 👁️`; window.currentOnlineUsers = uniqueUsers; }
+  if (displayBtn) { const uniqueUsers = [...new Set(activeNames)]; displayBtn.textContent = `同接人数: ${uniqueUsers.length}人`; window.currentOnlineUsers = uniqueUsers; }
 });
-document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーいねぇぞ!!"); alert("現在大暴れ中のユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
+document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーなし"); alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
 
 const quickMenuBtn = document.getElementById("quickMenuBtn"), quickMenuContent = document.getElementById("quickMenuContent"), quickPostInput = document.getElementById("quickPostInput");
 quickMenuBtn.onclick = (e) => { 
@@ -1164,7 +1115,7 @@ async function sendStamp(stampText) {
   const body = `[STAMP:${stampText}]`;
   
   const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span><small style="display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:nowrap;"><strong style="margin-right:6px; color:#ffff00;">#${index}</strong><span style="margin-left:0; color:#fff;">${nickName} / 送信中...</span></small>`;
+  tempLi.innerHTML = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
@@ -1180,12 +1131,12 @@ document.getElementById("quickSendBtn").onclick = async () => {
   if (currentThreadLocked) return;
   if (isQuickSending) return; if(await stopIfBanned()) return;
   const clientIP = await getClientIP(), input = document.getElementById("quickPostInput"), text = input.value.trim();
-  if (!text) return; if (containsNGWord(text)) return showAlert("本文にNGワードが含まれています");
+  if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
   
   isQuickSending = true; input.value = "";
   const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
   const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:nowrap;"><strong style="margin-right:6px; color:#ffff00;">#${index}</strong><span style="margin-left:0; color:#fff;">${nickName} / 送信中...</span></small>`;
+  tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
