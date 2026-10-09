@@ -1,3 +1,4 @@
+
 <html lang="ja">
 <head>
 <link rel="manifest" href="manifest.json">
@@ -50,6 +51,7 @@ li small span { white-space: nowrap; }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 10px; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 #loadingOkBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
+#forceReloadBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#e74c3c; color:#fff; cursor:pointer; }
 label { display:block; text-align:left; margin-top:8px; font-size:14px; color:#333; }
 input, select, textarea { width:100%; box-sizing: border-box; padding:8px; margin-top:4px; border-radius:4px; border:1px solid #ccc; font-size:14px; color: #333; background-color: #fff; font-family: inherit; }
 input:not([type="file"]), select { height:36px; }
@@ -250,7 +252,10 @@ textarea { min-height:60px; resize: vertical; }
 </div>
 
 <div id="loadingPopup">
-  <div class="spinner"></div><div id="loadingText">読み込み中...</div><button id="loadingOkBtn">OK</button>
+  <div class="spinner"></div>
+  <div id="loadingText">読み込み中...</div>
+  <button id="loadingOkBtn">OK</button>
+  <button id="forceReloadBtn">データを更新</button>
 </div>
 
 <div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
@@ -264,7 +269,7 @@ import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
   getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
   serverTimestamp, setDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
-  CACHE_SIZE_UNLIMITED
+  CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -411,7 +416,48 @@ function formatRelativeTime(ts){
 function setSectionsHeight(){ const h = window.innerHeight-180; threadListSection.style.height = h+'px'; threadDetailSection.style.height = h+'px'; }
 window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
-function hideLoading(){ document.getElementById('loadingPopup').style.display='none'; }
+let loadingTimer = null;
+
+function showLoading(msg="読み込み中..."){
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingOkBtn').style.display = 'none';
+  document.getElementById('forceReloadBtn').style.display = 'none';
+  document.getElementById('loadingPopup').style.display = 'block';
+
+  if (loadingTimer) clearTimeout(loadingTimer);
+  // 5秒（5000ms）経過しても読み込みが終わらない場合に「データを更新」ボタンを表示
+  loadingTimer = setTimeout(() => {
+    const popup = document.getElementById('loadingPopup');
+    if (popup.style.display === 'block') {
+      document.getElementById('forceReloadBtn').style.display = 'inline-block';
+    }
+  }, 5000);
+}
+
+function hideLoading(){
+  if (loadingTimer) {
+    clearTimeout(loadingTimer);
+    loadingTimer = null;
+  }
+  document.getElementById('loadingPopup').style.display = 'none';
+  document.getElementById('forceReloadBtn').style.display = 'none';
+}
+
+document.getElementById('forceReloadBtn').onclick = async () => {
+  showLoading("キャッシュをクリアして再読み込み中...");
+  try {
+    // Firestoreのローカルキャッシュを削除
+    await clearIndexedDbPersistence(db);
+  } catch (e) {
+    console.error("キャッシュクリアエラー:", e);
+  }
+  // メモリ上のスレッドおよびレス情報をリセット
+  threadsData = [];
+  knownPostIds.clear();
+  // ページを再読み込み
+  window.location.reload();
+};
+
 function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
 document.getElementById('loadingOkBtn').onclick = hideLoading;
 
@@ -420,7 +466,6 @@ function showTopNotification(text) {
   setTimeout(() => { notif.style.top = "20px"; }, 10);
   setTimeout(() => { notif.style.top = "-60px"; setTimeout(() => { notif.style.display = "none"; }, 400); }, 3000);
 }
-function showLoading(msg="読み込み中..."){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='none'; document.getElementById('loadingPopup').style.display='block'; }
 function clearFormFields(fieldId){
   if(fieldId==="threadFields"){ document.getElementById('threadMemberId').value=nickName; ['threadIconInput','threadTitleInput','threadDetailInput','threadImageInput','threadPasswordInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('threadColorInput').selectedIndex=0; }
   else if(fieldId==="postFields"){ document.getElementById('postMemberId').value=nickName; ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; }
@@ -730,7 +775,6 @@ async function loadPosts(threadId) {
                 displayBody = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span>`;
               }
 
-              // 【修正部分】本文が存在する場合のみdiv要素を生成する（画像のみレスでの余分な空行を削除）
               const bodyHtml = data.body ? `<div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>` : "";
 
               const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: rgba(0,0,0,0.25); cursor: pointer;";
@@ -887,7 +931,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
       await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
       await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
     }catch(e){
-      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のBordを開いてください。" : "投稿に失敗しました"); tempLi.remove();
+      showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため投稿できません。最新版のしんぞボードを開いてください。" : "投稿に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; }
   };
 };
