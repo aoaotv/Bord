@@ -1,4 +1,3 @@
-
 <html lang="ja">
 
 <head>
@@ -6,10 +5,9 @@
 <meta charset="UTF-8">
   <title>Bord | 完全匿名の掲示板ツール</title>
 <meta name="description" content="完全匿名の掲示板ツール Bord">
-<meta name="keywords" content="Bord,sinzobord,Sinzobord,bord,掲示板,sinzo bord,しんぞ教,シンゾボ"> <!-- Google検索用キーワードを追加 -->
+<meta name="keywords" content="Bord,sinzobord,Sinzobord,bord,掲示板,sinzo bord,しんぞ教,シンゾボ">
 <meta name="robots" content="index, follow">
 <meta name="apple-mobile-web-app-title" content="Bord">
-
 
 <link rel="canonical" href="https://sinzo.site/">
 
@@ -106,7 +104,7 @@ textarea { min-height:60px; resize: vertical; }
   </h1>
 </a>
 
-<button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:150px; z-index:1500;">
+<button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:130px; z-index:1500;">
   同接人数: 0人
 </button>
 
@@ -168,6 +166,8 @@ textarea { min-height:60px; resize: vertical; }
 </div>
 
 <div id="overlay"></div>
+
+<!-- 部屋選択ポップアップの中にsinzer認証ボタンを隠しました -->
 <div id="roomPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:16px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,.5); z-index:2600; width:280px; color:#333;">
   <h3>部屋を選択</h3>
   <button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">bord</button>
@@ -179,7 +179,10 @@ textarea { min-height:60px; resize: vertical; }
   <hr>
   <input id="newRoomInput" placeholder="新しい部屋名" style="width:100%">
   <button id="createRoomConfirmBtn" class="greenBtn">入室</button>
-  <button id="closeRoomPopup" class="greenBtn">閉じる</button>
+  <hr>
+  <!-- 部屋選択メニュー内に配置したsinzer認証ボタン -->
+  <button id="roomSinzerVerifyBtn" class="greenBtn" style="width:100%; --btn-color:#F58220;">sinzer認証</button>
+  <button id="closeRoomPopup" class="greenBtn" style="margin-top:6px;">閉じる</button>
 </div>
 
 <div id="popupForm">
@@ -216,6 +219,10 @@ textarea { min-height:60px; resize: vertical; }
       <option value="#3498db">青</option><option value="#2ecc71">緑</option><option value="#e74c3c">赤</option><option value="#9b59b6">紫</option><option value="#f39c12">オレンジ</option><option value="#1abc9c">エメラルド</option><option value="#34495e">ダーク</option><option value="#d35400">茶</option><option value="#7f8c8d">グレー</option><option value="#16a085">深緑</option>
     </select>
   </div>
+  <div id="sinzerVerifyFields" style="display:none;">
+    <label>規約テストの認証コードを入力</label>
+    <input id="sinzerCodeInput" placeholder="sinzer-xxxxxx">
+  </div>
   <div id="adminFields" style="display:none;">
     <div id="adminLoginBox">
       <label>管理者パスワード</label><input id="adminPasswordInput" type="password" placeholder="パスワード">
@@ -237,7 +244,7 @@ textarea { min-height:60px; resize: vertical; }
           <label><input type="radio" name="adminAction" value="unlock"> スレッドロック解除</label>
           <label><input type="radio" name="adminAction" value="pin"> スレッドピン留め</label>
           <label><input type="radio" name="adminAction" value="unpin"> スレッドピン解除</label>
-          <label><input type="radio" name="adminAction" value="deleteRoom"> 部屋削除</label>
+          <label><input type="radio" name="adminAction" value="deleteRoom"> 部屋選択削除</label>
           <label><input type="radio" name="adminAction" value="ipBan"> IP BAN</label>
           <label><input type="radio" name="adminAction" value="ipUnban"> IP BAN解除</label>
           <select id="adminThreadSelect"></select><select id="adminPostSelect"></select><select id="adminRoomSelect" style="display:none;"></select>
@@ -292,6 +299,17 @@ const db = initializeFirestore(app, {
     cacheSizeBytes: CACHE_SIZE_UNLIMITED 
   })
 });
+
+// sinzer認証情報取得・表示関数
+function getSinzerBadgeData() {
+  const isSinzer = localStorage.getItem("sinzerVerified") === "true";
+  return { sinzerVerified: isSinzer };
+}
+
+function renderSinzerBadge(data) {
+  if (!data || !data.sinzerVerified) return "";
+  return `<span style="background:#F58220;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-left:4px;margin-right:4px;white-space:nowrap;">S</span>`;
+}
 
 async function saveLog(action, detail = {}) {
   try {
@@ -428,7 +446,6 @@ function showLoading(msg="読み込み中..."){
   document.getElementById('loadingPopup').style.display = 'block';
 
   if (loadingTimer) clearTimeout(loadingTimer);
-  // 5秒（5000ms）経過しても読み込みが終わらない場合に「データを更新」ボタンを表示
   loadingTimer = setTimeout(() => {
     const popup = document.getElementById('loadingPopup');
     if (popup.style.display === 'block') {
@@ -449,15 +466,12 @@ function hideLoading(){
 document.getElementById('forceReloadBtn').onclick = async () => {
   showLoading("キャッシュをクリアして再読み込み中...");
   try {
-    // Firestoreのローカルキャッシュを削除
     await clearIndexedDbPersistence(db);
   } catch (e) {
     console.error("キャッシュクリアエラー:", e);
   }
-  // メモリ上のスレッドおよびレス情報をリセット
   threadsData = [];
   knownPostIds.clear();
-  // ページを再読み込み
   window.location.reload();
 };
 
@@ -474,14 +488,48 @@ function clearFormFields(fieldId){
   else if(fieldId==="postFields"){ document.getElementById('postMemberId').value=nickName; ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; }
   else if(fieldId==="adminFields"){ const p = document.getElementById('adminPasswordInput'); if(p) p.value=""; updateAdminBadgeStatus(); }
   else if(fieldId==="passwordFields"){ document.getElementById('threadPasswordCheckInput').value=""; }
+  else if(fieldId==="sinzerVerifyFields"){ document.getElementById('sinzerCodeInput').value=""; }
 }
 function showForm(fieldId){ 
-  ['threadFields','postFields','adminFields','passwordFields'].forEach(id=>{ document.getElementById(id).style.display='none'; }); 
+  ['threadFields','postFields','adminFields','passwordFields','sinzerVerifyFields'].forEach(id=>{ document.getElementById(id).style.display='none'; }); 
   clearFormFields(fieldId); document.getElementById(fieldId).style.display='block'; 
   popupForm.style.width = fieldId === 'adminFields' ? 'min(760px, 94vw)' : '280px';
   popupForm.style.display='block'; overlay.style.display='block'; 
 }
 function closePopup(){ popupForm.style.display='none'; overlay.style.display='none'; document.getElementById('submitBtn').textContent='送信'; }
+
+// 部屋選択メニュー内のsinzer認証ボタンをクリックした時の処理
+document.getElementById('roomSinzerVerifyBtn').onclick = () => {
+  // 部屋選択ポップアップを閉じる
+  document.getElementById("roomPopup").style.display = "none";
+  
+  showForm('sinzerVerifyFields');
+  document.getElementById('popupTitle').textContent = "sinzer認証";
+  document.getElementById('submitBtn').textContent = "認証する";
+  
+  document.getElementById('submitBtn').onclick = async () => {
+    const inputCode = document.getElementById('sinzerCodeInput').value.trim();
+    if (!inputCode) return showAlert("認証コードを入力してください");
+    
+    showLoading("認証を確認中...");
+    try {
+      const q = query(collection(db, "sinzerAuth"), where("code", "==", inputCode));
+      const snap = await getDocs(q);
+      
+      hideLoading();
+      if (!snap.empty) {
+        localStorage.setItem("sinzerVerified", "true");
+        showAlert("認証に成功しました！名前の右に「sinzer」が表示されます。");
+        closePopup();
+      } else {
+        showAlert("無効な認証コードです。テストをクリアして正しいコードを取得してください。");
+      }
+    } catch (e) {
+      hideLoading();
+      showAlert("認証エラーが発生しました。");
+    }
+  };
+};
 
 function validateNickname(input){ if(!input) return generateRandomAnonymousName(); if(input==="しんぞ2059") return "しんぞ公式"; if(input.includes("しんぞ公式")) return null; return input; }
 
@@ -790,7 +838,7 @@ async function loadPosts(threadId) {
                 ${actionBox}
                 ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"} / ${formatRelativeTime(data.created_at)}</span></small>
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"}</span>${renderSinzerBadge(data)}<span> / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
               if (!currentThreadLocked) {
@@ -896,8 +944,8 @@ document.getElementById('createThreadBtn').onclick=()=>{
     threadList.insertBefore(tempLi, threadList.firstChild);
 
     try{
-      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
-      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getBoardWriteMeta() });
+      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getSinzerBadgeData(), ...getBoardWriteMeta() });
+      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
       showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。" : "作成に失敗しました"); tempLi.remove();
@@ -911,7 +959,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
     const clientIP = await getClientIP(); let inputNickname=document.getElementById('postMemberId').value.trim();
-    const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が含まれています");
+    const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
     if(valid) { nickName=valid; setCookie("nickName", nickName); }
 
     const iconFile=document.getElementById('postIconInput').files[0]; let iconId = getCookie('iconId');
@@ -930,7 +978,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
     postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
     try{
-      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
       await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
       await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
     }catch(e){
@@ -998,7 +1046,7 @@ document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
   const name=document.getElementById("newRoomInput").value.trim(); if(!name) return alert("部屋名を入力してください");
   await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("create_room", { roomName: name }); switchRoom(name);
 };
-document.getElementById("closeRoomPopup",).onclick = ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; };
+document.getElementById("closeRoomPopup").onclick = ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; };
 
 setSectionsHeight(); listenThreads(); stopIfBanned();
 async function openThreadFromURL() {
@@ -1122,7 +1170,7 @@ async function sendStamp(stampText) {
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
-    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: body, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: body, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
     await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
     await saveLog("quick_send_stamp", { threadId: currentThreadId, postId: newPost.id, index: index, stamp: stampText });
   } catch (e) {
@@ -1143,7 +1191,7 @@ document.getElementById("quickSendBtn").onclick = async () => {
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
-    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: text, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getBoardWriteMeta() });
+    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: text, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
     await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
     await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: text });
   } catch (e) {
