@@ -694,7 +694,7 @@ document.getElementById("accountRegisterBtn").onclick = async () => {
     setCookie("nickName", name);
     hideLoading();
     updateAccountStatusUI();
-    alert("アカウントを作成し、ログインしました！");
+    alert("アカウントを作成し、ログインしました。");
     document.getElementById("accountPopup").style.display = "none";
     document.getElementById("overlay").style.display = "none";
   } catch(e) {
@@ -737,7 +737,7 @@ document.getElementById("accountLoginBtn").onclick = async () => {
 
     updateAccountStatusUI();
     renderStampMenu();
-    alert("ログインしました！コインや購入データが同期されました。");
+    alert("ログインしました。");
     document.getElementById("accountPopup").style.display = "none";
     document.getElementById("overlay").style.display = "none";
   } catch(e) {
@@ -763,7 +763,7 @@ document.getElementById("accountLogoutBtn").onclick = () => {
 
   renderStampMenu();
   updateAccountStatusUI();
-  alert("ログアウトしました。所持コインおよび購入データがリセットされました。");
+  alert("ログアウトしました。");
   document.getElementById("accountPopup").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 };
@@ -895,14 +895,14 @@ document.getElementById("buyStockBtn").onclick = async () => {
   const totalCost = currentStockPrice * qty;
 
   if (myCoins < totalCost) {
-    return alert(`コインが足りません！ (必要: ${totalCost} コイン)`);
+    return alert(`コインが足りません(必要: ${totalCost} コイン)`);
   }
 
   const newCoins = myCoins - totalCost;
   const newShares = getMyShares() + qty;
   setMyCoins(newCoins);
   setMyShares(newShares);
-  alert(`株を ${qty} 株購入しました！`);
+  alert(`株を ${qty} 株購入しました。`);
 
   try {
     const accountRef = doc(db, "accounts", currentAccount);
@@ -919,7 +919,7 @@ document.getElementById("sellStockBtn").onclick = async () => {
 
   const myShares = getMyShares();
   if (myShares < qty) {
-    return alert(`保有している株が足りません！ (現在保有: ${myShares} 株)`);
+    return alert(`保有している株が足りません。 (現在保有: ${myShares} 株)`);
   }
 
   const myCoins = getMyCoins();
@@ -929,7 +929,7 @@ document.getElementById("sellStockBtn").onclick = async () => {
   const newShares = myShares - qty;
   setMyCoins(newCoins);
   setMyShares(newShares);
-  alert(`株を ${qty} 株売却しました！`);
+  alert(`株を ${qty} 株売却しました。`);
 
   try {
     const accountRef = doc(db, "accounts", currentAccount);
@@ -1076,7 +1076,7 @@ function renderTagShop() {
       btn.textContent = "購入する";
       btn.onclick = () => {
         if (currentCoins < item.price) {
-          return alert("コインが足りません！");
+          return alert("コインが足りません。");
         }
         setMyCoins(currentCoins - item.price);
         savePurchasedTag(item.value);
@@ -1093,7 +1093,7 @@ function renderTagShop() {
 
         document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
         renderTagShop();
-        alert(`${tagName} タグを購入・適用しました！すぐに反映されます。`);
+        alert(`${tagName} タグを購入・適用しました。`);
       };
     } else if (isCurrentActive) {
       btn.textContent = "着用中";
@@ -1113,7 +1113,7 @@ function renderTagShop() {
           customTagColor: tagColor
         });
         renderTagShop();
-        alert(`${tagName} タグを適用しました！`);
+        alert(`${tagName} タグを適用しました。`);
       };
     }
 
@@ -1156,14 +1156,14 @@ function renderEmojiShop() {
       btn.textContent = "購入する";
       btn.onclick = () => {
         if (currentCoins < item.price) {
-          return alert("コインが足りません！");
+          return alert("コインが足りません。");
         }
         setMyCoins(currentCoins - item.price);
         savePurchasedEmoji(item.emoji);
         document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
         renderEmojiShop();
         renderStampMenu();
-        alert(`${item.emoji} (${item.name}) を購入しました！直ちに使用可能です。`);
+        alert(`${item.emoji} (${item.name}) を購入しました。`);
       };
     }
     
@@ -1198,7 +1198,7 @@ document.getElementById("fullStoreRedeemBtn").onclick = async () => {
     
     document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
     document.getElementById("fullStoreCoinCodeInput").value = "";
-    alert(`${addAmount} コインを即時チャージしました！すぐに使用可能です。`);
+    alert(`${addAmount} コインをチャージしました。`);
   } catch(e) {
     hideLoading();
     alert("エラーが発生しました。");
@@ -2044,7 +2044,7 @@ document.getElementById('adminBtn').onclick = async () => {
         if (!cCode) return showAlert("発行するコインコードを入力してください");
         await setDoc(doc(db, "coinCodes", cCode), { code: cCode, coins: cAmount, used: false, created_at: Timestamp.now(), ...getBoardWriteMeta() });
         await saveLog("admin_create_coin_code", { code: cCode, amount: cAmount });
-        showAlert(`コインコード「${cCode} (${cAmount}コイン)」を発行しました！`);
+        showAlert(`コインコード「${cCode} (${cAmount}コイン)」を発行しました。`);
       }
       closePopup(); hideLoading();
     } catch (e) { hideLoading(); showAlert("エラーが発生しました"); }
