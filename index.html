@@ -1014,7 +1014,7 @@ document.getElementById('adminBtn').onclick = async () => {
     try {
       if (action === "single" && threadId) { await deleteDoc(doc(db, currentRoom, threadId)); await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadSelect.options[threadSelect.selectedIndex].textContent }); }
       else if (action === "post" && threadId && postId) { await deleteDoc(doc(db, currentRoom, threadId, "posts", postId)); await saveLog("admin_delete_post", { targetThreadId: threadId, targetPostId: postId }); }
-      else if (action === "lock" && threadId) { const reason = window.prompt("ロックの理由を入力してください"); await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: reason || "", ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: reason || "" }); }
+      else if (action === "lock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: "", ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: "" }); }
       else if (action === "unlock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "", ...getBoardWriteMeta() }); await saveLog("admin_unlock_thread", { targetThreadId: threadId }); }
       else if (action === "pin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: true, ...getBoardWriteMeta() }); await saveLog("admin_pin_thread", { targetThreadId: threadId }); }
       else if (action === "unpin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: false, ...getBoardWriteMeta() }); await saveLog("admin_unpin_thread", { targetThreadId: threadId }); }
