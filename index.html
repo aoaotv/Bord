@@ -17,7 +17,6 @@
 <meta property="og:description" content="完全匿名の掲示板ツール Bord">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sinzo.site/">
-<link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 .blueBtn { background-color: #3498db; color: #ffffff; }
@@ -41,8 +40,10 @@ button:active { transform: scale(0.95); }
 li small span { white-space: nowrap; }
 .redBtn { background-color: #c0392b; color: white; }
 
-#threadListSection { overflow-y: auto; padding: 10px; padding-bottom: 120px; }
+#threadListSection, #storeSection { overflow-y: auto; padding: 10px; padding-bottom: 120px; }
 #threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; padding-bottom: 120px; }
+#storeSection { display: none; text-align: left; }
+
 #popupForm {
   display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: white; padding: 12px 16px; border-radius: 24px;
@@ -62,9 +63,6 @@ input[type="file"] { border: none; background-color: transparent; padding: 6px 0
 input[type="file"]::file-selector-button, input[type="file"]::-webkit-file-upload-button { background-color: #fff; color: #333; border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
 textarea { min-height:60px; resize: vertical; }
 
-#topRightButtons { position: fixed; top: 10px; right: 10px; z-index: 1500; display: flex; gap: 8px; align-items: center; }
-#topRightButtons button { height: 40px; padding: 10px 20px; font-size: 16px; font-weight: 600; border-radius: 20px; }
-#roomSelectArea { position: fixed; top: 10px; right: 10px; z-index: 1500; text-align: right; }
 #currentRoomLabel { margin-top: 4px; font-size: 12px; font-weight: 500; color: #34495e; opacity: 0.9; }
 .pageBtn { background-color:#2980b9; margin: 2px; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;}
 .pageBtn:disabled { background-color:#95a5a6; cursor:default; }
@@ -72,8 +70,6 @@ textarea { min-height:60px; resize: vertical; }
 #threadHeader small { color:#555; display:block; margin-top:2px; }
 .nicknameWithIcon img { width:48px; height:48px; vertical-align:middle; margin-right:4px; border-radius:0; }
 #popupForm h3 { margin-top: 4px; margin-bottom: 8px; font-size: 18px; color: #333; }
-
-#sortSelect { width: 220px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; margin: 8px auto; display: block; background-color:#fff; color:#333; }
 
 #lineInputBar { position: fixed; bottom: 0; left: 0; width: 100%; height: 56px; background: #f5f5f5; padding: 8px; display: flex; gap: 6px; align-items: center; box-shadow: 0 -2px 6px rgba(0,0,0,0.15); z-index: 1200; box-sizing: border-box; }
 #lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
@@ -95,6 +91,7 @@ textarea { min-height:60px; resize: vertical; }
 @media (max-width: 620px) { #popupForm { width: 94vw; } .adminTwoColumns { grid-template-columns: 1fr; } }
 
 #topNotification { display: none; position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: #27ae60; color: white; padding: 12px 24px; border-radius: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 4000; font-size: 14px; font-weight: bold; transition: top 0.4s ease; white-space: nowrap; pointer-events: none; }
+.purchased-badge { background: #27ae60; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -106,16 +103,29 @@ textarea { min-height:60px; resize: vertical; }
   </h1>
 </a>
 
-<button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:130px; z-index:1500;">
-  同接人数: 0人
+<!-- 右上のボタン配置（重ならないようピクセル間隔を確保） -->
+<button id="adminBtn" class="redBtn" style="position: fixed; top:10px; left:10px; z-index:1500; font-size: 12px; padding: 8px 10px;">管理者操作</button>
+
+<button id="onlineCount" class="blueBtn" style="position: fixed; top:10px; right:155px; z-index:1500; font-size: 12px; padding: 8px 10px;">
+  同接: 0人
 </button>
 
-<button id="adminBtn" class="redBtn" style="position: fixed; top:10px; left:10px;">管理者操作</button>
-<button id="roomSelectBtn" class="greenBtn" style="position: fixed; top:10px; right:10px; z-index:1500; --btn-color:#34495e">
-  🚪部屋選択
+<button id="coinBtn" class="blueBtn" style="position: fixed; top:10px; right:75px; z-index:1500; background-color:#e67e22; display:none; font-size: 12px; padding: 8px 10px;">
+  🪙 0
 </button>
+
+<div style="position: fixed; top: 10px; right: 10px; z-index: 1500;">
+  <button id="headerMenuBtn" class="blueBtn" style="background-color: #34495e; padding: 8px 10px; font-size: 12px;">…</button>
+  <div id="headerMenuContent" style="display:none; position:absolute; right:0; top:40px; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.2); width:190px; text-align:left; overflow:hidden;">
+    <div id="menuAccountBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">👤 アカウント管理</div>
+    <div id="menuCoinBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">🪙 ストア</div>
+    <div id="menuRoomBtn" style="padding:12px; cursor:pointer; color:#333; font-size:13px;">🚪 部屋選択</div>
+  </div>
+</div>
+
 <div id="currentRoomLabel">現在の部屋：bord</div>
 
+<!-- スレッド一覧画面 -->
 <div id="threadListSection">
   <div style="padding: 10px; text-align: center;">
     <input type="text" id="threadSearchInput" placeholder="スレッド名を検索..." style="width: 85%; padding: 12px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
@@ -125,6 +135,7 @@ textarea { min-height:60px; resize: vertical; }
   <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📄新規スレッド作成</button>
 </div>
 
+<!-- スレッド詳細・投稿画面 -->
 <div id="threadDetailSection">
   <div id="threadHeader">
     <h3 id="threadTitle"></h3>
@@ -148,7 +159,7 @@ textarea { min-height:60px; resize: vertical; }
     
     <div id="stampMenuWrapper" style="position: relative;">
       <button id="stampMenuBtn" style="background: #f1c40f; color: white; width: 40px; padding: 0; border-radius: 20px;">😀</button>
-      <div id="stampMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:180px; padding: 10px; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+      <div id="stampMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:200px; max-height:220px; overflow-y:auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
         <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😀</div>
         <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😊</div>
         <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😅</div>
@@ -167,9 +178,41 @@ textarea { min-height:60px; resize: vertical; }
   <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px; z-index: 1100;">戻る</button>
 </div>
 
+<!-- ストア専用全画面表示セクション -->
+<div id="storeSection">
+  <div style="max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: left;">
+    <h3 style="margin-top:0; text-align:center;">🪙 ストア & コイン</h3>
+    <div style="background:#f7f9fc; padding:12px; border-radius:8px; margin-bottom:15px; text-align:center;">
+      <strong>所持コイン: <span id="fullStoreCoinCount">0</span>枚</strong>
+    </div>
+    
+    <div style="margin-bottom:15px;">
+      <label><strong>1. コインコード入力（チャージ）</strong></label>
+      <input id="fullStoreCoinCodeInput" placeholder="例: COIN-ABC123">
+      <button id="fullStoreRedeemBtn" class="greenBtn" style="width:100%; margin-top:6px;">コードを適用する</button>
+    </div>
+    
+    <hr>
+    
+    <div style="margin-bottom:15px;">
+      <label><strong>2. 名前右のタグ購入（個別料金）</strong></label>
+      <div id="fullStoreTagShopList" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+    </div>
+
+    <hr>
+
+    <div style="margin-bottom:15px;">
+      <label><strong>3. 絵文字の購入</strong></label>
+      <div id="fullStoreEmojiShopList" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
+    </div>
+
+    <button id="closeFullStoreBtn" class="greenBtn" style="width:100%; margin-top:10px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
 <div id="overlay"></div>
 
-<!-- 部屋選択ポップアップの中にsinzer認証ボタンを隠しました -->
+<!-- 部屋選択ポップアップ -->
 <div id="roomPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:16px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,.5); z-index:2600; width:280px; color:#333;">
   <h3>部屋を選択</h3>
   <button class="greenBtn roomBtn" data-room="threads" style="--btn-color:#3498db;">bord</button>
@@ -182,16 +225,38 @@ textarea { min-height:60px; resize: vertical; }
   <input id="newRoomInput" placeholder="新しい部屋名" style="width:100%">
   <button id="createRoomConfirmBtn" class="greenBtn">入室</button>
   <hr>
-  <!-- 部屋選択メニュー内に配置したsinzer認証ボタン -->
-  <button id="roomSinzerVerifyBtn" class="greenBtn" style="width:100%; --btn-color:#F58220;">sinzer認証</button>
   <button id="closeRoomPopup" class="greenBtn" style="margin-top:6px;">閉じる</button>
+</div>
+
+<!-- アカウントログイン・作成ポップアップ（パスワード2回入力対応） -->
+<div id="accountPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:16px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,.5); z-index:2600; width:300px; color:#333; text-align:left;">
+  <h3 style="margin-top:0; text-align:center;">👤 アカウント管理</h3>
+  <div style="background:#f7f9fc; padding:8px; border-radius:6px; margin-bottom:10px; font-size:13px; text-align:center;">
+    現在のログイン状態: <strong id="currentAccountStatus">未ログイン（匿名）</strong>
+  </div>
+  <div id="accountLoginForm">
+    <label>ユーザー名</label>
+    <input id="accountNameInput" placeholder="ユーザー名">
+    <label>パスワード</label>
+    <input id="accountPasswordInput" type="password" placeholder="パスワード">
+    <div id="accountRegisterExtra" style="display:none;">
+      <label>パスワード（確認用）</label>
+      <input id="accountPasswordConfirmInput" type="password" placeholder="もう一度パスワードを入力">
+    </div>
+    <div style="display:flex; gap:6px; margin-top:10px;">
+      <button id="accountLoginBtn" class="greenBtn" style="flex:1;">ログイン</button>
+      <button id="accountRegisterBtn" class="greenBtn" style="flex:1; --btn-color:#2980b9;">新規作成</button>
+    </div>
+  </div>
+  <button id="accountLogoutBtn" class="redBtn" style="width:100%; margin-top:10px; display:none;">ログアウト</button>
+  <button id="closeAccountPopup" class="greenBtn" style="width:100%; margin-top:6px; background-color:#7f8c8d;">閉じる</button>
 </div>
 
 <div id="popupForm">
   <h3 id="popupTitle">フォーム</h3>
   <div id="threadFields">
-    <label>ニックネーム</label>
-    <input id="threadMemberId" placeholder="ニックネーム">
+    <label>ニックネーム（アカウント固定）</label>
+    <input id="threadMemberId" placeholder="ニックネ2ーム">
     <label>アイコン</label>
     <input id="threadIconInput" type="file" accept="image/*">
     <label>タイトル</label>
@@ -208,7 +273,7 @@ textarea { min-height:60px; resize: vertical; }
     </select>
   </div>
   <div id="postFields" style="display:none;">
-    <label>ニックネーム</label>
+    <label>ニックネーム（アカウント固定）</label>
     <input id="postMemberId" placeholder="ニックネーム">
     <label>アイコン</label>
     <input id="postIconInput" type="file" accept="image/*">
@@ -220,10 +285,6 @@ textarea { min-height:60px; resize: vertical; }
     <select id="postColorInput">
       <option value="#3498db">青</option><option value="#2ecc71">緑</option><option value="#e74c3c">赤</option><option value="#9b59b6">紫</option><option value="#f39c12">オレンジ</option><option value="#1abc9c">エメラルド</option><option value="#34495e">ダーク</option><option value="#d35400">茶</option><option value="#7f8c8d">グレー</option><option value="#16a085">深緑</option>
     </select>
-  </div>
-  <div id="sinzerVerifyFields" style="display:none;">
-    <label>規約テストの認証コードを入力</label>
-    <input id="sinzerCodeInput" placeholder="sinzer-xxxxxx">
   </div>
   <div id="adminFields" style="display:none;">
     <div id="adminLoginBox">
@@ -239,7 +300,7 @@ textarea { min-height:60px; resize: vertical; }
           <button id="toggleBadgeBtn" type="button" class="greenBtn" style="width:100%; margin:6px 0; --btn-color:#f39c12;">公式バッジON/OFF</button>
         </div>
         <div class="adminPanel">
-          <h4>削除・ロック・BAN</h4>
+          <h4>管理・BAN・削除・コード</h4>
           <label><input type="radio" name="adminAction" value="single" checked> スレッド削除</label>
           <label><input type="radio" name="adminAction" value="post"> 投稿削除</label>
           <label><input type="radio" name="adminAction" value="lock"> スレッドロック</label>
@@ -249,8 +310,22 @@ textarea { min-height:60px; resize: vertical; }
           <label><input type="radio" name="adminAction" value="deleteRoom"> 部屋選択削除</label>
           <label><input type="radio" name="adminAction" value="ipBan"> IP BAN</label>
           <label><input type="radio" name="adminAction" value="ipUnban"> IP BAN解除</label>
-          <select id="adminThreadSelect"></select><select id="adminPostSelect"></select><select id="adminRoomSelect" style="display:none;"></select>
-          <input id="adminIpInput" style="display:none;" placeholder="BANするIP 例: 123.123.123.123"><select id="adminBannedIpSelect" style="display:none;"></select>
+          <label><input type="radio" name="adminAction" value="accountBan"> アカウントBAN</label>
+          <label><input type="radio" name="adminAction" value="accountDelete"> アカウント削除</label>
+          <label><input type="radio" name="adminAction" value="coinCode"> コインコード発行</label>
+          
+          <select id="adminThreadSelect"></select>
+          <select id="adminPostSelect"></select>
+          <select id="adminRoomSelect" style="display:none;"></select>
+          <input id="adminIpInput" style="display:none;" placeholder="BANするIP 例: 123.123.123.123">
+          <select id="adminBannedIpSelect" style="display:none;"></select>
+          <select id="adminAccountSelect" style="display:none;"></select>
+
+          <div id="adminCoinCodeBox" style="display:none;">
+            <input id="genCoinCodeInput" placeholder="コインコード (例: COIN-2026)">
+            <button id="genRandomCodeBtn" type="button" class="greenBtn" style="width:100%; margin:4px 0; --btn-color:#2980b9;">🎲 乱数コードを生成</button>
+            <input id="genCoinAmountInput" type="number" placeholder="付与コイン数 (例: 1000)" value="1000">
+          </div>
         </div>
       </div>
     </div>
@@ -302,22 +377,519 @@ const db = initializeFirestore(app, {
   })
 });
 
-// sinzer認証情報取得・表示関数
-function getSinzerBadgeData() {
-  const isSinzer = localStorage.getItem("sinzerVerified") === "true";
-  return { sinzerVerified: isSinzer };
+// アカウント管理＆コイン・データ同期システム
+let currentAccount = localStorage.getItem("currentAccountName") || null;
+
+async function getAccountData(name) {
+  try {
+    const dRef = doc(db, "accounts", name);
+    const snap = await getDoc(dRef);
+    if (snap.exists()) return snap.data();
+  } catch(e) {}
+  return null;
 }
 
-function renderSinzerBadge(data) {
-  if (!data || !data.sinzerVerified) return "";
-  return `<span style="background:#F58220;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-left:4px;margin-right:4px;white-space:nowrap;">S</span>`;
+async function saveAccountData(data) {
+  if (!currentAccount) return;
+  try {
+    await setDoc(doc(db, "accounts", currentAccount), { ...data, updated_at: Timestamp.now() }, { merge: true });
+  } catch(e) {}
+}
+
+function getMyCoins() {
+  const c = localStorage.getItem("myCoins");
+  return c ? parseInt(c, 10) : 0;
+}
+
+function setMyCoins(amount) {
+  localStorage.setItem("myCoins", amount);
+  updateCoinButtonDisplay();
+  const fullStoreCoinCount = document.getElementById("fullStoreCoinCount");
+  if (fullStoreCoinCount) fullStoreCoinCount.textContent = amount;
+  
+  if (currentAccount) {
+    saveAccountData({
+      coins: amount,
+      purchasedEmojis: getPurchasedEmojis(),
+      purchasedTags: getPurchasedTags(),
+      customTagEnabled: localStorage.getItem("customTagEnabled") === "true",
+      customTagName: localStorage.getItem("customTagName") || "",
+      customTagColor: localStorage.getItem("customTagColor") || ""
+    });
+  }
+}
+
+function updateCoinButtonDisplay() {
+  const btn = document.getElementById("coinBtn");
+  if (btn) {
+    if (currentAccount) {
+      btn.textContent = `🪙 ${getMyCoins()}`;
+      btn.style.display = "inline-block";
+    } else {
+      btn.style.display = "none";
+    }
+  }
+}
+updateCoinButtonDisplay();
+
+function updateAccountStatusUI() {
+  const statusEl = document.getElementById("currentAccountStatus");
+  const logoutBtn = document.getElementById("accountLogoutBtn");
+  const loginForm = document.getElementById("accountLoginForm");
+  if (currentAccount) {
+    statusEl.textContent = `ログイン中: ${currentAccount} 👤`;
+    logoutBtn.style.display = "block";
+    loginForm.style.display = "none";
+  } else {
+    statusEl.textContent = "未ログイン（匿名）";
+    logoutBtn.style.display = "none";
+    loginForm.style.display = "block";
+  }
+  updateCoinButtonDisplay();
+  updateHeaderMenuUI();
+}
+
+function updateHeaderMenuUI() {
+  const menuCoinBtn = document.getElementById("menuCoinBtn");
+  if (currentAccount) {
+    menuCoinBtn.textContent = "🪙 ストア";
+    menuCoinBtn.style.color = "#333";
+  } else {
+    menuCoinBtn.textContent = "🪙 ストアを利用するにはアカウントが必要です";
+    menuCoinBtn.style.color = "#888";
+  }
+}
+updateHeaderMenuUI();
+
+// パスワード2回入力の切り替え（ログイン時は隠す、新規作成時は表示）
+const accountPasswordInput = document.getElementById("accountPasswordInput");
+const accountRegisterExtra = document.getElementById("accountRegisterExtra");
+
+// 新規作成ボタンにフォーカスやタップで確認用フィールドを表示するなどの工夫
+document.getElementById("accountRegisterBtn").onmouseover = () => {
+  accountRegisterExtra.style.display = "block";
+};
+
+// 右上の…メニュー制御
+const headerMenuBtn = document.getElementById("headerMenuBtn");
+const headerMenuContent = document.getElementById("headerMenuContent");
+
+headerMenuBtn.onclick = (e) => {
+  e.stopPropagation();
+  headerMenuContent.style.display = headerMenuContent.style.display === "block" ? "none" : "block";
+};
+
+document.addEventListener("click", () => {
+  if (headerMenuContent) headerMenuContent.style.display = "none";
+});
+
+// メニュー項目のアクション
+document.getElementById("menuAccountBtn").onclick = () => {
+  accountRegisterExtra.style.display = "block";
+  updateAccountStatusUI();
+  document.getElementById("accountPopup").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+};
+
+// ストアを全画面専用画面として表示
+document.getElementById("menuCoinBtn").onclick = () => {
+  if (!currentAccount) {
+    alert("ストアを利用するにはアカウントが必要です。");
+    return;
+  }
+  document.getElementById("threadListSection").style.display = "none";
+  document.getElementById("threadDetailSection").style.display = "none";
+  document.getElementById("storeSection").style.display = "block";
+  document.getElementById("fullStoreCoinCount").textContent = getMyCoins();
+  renderEmojiShop();
+  renderTagShop();
+};
+
+document.getElementById("closeFullStoreBtn").onclick = () => {
+  document.getElementById("storeSection").style.display = "none";
+  document.getElementById("threadListSection").style.display = "block";
+};
+
+document.getElementById("menuRoomBtn").onclick = async () => {
+  document.getElementById("roomPopup").style.display = "block"; 
+  document.getElementById("overlay").style.display = "block";
+  const sel = document.getElementById("roomSelectDropdown"); 
+  sel.innerHTML = '<option value="">その他の部屋</option>';
+  const snap = await getDocs(collection(db,"rooms")); 
+  snap.forEach(d => { const o = document.createElement("option"); o.value = d.id; o.textContent = d.id; sel.appendChild(o); });
+};
+
+document.getElementById("closeAccountPopup").onclick = () => {
+  document.getElementById("accountPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
+
+// アカウント新規作成（パスワード2回入力チェック付き）
+document.getElementById("accountRegisterBtn").onclick = async () => {
+  const name = document.getElementById("accountNameInput").value.trim();
+  const pass = document.getElementById("accountPasswordInput").value.trim();
+  const passConfirm = document.getElementById("accountPasswordConfirmInput").value.trim();
+
+  if (!name || !pass) return alert("ユーザー名とパスワードを入力してください");
+  if (pass !== passConfirm) return alert("パスワードが一致しません。もう一度確認してください。");
+
+  showLoading("アカウントを作成中...");
+  try {
+    const existing = await getAccountData(name);
+    if (existing) {
+      hideLoading();
+      return alert("このユーザー名はすでに使われています。");
+    }
+    const initialData = {
+      password: pass,
+      coins: getMyCoins(),
+      purchasedEmojis: getPurchasedEmojis(),
+      purchasedTags: getPurchasedTags(),
+      customTagEnabled: localStorage.getItem("customTagEnabled") === "true",
+      customTagName: localStorage.getItem("customTagName") || "",
+      customTagColor: localStorage.getItem("customTagColor") || ""
+    };
+    await setDoc(doc(db, "accounts", name), initialData);
+    currentAccount = name;
+    localStorage.setItem("currentAccountName", name);
+    nickName = name;
+    setCookie("nickName", name);
+    hideLoading();
+    updateAccountStatusUI();
+    alert("アカウントを作成し、ログインしました！");
+    document.getElementById("accountPopup").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  } catch(e) {
+    hideLoading();
+    alert("アカウント作成に失敗しました。");
+  }
+};
+
+// アカウントログイン
+document.getElementById("accountLoginBtn").onclick = async () => {
+  const name = document.getElementById("accountNameInput").value.trim();
+  const pass = document.getElementById("accountPasswordInput").value.trim();
+  if (!name || !pass) return alert("ユーザー名とパスワードを入力してください");
+
+  showLoading("ログイン中...");
+  try {
+    // アカウントがBANされているか確認
+    const banDoc = await getDoc(doc(db, "accountBans", name));
+    if (banDoc.exists()) {
+      hideLoading();
+      return alert("このアカウントは管理者によって停止（BAN）されています。");
+    }
+
+    const acc = await getAccountData(name);
+    hideLoading();
+    if (!acc) return alert("アカウントが存在しません。");
+    if (acc.password !== pass) return alert("パスワードが間違っています。");
+
+    currentAccount = name;
+    localStorage.setItem("currentAccountName", name);
+    nickName = name;
+    setCookie("nickName", name);
+
+    // データの復元
+    localStorage.setItem("myCoins", acc.coins || 0);
+    localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
+    localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
+    localStorage.setItem("customTagEnabled", acc.customTagEnabled ? "true" : "false");
+    localStorage.setItem("customTagName", acc.customTagName || "");
+    localStorage.setItem("customTagColor", acc.customTagColor || "");
+
+    updateAccountStatusUI();
+    renderStampMenu();
+    alert("ログインしました！コインや購入データが同期されました。");
+    document.getElementById("accountPopup").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  } catch(e) {
+    hideLoading();
+    alert("ログインに失敗しました。");
+  }
+};
+
+// ログアウト（コインリセット・データ初期化）
+document.getElementById("accountLogoutBtn").onclick = () => {
+  currentAccount = null;
+  localStorage.removeItem("currentAccountName");
+  
+  localStorage.setItem("myCoins", 0);
+  localStorage.removeItem("purchasedEmojis");
+  localStorage.removeItem("purchasedTags");
+  localStorage.removeItem("customTagEnabled");
+  localStorage.removeItem("customTagName");
+  localStorage.removeItem("customTagColor");
+  
+  nickName = generateRandomAnonymousName();
+  setCookie("nickName", nickName);
+
+  renderStampMenu();
+  updateAccountStatusUI();
+  alert("ログアウトしました。所持コインおよび購入データがリセットされました。");
+  document.getElementById("accountPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
+
+// タグごとの料金設定リスト
+const SHOP_TAGS = [
+  { value: "✨VIP|#e74c3c", name: "✨VIP (赤)", price: 500 },
+  { value: "👑王者|#e67e22", name: "👑王者 (オレンジ)", price: 700 },
+  { value: "⭐星|#3498db", name: "⭐星 (青)", price: 300 },
+  { value: "🍀癒やし|#2ecc71", name: "🍀癒やし (緑)", price: 300 },
+  { value: "🔥炎|#c0392b", name: "🔥炎 (ダークレッド)", price: 400 }
+];
+
+// 絵文字の料金設定リスト
+const SHOP_EMOJIS = [
+  { emoji: "🔥", name: "炎", price: 50 },
+  { emoji: "💖", name: "ハート", price: 100 },
+  { emoji: "🍀", name: "四つ葉", price: 120 },
+  { emoji: "🚀", name: "ロケット", price: 200 },
+  { emoji: "🐱", name: "ねこ", price: 250 },
+  { emoji: "✨", name: "きらきら", price: 300 }
+];
+
+function getPurchasedEmojis() {
+  const data = localStorage.getItem("purchasedEmojis");
+  return data ? JSON.parse(data) : [];
+}
+
+function savePurchasedEmoji(emoji) {
+  const list = getPurchasedEmojis();
+  if (!list.includes(emoji)) {
+    list.push(emoji);
+    localStorage.setItem("purchasedEmojis", JSON.stringify(list));
+    if (currentAccount) {
+      saveAccountData({ purchasedEmojis: list });
+    }
+  }
+}
+
+function getPurchasedTags() {
+  const data = localStorage.getItem("purchasedTags");
+  return data ? JSON.parse(data) : [];
+}
+
+function savePurchasedTag(tagVal) {
+  const list = getPurchasedTags();
+  if (!list.includes(tagVal)) {
+    list.push(tagVal);
+    localStorage.setItem("purchasedTags", JSON.stringify(list));
+    if (currentAccount) {
+      saveAccountData({ purchasedTags: list });
+    }
+  }
+}
+
+function renderStampMenu() {
+  const menuContent = document.getElementById("stampMenuContent");
+  const defaultStamps = ["😀", "😊", "😅", "🎉", "👍", "👀"];
+  const purchased = getPurchasedEmojis();
+  const allStamps = [...new Set([...defaultStamps, ...purchased])];
+  
+  menuContent.innerHTML = "";
+  allStamps.forEach(st => {
+    const div = document.createElement("div");
+    div.className = "stampItem";
+    div.style.cssText = "cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;";
+    div.textContent = st;
+    div.onclick = async () => {
+      if (currentThreadLocked) return;
+      menuContent.style.display = "none";
+      await sendStamp(st);
+    };
+    menuContent.appendChild(div);
+  });
+}
+
+function renderTagShop() {
+  const container = document.getElementById("fullStoreTagShopList");
+  if (!container) return;
+  container.innerHTML = "";
+  const purchasedTags = getPurchasedTags();
+  const currentCoins = getMyCoins();
+
+  SHOP_TAGS.forEach(item => {
+    const isOwned = purchasedTags.includes(item.value);
+    const isCurrentActive = (localStorage.getItem("customTagName") === item.value.split("|")[0]);
+    
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #f1f2f6; padding: 8px 12px; border-radius: 6px;";
+    
+    const left = document.createElement("div");
+    left.style.fontSize = "13px";
+    left.innerHTML = `<strong>${item.name}</strong> (${item.price}🪙)`;
+    if (isOwned) {
+      left.innerHTML += `<span class="purchased-badge">購入済み</span>`;
+    }
+
+    const btn = document.createElement("button");
+    btn.className = "greenBtn";
+    btn.style.margin = "0";
+    btn.style.padding = "6px 12px";
+    btn.style.fontSize = "12px";
+
+    if (!isOwned) {
+      btn.textContent = "購入する";
+      btn.onclick = () => {
+        if (currentCoins < item.price) {
+          return alert("コインが足りません！");
+        }
+        setMyCoins(currentCoins - item.price);
+        savePurchasedTag(item.value);
+        
+        const [tagName, tagColor] = item.value.split("|");
+        localStorage.setItem("customTagName", tagName);
+        localStorage.setItem("customTagColor", tagColor);
+        localStorage.setItem("customTagEnabled", "true");
+        saveAccountData({
+          customTagEnabled: true,
+          customTagName: tagName,
+          customTagColor: tagColor
+        });
+
+        document.getElementById("fullStoreCoinCount").textContent = getMyCoins();
+        renderTagShop();
+        alert(`${tagName} タグを購入・適用しました！`);
+      };
+    } else if (isCurrentActive) {
+      btn.textContent = "着用中";
+      btn.disabled = true;
+      btn.style.backgroundColor = "#27ae60";
+    } else {
+      btn.textContent = "適用する";
+      btn.style.backgroundColor = "#2980b9";
+      btn.onclick = () => {
+        const [tagName, tagColor] = item.value.split("|");
+        localStorage.setItem("customTagName", tagName);
+        localStorage.setItem("customTagColor", tagColor);
+        localStorage.setItem("customTagEnabled", "true");
+        saveAccountData({
+          customTagEnabled: true,
+          customTagName: tagName,
+          customTagColor: tagColor
+        });
+        renderTagShop();
+        alert(`${tagName} タグを適用しました！`);
+      };
+    }
+
+    row.appendChild(left);
+    row.appendChild(btn);
+    container.appendChild(row);
+  });
+}
+
+function renderEmojiShop() {
+  const listContainer = document.getElementById("fullStoreEmojiShopList");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+  const purchased = getPurchasedEmojis();
+  const currentCoins = getMyCoins();
+
+  SHOP_EMOJIS.forEach(item => {
+    const isOwned = purchased.includes(item.emoji);
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #f1f2f6; padding: 8px 12px; border-radius: 6px;";
+    
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.innerHTML = `<span style="font-size: 20px; margin-right: 8px;">${item.emoji}</span> <span style="font-size: 13px; color: #555;">${item.name} (${item.price}🪙)</span>`;
+    if (isOwned) {
+      left.innerHTML += `<span class="purchased-badge">購入済み</span>`;
+    }
+    
+    const btn = document.createElement("button");
+    btn.className = "greenBtn";
+    btn.style.margin = "0";
+    btn.style.padding = "6px 12px";
+    btn.style.fontSize = "13px";
+    
+    if (isOwned) {
+      btn.textContent = "所持中";
+      btn.disabled = true;
+      btn.style.backgroundColor = "#95a5a6";
+    } else {
+      btn.textContent = `購入する`;
+      btn.onclick = () => {
+        if (currentCoins < item.price) {
+          return alert("コインが足りません！");
+        }
+        setMyCoins(currentCoins - item.price);
+        savePurchasedEmoji(item.emoji);
+        document.getElementById("fullStoreCoinCount").textContent = getMyCoins();
+        renderEmojiShop();
+        renderStampMenu();
+        alert(`${item.emoji} (${item.name}) を購入しました！`);
+      };
+    }
+    
+    row.appendChild(left);
+    row.appendChild(btn);
+    listContainer.appendChild(row);
+  });
+}
+
+document.getElementById("fullStoreRedeemBtn").onclick = async () => {
+  const code = document.getElementById("fullStoreCoinCodeInput").value.trim();
+  if (!code) return alert("コインコードを入力してください");
+  
+  showLoading("コードを確認中...");
+  try {
+    const codeRef = doc(db, "coinCodes", code);
+    const codeSnap = await getDoc(codeRef);
+    if (!codeSnap.exists()) {
+      hideLoading();
+      return alert("無効なコインコードです。");
+    }
+    const data = codeSnap.data();
+    if (data.used) {
+      hideLoading();
+      return alert("このコインコードはすでに使用されています。");
+    }
+    
+    await updateDoc(codeRef, { used: true, used_at: Timestamp.now() });
+    const addAmount = data.coins || 100;
+    setMyCoins(getMyCoins() + addAmount);
+    hideLoading();
+    
+    document.getElementById("fullStoreCoinCount").textContent = getMyCoins();
+    document.getElementById("fullStoreCoinCodeInput").value = "";
+    alert(`${addAmount} コインを獲得しました！`);
+  } catch(e) {
+    hideLoading();
+    alert("エラーが発生しました。");
+  }
+};
+
+function getCustomTagData() {
+  const enabled = localStorage.getItem("customTagEnabled") === "true";
+  return {
+    customTag: enabled,
+    customTagName: localStorage.getItem("customTagName") || "",
+    customTagColor: localStorage.getItem("customTagColor") || "#e74c3c"
+  };
+}
+
+function renderCustomTag(data) {
+  if (!data || !data.customTag || !data.customTagName) return "";
+  return `<span style="background:${data.customTagColor || "#e74c3c"};color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">${data.customTagName}</span>`;
+}
+
+function renderAccountUserMark(isAccountUser) {
+  if (isAccountUser) {
+    return `<span style="font-size:12px; margin-left:2px;" title="ログインユーザー">👤</span>`;
+  }
+  return "";
 }
 
 async function saveLog(action, detail = {}) {
   try {
     const clientIP = await getClientIP();
     await addDoc(collection(db, "logs"), {
-      action: action, detail: detail, user: nickName || "名称未設定", room: currentRoom || "threads", ip: clientIP, created_at: Timestamp.now()
+      action: action, detail: detail, user: currentAccount || nickName || "名称未設定", room: currentRoom || "threads", ip: clientIP, created_at: Timestamp.now()
     });
   } catch (e) {}
 }
@@ -374,6 +946,10 @@ async function isIPBanned(ip){
 async function stopIfBanned(){
   const ip = await getClientIP();
   if(await isIPBanned(ip)){ showAlert("このIPは利用規約違反のため制限されています"); return true; }
+  if(currentAccount) {
+    const banDoc = await getDoc(doc(db, "accountBans", currentAccount));
+    if(banDoc.exists()) { showAlert("このアカウントは停止されています"); return true; }
+  }
   return false;
 }
 
@@ -409,7 +985,7 @@ function setCookie(name, value, days=365) {
 }
 function generateRandomAnonymousName() { return "名称未設定#" + Math.floor(Math.random() * 10000).toString().padStart(4, '0'); }
 
-let nickName = getCookie("nickName");
+let nickName = currentAccount || getCookie("nickName");
 if (!nickName || nickName === "名称未設定") { nickName = generateRandomAnonymousName(); setCookie("nickName", nickName); }
 let currentThreadId = null;
 let threadsData = [];
@@ -436,7 +1012,12 @@ function formatRelativeTime(ts){
   if(diffDay > 0) return `${dateStr} (${diffDay}日前)`; if(diffHour > 0) return `${dateStr} (${diffHour}時間前)`; if(diffMin > 0) return `${dateStr} (${diffMin}分前)`; return `${dateStr} (たった今)`;
 }
 
-function setSectionsHeight(){ const h = window.innerHeight-180; threadListSection.style.height = h+'px'; threadDetailSection.style.height = h+'px'; }
+function setSectionsHeight(){ 
+  const h = window.innerHeight-180; 
+  threadListSection.style.height = h+'px'; 
+  threadDetailSection.style.height = h+'px'; 
+  document.getElementById('storeSection').style.height = h+'px';
+}
 window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
 let loadingTimer = null;
@@ -485,53 +1066,35 @@ function showTopNotification(text) {
   setTimeout(() => { notif.style.top = "20px"; }, 10);
   setTimeout(() => { notif.style.top = "-60px"; setTimeout(() => { notif.style.display = "none"; }, 400); }, 3000);
 }
+
+// アカウント設定されている場合は名前をロックして固定
 function clearFormFields(fieldId){
-  if(fieldId==="threadFields"){ document.getElementById('threadMemberId').value=nickName; ['threadIconInput','threadTitleInput','threadDetailInput','threadImageInput','threadPasswordInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('threadColorInput').selectedIndex=0; }
-  else if(fieldId==="postFields"){ document.getElementById('postMemberId').value=nickName; ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; }
+  const activeName = currentAccount || nickName;
+  if(fieldId==="threadFields"){ 
+    const input = document.getElementById('threadMemberId');
+    input.value = activeName; 
+    if (currentAccount) { input.disabled = true; input.style.background = "#e9ecef"; } 
+    else { input.disabled = false; input.style.background = "#fff"; }
+    ['threadIconInput','threadTitleInput','threadDetailInput','threadImageInput','threadPasswordInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('threadColorInput').selectedIndex=0; 
+  }
+  else if(fieldId==="postFields"){ 
+    const input = document.getElementById('postMemberId');
+    input.value = activeName; 
+    if (currentAccount) { input.disabled = true; input.style.background = "#e9ecef"; } 
+    else { input.disabled = false; input.style.background = "#fff"; }
+    ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; 
+  }
   else if(fieldId==="adminFields"){ const p = document.getElementById('adminPasswordInput'); if(p) p.value=""; updateAdminBadgeStatus(); }
   else if(fieldId==="passwordFields"){ document.getElementById('threadPasswordCheckInput').value=""; }
-  else if(fieldId==="sinzerVerifyFields"){ document.getElementById('sinzerCodeInput').value=""; }
 }
+
 function showForm(fieldId){ 
-  ['threadFields','postFields','adminFields','passwordFields','sinzerVerifyFields'].forEach(id=>{ document.getElementById(id).style.display='none'; }); 
+  ['threadFields','postFields','adminFields','passwordFields'].forEach(id=>{ document.getElementById(id).style.display='none'; }); 
   clearFormFields(fieldId); document.getElementById(fieldId).style.display='block'; 
   popupForm.style.width = fieldId === 'adminFields' ? 'min(760px, 94vw)' : '280px';
   popupForm.style.display='block'; overlay.style.display='block'; 
 }
 function closePopup(){ popupForm.style.display='none'; overlay.style.display='none'; document.getElementById('submitBtn').textContent='送信'; }
-
-// 部屋選択メニュー内のsinzer認証ボタンをクリックした時の処理
-document.getElementById('roomSinzerVerifyBtn').onclick = () => {
-  // 部屋選択ポップアップを閉じる
-  document.getElementById("roomPopup").style.display = "none";
-  
-  showForm('sinzerVerifyFields');
-  document.getElementById('popupTitle').textContent = "sinzer認証";
-  document.getElementById('submitBtn').textContent = "認証する";
-  
-  document.getElementById('submitBtn').onclick = async () => {
-    const inputCode = document.getElementById('sinzerCodeInput').value.trim();
-    if (!inputCode) return showAlert("認証コードを入力してください");
-    
-    showLoading("認証を確認中...");
-    try {
-      const q = query(collection(db, "sinzerAuth"), where("code", "==", inputCode));
-      const snap = await getDocs(q);
-      
-      hideLoading();
-      if (!snap.empty) {
-        localStorage.setItem("sinzerVerified", "true");
-        showAlert("認証に成功しました！名前の右に「sinzer」が表示されます。");
-        closePopup();
-      } else {
-        showAlert("無効な認証コードです。テストをクリアして正しいコードを取得してください。");
-      }
-    } catch (e) {
-      hideLoading();
-      showAlert("認証エラーが発生しました。");
-    }
-  };
-};
 
 function validateNickname(input){ if(!input) return generateRandomAnonymousName(); if(input==="しんぞ2059") return "しんぞ公式"; if(input.includes("しんぞ公式")) return null; return input; }
 
@@ -776,7 +1339,9 @@ function openThread(threadId, data){
   const displayTitle = currentThreadLocked ? `🔒 ${data.title}` : data.title;
   threadTitleElem.textContent = displayTitle;
   threadDetailElem.textContent = data.detail || ""; 
-  threadCreatorElem.textContent = `作成者: ${data.memberId || "名称未設定"} ${formatDate(data.created_at)}`;
+  
+  const creatorUserMark = renderAccountUserMark(data.isAccountUser);
+  threadCreatorElem.innerHTML = `作成者: ${data.memberId || "名称未設定"}${creatorUserMark} ${formatDate(data.created_at)}`;
   
   updateLockUIState(currentThreadLocked);
 
@@ -836,11 +1401,13 @@ async function loadPosts(threadId) {
                 <button class="info-btn" data-info="【投稿情報】\n番号: ${data.index ?? "?"}\n投稿者: ${data.memberId || "名称未設定"}\n日時: ${formatDate(data.created_at)}\nIP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
               </div>`;
 
+              const userMark = renderAccountUserMark(data.isAccountUser);
+
               li.innerHTML = `
                 ${actionBox}
                 ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"}</span>${renderSinzerBadge(data)}<span> / ${formatRelativeTime(data.created_at)}</span></small>
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
               if (!currentThreadLocked) {
@@ -925,9 +1492,10 @@ document.getElementById('createThreadBtn').onclick=()=>{
   isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('threadFields'); document.getElementById('popupTitle').textContent="新規スレッド作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
-    const clientIP = await getClientIP(); let inputNickname=document.getElementById('threadMemberId').value.trim();
+    const clientIP = await getClientIP(); 
+    let inputNickname = currentAccount || document.getElementById('threadMemberId').value.trim();
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
-    if(valid) { nickName=valid; setCookie("nickName", nickName); }
+    if(valid && !currentAccount) { nickName=valid; setCookie("nickName", nickName); } else if (currentAccount) { nickName = currentAccount; }
 
     const iconFile=document.getElementById('threadIconInput').files[0]; let iconId = getCookie('iconId');
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('エラーが発生しました'); } }
@@ -946,8 +1514,9 @@ document.getElementById('createThreadBtn').onclick=()=>{
     threadList.insertBefore(tempLi, threadList.firstChild);
 
     try{
-      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getSinzerBadgeData(), ...getBoardWriteMeta() });
-      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
+      const isAccountUser = !!currentAccount;
+      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
+      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, isAccountUser: isAccountUser, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
       showAlert(isOldBoardHtmlError(e) ? "このHTMLは古いため作成できません。最新版のしんぞボードを開いてください。" : "作成に失敗しました"); tempLi.remove();
@@ -960,9 +1529,10 @@ document.getElementById('createPostBtn').onclick=async()=>{
   isFormSending = false; document.getElementById('submitBtn').disabled = false; showForm('postFields'); document.getElementById('popupTitle').textContent="投稿作成";
   document.getElementById('submitBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
-    const clientIP = await getClientIP(); let inputNickname=document.getElementById('postMemberId').value.trim();
+    const clientIP = await getClientIP(); 
+    let inputNickname = currentAccount || document.getElementById('postMemberId').value.trim();
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
-    if(valid) { nickName=valid; setCookie("nickName", nickName); }
+    if(valid && !currentAccount) { nickName=valid; setCookie("nickName", nickName); } else if (currentAccount) { nickName = currentAccount; }
 
     const iconFile=document.getElementById('postIconInput').files[0]; let iconId = getCookie('iconId');
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('アイコン保存に失敗しました'); } }
@@ -976,11 +1546,12 @@ document.getElementById('createPostBtn').onclick=async()=>{
     
     const postList = document.getElementById("postList"); let index = postList.children.length + 1;
     const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; 
-    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
     postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
     try{
-      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
+      const isAccountUser = !!currentAccount;
+      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
       await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
     }catch(e){
@@ -991,40 +1562,96 @@ document.getElementById('createPostBtn').onclick=async()=>{
 
 document.getElementById('adminBtn').onclick = async () => { 
   showForm('adminFields'); document.getElementById('popupTitle').textContent = adminLoggedIn ? "管理者メニュー" : "管理者ログイン"; document.getElementById('submitBtn').textContent = adminLoggedIn ? "実行" : "ログイン";
-  const loginBox = document.getElementById('adminLoginBox'), menuBox = document.getElementById('adminMenuBox'), passInput = document.getElementById('adminPasswordInput'), threadSelect = document.getElementById('adminThreadSelect'), postSelect = document.getElementById('adminPostSelect'), roomSelect = document.getElementById('adminRoomSelect'), ipInput = document.getElementById('adminIpInput'), bannedIpSelect = document.getElementById('adminBannedIpSelect');
+  const loginBox = document.getElementById('adminLoginBox'), menuBox = document.getElementById('adminMenuBox'), passInput = document.getElementById('adminPasswordInput'), threadSelect = document.getElementById('adminThreadSelect'), postSelect = document.getElementById('adminPostSelect'), roomSelect = document.getElementById('adminRoomSelect'), ipInput = document.getElementById('adminIpInput'), bannedIpSelect = document.getElementById('adminBannedIpSelect'), accountSelect = document.getElementById('adminAccountSelect'), coinCodeBox = document.getElementById('adminCoinCodeBox');
+  
   async function loadAdminLists(){
     const q = query(collection(db, currentRoom), orderBy("created_at", "desc")); const snap = await getDocs(q);
     threadSelect.innerHTML = "<option value=''>スレッド選択</option>"; snap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.data().title || d.id; threadSelect.appendChild(opt); });
     postSelect.innerHTML = "<option value=''>投稿選択</option>"; roomSelect.innerHTML = "<option value=''>部屋選択</option>";
+    
     const roomSnap = await getDocs(collection(db, "rooms")); roomSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; roomSelect.appendChild(opt); });
+    
     bannedIpSelect.innerHTML = "<option value=''>BAN済みIP選択</option>"; const banSnap = await getDocs(collection(db, "ipBans")); banSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; bannedIpSelect.appendChild(opt); });
+
+    accountSelect.innerHTML = "<option value=''>アカウント選択</option>"; const accSnap = await getDocs(collection(db, "accounts")); accSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; accountSelect.appendChild(opt); });
   }
   async function showAdminMenu(){ adminLoggedIn = true; if(loginBox) loginBox.style.display = 'none'; if(menuBox) menuBox.style.display = 'block'; document.getElementById('popupTitle').textContent = "管理者メニュー"; document.getElementById('submitBtn').textContent = "実行"; updateAdminBadgeStatus(); await loadAdminLists(); setupAdminSelects(); }
+  
   function setupAdminSelects(){
     const radios = document.getElementsByName('adminAction');
-    const toggle = () => { const val = document.querySelector("input[name='adminAction']:checked")?.value || "single"; threadSelect.style.display = 'block'; postSelect.style.display = val === 'post' ? 'block' : 'none'; roomSelect.style.display = 'none'; ipInput.style.display = 'none'; bannedIpSelect.style.display = 'none'; if(val === 'deleteRoom'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; roomSelect.style.display = 'block'; } else if(val === 'ipBan'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; ipInput.style.display = 'block'; } else if(val === 'ipUnban'){ threadSelect.style.display = 'none'; postSelect.style.display = 'none'; bannedIpSelect.style.display = 'block'; } };
+    const toggle = () => {
+      const val = document.querySelector("input[name='adminAction']:checked")?.value || "single";
+      threadSelect.style.display = 'block';
+      postSelect.style.display = val === 'post' ? 'block' : 'none';
+      roomSelect.style.display = 'none';
+      ipInput.style.display = 'none';
+      bannedIpSelect.style.display = 'none';
+      accountSelect.style.display = 'none';
+      if(coinCodeBox) coinCodeBox.style.display = 'none';
+
+      if(val === 'deleteRoom'){
+        threadSelect.style.display = 'none'; postSelect.style.display = 'none'; roomSelect.style.display = 'block';
+      } else if(val === 'ipBan'){
+        threadSelect.style.display = 'none'; postSelect.style.display = 'none'; ipInput.style.display = 'block';
+      } else if(val === 'ipUnban'){
+        threadSelect.style.display = 'none'; postSelect.style.display = 'none'; bannedIpSelect.style.display = 'block';
+      } else if(val === 'accountBan' || val === 'accountDelete'){
+        threadSelect.style.display = 'none'; postSelect.style.display = 'none'; accountSelect.style.display = 'block';
+      } else if(val === 'coinCode'){
+        threadSelect.style.display = 'none'; postSelect.style.display = 'none'; if(coinCodeBox) coinCodeBox.style.display = 'block';
+      }
+    };
     radios.forEach(r => { r.onchange = toggle; }); toggle();
     threadSelect.onchange = async () => { const tid = threadSelect.value; postSelect.innerHTML = "<option value=''>投稿選択</option>"; if(tid){ const psnap = await getDocs(collection(db, currentRoom, tid, "posts")); const docs = psnap.docs.slice().sort((a,b)=> (Number(a.data().index)||0) - (Number(b.data().index)||0)); docs.forEach(d => { const pdata = d.data(), opt = document.createElement('option'); opt.value = d.id; opt.textContent = `#${pdata.index ?? '?'} ${pdata.body ? pdata.body.slice(0, 14) : "[画像のみ]"}`; postSelect.appendChild(opt); }); } };
   }
+  
   if(adminLoggedIn){ await showAdminMenu(); } else { if(loginBox) loginBox.style.display = 'block'; if(menuBox) menuBox.style.display = 'none'; }
   document.getElementById('saveBadgeTextBtn').onclick = async () => { const text = document.getElementById('badgeTextInput').value.trim() || "📱管理者"; localStorage.setItem("adminBadgeText", text); updateAdminBadgeStatus(); await saveLog("admin_change_badge_text", { badgeText: text }); showAlert("バッジ文字を保存しました"); };
   document.getElementById('toggleBadgeBtn').onclick = async () => { const nextState = !isOfficialBadgeEnabled(); setOfficialBadgeEnabled(nextState); updateAdminBadgeStatus(); await saveLog("admin_toggle_badge", { enabled: nextState }); showAlert(nextState ? "公式バッジをONにしました" : "公式バッジをOFFにしました"); };
+  
+  document.getElementById('genRandomCodeBtn').onclick = () => {
+    const randomCode = "COIN-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    document.getElementById('genCoinCodeInput').value = randomCode;
+  };
+
   document.getElementById('submitBtn').onclick = async () => {
     if(!adminLoggedIn){ if(passInput.value !== ADMIN_PASSWORD) return showAlert("パスワードが違います"); await saveLog("admin_login_success"); return await showAdminMenu(); }
     const action = document.querySelector("input[name='adminAction']:checked")?.value || "single", threadId = threadSelect.value, postId = postSelect.value, roomId = roomSelect.value;
     showLoading("処理中...");
     try {
-      if (action === "single" && threadId) { await deleteDoc(doc(db, currentRoom, threadId)); await saveLog("admin_delete_thread", { targetThreadId: threadId, targetThreadTitle: threadSelect.options[threadSelect.selectedIndex].textContent }); }
+      if (action === "single" && threadId) { await deleteDoc(doc(db, currentRoom, threadId)); await saveLog("admin_delete_thread", { targetThreadId: threadId }); }
       else if (action === "post" && threadId && postId) { await deleteDoc(doc(db, currentRoom, threadId, "posts", postId)); await saveLog("admin_delete_post", { targetThreadId: threadId, targetPostId: postId }); }
-      else if (action === "lock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: true, lockMessage: "", ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId, reason: "" }); }
-      else if (action === "unlock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: false, lockMessage: "", ...getBoardWriteMeta() }); await saveLog("admin_unlock_thread", { targetThreadId: threadId }); }
+      else if (action === "lock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: true, ...getBoardWriteMeta() }); await saveLog("admin_lock_thread", { targetThreadId: threadId }); }
+      else if (action === "unlock" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { locked: false, ...getBoardWriteMeta() }); await saveLog("admin_unlock_thread", { targetThreadId: threadId }); }
       else if (action === "pin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: true, ...getBoardWriteMeta() }); await saveLog("admin_pin_thread", { targetThreadId: threadId }); }
       else if (action === "unpin" && threadId) { await updateDoc(doc(db, currentRoom, threadId), { pinned: false, ...getBoardWriteMeta() }); await saveLog("admin_unpin_thread", { targetThreadId: threadId }); }
       else if (action === "deleteRoom" && roomId) { await deleteDoc(doc(db, "rooms", roomId)); const snap = await getDocs(collection(db, roomId)); for (const d of snap.docs) await deleteDoc(doc(db, roomId, d.id)); await saveLog("admin_delete_room", { targetRoomId: roomId }); if (roomId === currentRoom) switchRoom("threads"); }
       else if (action === "ipBan") { const ip = ipInput.value.trim(); if (!ip) return showAlert("BANするIPを入力してください"); await setDoc(doc(db, "ipBans", ip), { ip, banned_at: Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("admin_ip_ban", { targetIp: ip }); }
       else if (action === "ipUnban") { const ip = bannedIpSelect.value; if (!ip) return showAlert("解除するIPを選択してください"); await deleteDoc(doc(db, "ipBans", ip)); await saveLog("admin_ip_unban", { targetIp: ip }); }
+      else if (action === "accountBan") {
+        const accName = accountSelect.value;
+        if (!accName) return showAlert("BANするアカウントを選択してください");
+        await setDoc(doc(db, "accountBans", accName), { account: accName, banned_at: Timestamp.now(), ...getBoardWriteMeta() });
+        await saveLog("admin_account_ban", { targetAccount: accName });
+        showAlert(`アカウント「${accName}」をBANしました。`);
+      }
+      else if (action === "accountDelete") {
+        const accName = accountSelect.value;
+        if (!accName) return showAlert("削除するアカウントを選択してください");
+        await deleteDoc(doc(db, "accounts", accName));
+        await saveLog("admin_account_delete", { targetAccount: accName });
+        showAlert(`アカウント「${accName}」を削除しました。`);
+      }
+      else if (action === "coinCode") {
+        const cCode = document.getElementById('genCoinCodeInput').value.trim();
+        const cAmount = Number(document.getElementById('genCoinAmountInput').value) || 1000;
+        if (!cCode) return showAlert("発行するコインコードを入力してください");
+        await setDoc(doc(db, "coinCodes", cCode), { code: cCode, coins: cAmount, used: false, created_at: Timestamp.now(), ...getBoardWriteMeta() });
+        await saveLog("admin_create_coin_code", { code: cCode, amount: cAmount });
+        showAlert(`コインコード「${cCode} (${cAmount}コイン)」を発行しました！`);
+      }
       closePopup(); hideLoading();
-    } catch (e) { showAlert("エラー"); }
+    } catch (e) { hideLoading(); showAlert("エラーが発生しました"); }
   };
 };
 document.getElementById('closePopupBtn').onclick=closePopup;
@@ -1037,11 +1664,6 @@ function switchRoom(roomName){
   const roomNames = { threads: "通常ボード", chat: "雑談", apple: "アップル製品", question: "質問" };
   document.getElementById("currentRoomLabel").textContent = "現在の部屋：" + (roomNames[roomName] || roomName);
 }
-document.getElementById("roomSelectBtn").onclick = async () => {
-  document.getElementById("roomPopup").style.display = "block"; overlay.style.display = "block";
-  const sel = document.getElementById("roomSelectDropdown"); sel.innerHTML = '<option value="">その他の部屋</option>';
-  const snap = await getDocs(collection(db,"rooms")); snap.forEach(d=>{ const o=document.createElement("option"); o.value=d.id; o.textContent=d.id; sel.appendChild(o); });
-};
 document.querySelectorAll(".roomBtn").forEach(btn=>{ btn.onclick = () => switchRoom(btn.dataset.room); });
 document.getElementById("roomSelectDropdown").onchange = e=>{ if(e.target.value) switchRoom(e.target.value); };
 document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
@@ -1050,7 +1672,7 @@ document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
 };
 document.getElementById("closeRoomPopup").onclick = ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; };
 
-setSectionsHeight(); listenThreads(); stopIfBanned();
+setSectionsHeight(); listenThreads(); stopIfBanned(); renderStampMenu();
 async function openThreadFromURL() {
   const params = new URLSearchParams(location.search);
   const room = params.get("room");
@@ -1114,7 +1736,10 @@ function loadAllThreads(){
 
 let mySessionId = sessionStorage.getItem('sessionId'); if (!mySessionId) { mySessionId = Math.random().toString(36).slice(2); sessionStorage.setItem('sessionId', mySessionId); }
 const onlineRef = doc(db, "online", mySessionId);
-async function heartbeat() { try { await setDoc(onlineRef, { t: serverTimestamp(), name: (typeof nickName !== 'undefined' ? nickName : "名称未設定"), ...getBoardWriteMeta() }); } catch (e) { } }
+async function heartbeat() { 
+  const activeName = currentAccount || (typeof nickName !== 'undefined' ? nickName : "名称未設定");
+  try { await setDoc(onlineRef, { t: serverTimestamp(), name: activeName, ...getBoardWriteMeta() }); } catch (e) { } 
+}
 window.addEventListener('beforeunload', () => { deleteDoc(onlineRef); });
 heartbeat(); setInterval(heartbeat, 20000);
 
@@ -1126,7 +1751,7 @@ onSnapshot(collection(db, "online"), snap => {
     if (now - ts < 45000) activeNames.push(data.name || "名称未設定"); else deleteDoc(doc(db, "online", d.id));
   });
   const displayBtn = document.getElementById("onlineCount");
-  if (displayBtn) { const uniqueUsers = [...new Set(activeNames)]; displayBtn.textContent = `同接人数: ${uniqueUsers.length}人`; window.currentOnlineUsers = uniqueUsers; }
+  if (displayBtn) { const uniqueUsers = [...new Set(activeNames)]; displayBtn.textContent = `同接: ${uniqueUsers.length}人`; window.currentOnlineUsers = uniqueUsers; }
 });
 document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーなし"); alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
 
@@ -1146,13 +1771,6 @@ stampMenuBtn.onclick = (e) => {
   stampMenuContent.style.display = stampMenuContent.style.display === "grid" ? "none" : "grid"; 
   quickMenuContent.style.display = "none"; 
 };
-document.querySelectorAll(".stampItem").forEach(item => {
-  item.onclick = async () => {
-    if (currentThreadLocked) return;
-    stampMenuContent.style.display = "none";
-    await sendStamp(item.textContent);
-  };
-});
 
 document.addEventListener("click", () => { quickMenuContent.style.display = "none"; stampMenuContent.style.display = "none"; });
 
@@ -1164,15 +1782,16 @@ async function sendStamp(stampText) {
   const clientIP = await getClientIP();
   isQuickSending = true;
   const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
-  
+  const activeName = currentAccount || nickName;
   const body = `[STAMP:${stampText}]`;
   
   const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+  tempLi.innerHTML = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${activeName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
-    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: body, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
+    const isAccountUser = !!currentAccount;
+    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: activeName, isAccountUser: isAccountUser, body: body, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
     await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
     await saveLog("quick_send_stamp", { threadId: currentThreadId, postId: newPost.id, index: index, stamp: stampText });
   } catch (e) {
@@ -1186,14 +1805,16 @@ document.getElementById("quickSendBtn").onclick = async () => {
   const clientIP = await getClientIP(), input = document.getElementById("quickPostInput"), text = input.value.trim();
   if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
   
+  const activeName = currentAccount || nickName;
   isQuickSending = true; input.value = "";
   const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
   const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName} / 送信中...</span></small>`;
+  tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${activeName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
   postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
-    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: nickName, body: text, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getSinzerBadgeData(), ...getBoardWriteMeta() });
+    const isAccountUser = !!currentAccount;
+    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: activeName, isAccountUser: isAccountUser, body: text, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
     await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
     await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: text });
   } catch (e) {
