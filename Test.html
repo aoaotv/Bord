@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bord規約遵守テスト</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #e6f0ff; margin: 0; padding: 20px; color: #333; }
+  .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .target-box { background: #f8f9fa; border: 1px solid #ccc; padding: 15px; border-radius: 8px; text-align: left; font-size: 14px; line-height: 1.6; user-select: none; margin-bottom: 15px; }
+  textarea { width: 100%; height: 120px; padding: 10px; box-sizing: border-box; font-size: 14px; border: 1px solid #ccc; border-radius: 8px; resize: none; }
+  button { margin-top: 15px; padding: 10px 20px; background: #27ae60; color: #fff; border: none; border-radius: 20px; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+  button:disabled { background: #95a5a6; cursor: not-allowed; }
+  #resultBox { margin-top: 20px; display: none; background: #e8f8f5; border: 1px solid #27ae60; padding: 15px; border-radius: 8px; word-break: break-all; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Bord規約遵守テスト</h2>
+  <p>以下の規約文を**コピペせずに**正確に下の入力欄にタイピングしてください。</p>
+  
+  <div class="target-box" id="targetText">規約・法令違反、なりすまし、スパム、個人情報の無断公開等は禁止です。投稿の自己責任や運営による削除・利用制限の権利が定められており、運営はサービスの完全性やデータ消失等について免責されます。詳細はサービス上の掲載をご確認ください。</div>
+
+  <textarea id="typingInput" placeholder="ここにタイピングして入力してください..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+  <br>
+  <button id="submitTestBtn" disabled>認証コードを発行する</button>
+
+  <div id="resultBox">
+    <h3>🎉 テストクリア！</h3>
+    <p>あなたの認証コード:</p>
+    <strong id="authCodeDisplay" style="font-size: 20px; color: #8e44ad;"></strong>
+    <p style="font-size: 13px; color: #555; margin-top: 5px;">このコードをボード側の「sinzer認証」に入力してください。</p>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
+    authDomain: "sinzo-3f972.firebaseapp.com",
+    databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
+    projectId: "sinzo-3f972",
+    storageBucket: "sinzo-3f972.firebasestorage.app",
+    messagingSenderId: "1058985227031",
+    appId: "1:1058985227031:web:6b152911e917903910bd52"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const targetText = document.getElementById("targetText").textContent.trim();
+  const inputElem = document.getElementById("typingInput");
+  const submitBtn = document.getElementById("submitTestBtn");
+  const resultBox = document.getElementById("resultBox");
+  const authCodeDisplay = document.getElementById("authCodeDisplay");
+
+  // コピペ・ドラッグ＆ドロップ・右クリックの完全禁止
+  ['copy', 'paste', 'cut', 'contextmenu', 'drop'].forEach(evt => {
+    inputElem.addEventListener(evt, e => e.preventDefault());
+  });
+  inputElem.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'a'].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+    }
+  });
+
+  inputElem.addEventListener("input", () => {
+    const val = inputElem.value.trim();
+    // 正確なテキストか、例外コマンド「sinzertest」の入力で有効化
+    if (val === targetText || val === "sinzertest") {
+      submitBtn.disabled = false;
+    } else {
+      submitBtn.disabled = true;
+    }
+  });
+
+  submitBtn.addEventListener("click", async () => {
+    submitBtn.disabled = true;
+    inputElem.disabled = true;
+
+    // 乱数コード生成
+    const randomCode = "sinzer-" + Math.random().toString(36).slice(2, 10) + "-" + Math.floor(1000 + Math.random() * 9000);
+
+    try {
+      await addDoc(collection(db, "sinzerAuth"), {
+        code: randomCode,
+        created_at: Timestamp.now()
+      });
+
+      authCodeDisplay.textContent = randomCode;
+      resultBox.style.display = "block";
+    } catch (e) {
+      alert("エラーが発生しました。もう一度お試しください。");
+      submitBtn.disabled = false;
+      inputElem.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
