@@ -97,7 +97,8 @@ textarea { min-height:60px; resize: vertical; }
 <body>
 
 <div id="topNotification"></div>
-<a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
+<!-- ▼ 変更後 -->
+<a href="javascript:void(0);" id="boardLogoBtn">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
     <img src="logo.png" alt="bord" style="height:60px;">
   </h1>
@@ -2486,6 +2487,43 @@ document.getElementById("quickSendBtn").onclick = async () => {
     await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
     await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index, text });
   } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); } finally { isQuickSending = false; }
+};
+// ▼ 以下のコードを <script type="module"> の中に追加
+document.getElementById('boardLogoBtn').onclick = () => {
+  // 1. スレッド詳細のリアルタイム通信を解除
+  if (postsUnsub) {
+    postsUnsub();
+    postsUnsub = null;
+  }
+
+  // 2. ブラウザのURL履歴を初期状態（通常ボードの1ページ目）に書き換え
+  history.pushState({}, "", `${location.pathname}?room=threads`);
+
+  // 3. すべての専用画面（株・ショップ・管理者など）を閉じて、スレッド一覧画面を表示
+  hideAllSections();
+  document.getElementById('threadListSection').style.display = 'block';
+
+  // 4. スレッド内の目次（TOC）をクリア・非表示
+  const tocContainer = document.getElementById("threadToc");
+  if (tocContainer) {
+    tocContainer.innerHTML = "";
+    tocContainer.style.display = "none";
+  }
+
+  // 5. 部屋をデフォルト（bord/threads）に戻し、ページ番号を1ページ目にリセット
+  currentRoom = "threads";
+  pageByRoom["threads"] = 1;
+  document.getElementById("currentRoomLabel").textContent = "現在の部屋：bord";
+
+  // 6. 検索フォームに入力されていた文字をクリア
+  const searchInput = document.getElementById("threadSearchInput");
+  if (searchInput) searchInput.value = "";
+
+  // 7. スレッド一覧の再読み込み・描画を実行
+  listenThreads();
+
+  // 8. スレッド一覧のスクロール位置を一番上に戻す
+  document.getElementById("threadListSection").scrollTop = 0;
 };
 </script>
 </body>
