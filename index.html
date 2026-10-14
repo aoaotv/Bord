@@ -412,11 +412,10 @@ textarea { min-height:60px; resize: vertical; }
           <select id="adminBannedAccountSelect" style="display:none;"></select>
           <input id="adminBanReasonInput" style="display:none;" placeholder="BANの理由（例: 規約違反のため）">
 
-          <div id="adminCoinCodeBox" style="display:none;">
+    <div id="adminCoinCodeBox" style="display:none;">
             <input id="genCoinCodeInput" placeholder="コインコード (例: COIN-1234)">
             <button id="genRandomCodeBtn" type="button" class="greenBtn" style="width:100%; margin:4px 0; --btn-color:#2980b9;">🎲 乱数コードを生成</button>
             <input id="genCoinAmountInput" type="number" placeholder="付与コイン数 (例: 1000)" value="1000">
-            <input id="adminAddPasswordInput" type="password" placeholder="チャージコード追加パスワード">
           </div>
         </div>
       </div>
@@ -2034,11 +2033,6 @@ document.getElementById('adminBtn').onclick = async () => {
         showAlert(`アカウント「${accName}」を削除しました。`);
       }
       else if (action === "coinCode") {
-        const addPass = document.getElementById('adminAddPasswordInput').value.trim();
-        if (addPass !== "2026") {
-          hideLoading();
-          return showAlert("チャージコード追加にはパスワードが必要です。");
-        }
         const cCode = document.getElementById('genCoinCodeInput').value.trim();
         const cAmount = Number(document.getElementById('genCoinAmountInput').value) || 1000;
         if (!cCode) return showAlert("発行するコインコードを入力してください");
