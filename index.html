@@ -687,7 +687,7 @@ document.getElementById("accountRegisterBtn").onclick = async () => {
     }
     const initialData = {
       password: pass,
-      coins: getMyCoins(),
+      coins: 1000, // ← 初回報酬を1000に設定
       shares: 0,
       purchasedEmojis: getPurchasedEmojis(),
       purchasedTags: getPurchasedTags(),
@@ -700,6 +700,7 @@ document.getElementById("accountRegisterBtn").onclick = async () => {
     localStorage.setItem("currentAccountName", name);
     nickName = name;
     setCookie("nickName", name);
+    setMyCoins(1000); // ← ローカル側（画面表示やボタン）の所持コインも1000に反映させる
     hideLoading();
     updateAccountStatusUI();
     alert("アカウントを作成し、ログインしました。");
