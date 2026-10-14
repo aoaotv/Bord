@@ -51,6 +51,48 @@ li small span { white-space: nowrap; }
 .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; margin-top: 10px; }
 .store-card { background: #f7f9fc; border: 1px solid #dfe6e9; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; }
 
+/* 全画面グリッドメニューのスタイル */
+#headerMenuContent {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.98);
+  z-index: 3000;
+  box-sizing: border-box;
+  padding: 20px 20px 40px 20px;
+  text-align: left;
+  overflow-y: auto;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  align-content: start;
+}
+.menu-grid-item {
+  background: #f7f9fc;
+  border: 1px solid #dfe6e9;
+  border-radius: 12px;
+  padding: 20px 10px;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+  transition: all 0.15s ease;
+}
+.menu-grid-item:hover {
+  background: #edf2f7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
 #popupForm {
   display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: white; padding: 12px 16px; border-radius: 24px;
@@ -92,12 +134,65 @@ textarea { min-height:60px; resize: vertical; }
 
 #topNotification { display: none; position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: #27ae60; color: white; padding: 12px 24px; border-radius: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 4000; font-size: 14px; font-weight: bold; transition: top 0.4s ease; white-space: nowrap; pointer-events: none; }
 .purchased-badge { background: #27ae60; color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; }
+
+/* 投稿ハイライトスタイル */
+.post-highlighted { border: 2px solid #f1c40f !important; box-shadow: 0 0 12px rgba(241, 196, 15, 0.6); }
+
+/* 名前・文字のエフェクトスタイル（全15種） */
+.name-effect-gold { color: #ffd700 !important; font-weight: bold; text-shadow: 0 0 4px #b8860b; }
+.name-effect-rainbow { background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; display: inline-block; }
+.name-effect-neon { color: #00ffff !important; font-weight: bold; text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff; }
+.name-effect-fire { color: #ff4500 !important; font-weight: bold; text-shadow: 0 0 5px #ff0000, 0 0 10px #ffa500; }
+.name-effect-shadow { color: #fff !important; font-weight: bold; text-shadow: 2px 2px 2px rgba(0,0,0,0.8); }
+.name-effect-galaxy { background: linear-gradient(90deg, #8a2be2, #4169e1, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; display: inline-block; }
+.name-effect-cyber { color: #ff007f !important; font-weight: bold; text-shadow: 1px 1px 0px #00ffff, -1px -1px 0px #ff007f; }
+.name-effect-crystal { color: #e0ffff !important; font-weight: bold; text-shadow: 0 0 5px #00ffff, 0 0 10px #ffffff; }
+
+@keyframes auraPulse {
+  0% { text-shadow: 0 0 4px #ff0000; }
+  50% { text-shadow: 0 0 12px #ff0000, 0 0 20px #ff4500; }
+  100% { text-shadow: 0 0 4px #ff0000; }
+}
+.name-effect-aura { color: #ff3333 !important; font-weight: bold; animation: auraPulse 1.5s infinite alternate; }
+.name-effect-glitch { color: #00ffcc !important; font-weight: bold; text-shadow: 2px 0 #ff0055, -2px 0 #00ffff; }
+
+@keyframes auroraMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.name-effect-aurora {
+  background: linear-gradient(270deg, #70e1f5, #ffd194, #eaafc8, #6b88e6);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+  animation: auroraMove 4s ease infinite;
+  display: inline-block;
+}
+.name-effect-freeze { color: #e0f7fa !important; font-weight: bold; text-shadow: 0 0 6px #00bcd4, 0 0 12px #80deea; }
+.name-effect-poison { color: #76ff03 !important; font-weight: bold; text-shadow: 0 0 5px #32cd32, 0 0 10px #00ff00; }
+.name-effect-holy {
+  background: linear-gradient(45deg, #ffe066, #fff, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+  display: inline-block;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+/* ガチャ演出用モーダル */
+#gachaResultModal {
+  display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: #fff; padding: 20px; border-radius: 16px; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  z-index: 3500; text-align: center; width: 280px; color: #333;
+}
 </style>
 </head>
 <body>
 
 <div id="topNotification"></div>
-<!-- ▼ 変更後 -->
+
 <a href="javascript:void(0);" id="boardLogoBtn">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
     <img src="logo.png" alt="bord" style="height:60px;">
@@ -117,13 +212,26 @@ textarea { min-height:60px; resize: vertical; }
 
 <div style="position: fixed; top: 10px; right: 10px; z-index: 1500;">
   <button id="headerMenuBtn" class="blueBtn" style="background-color: #34495e; padding: 8px 10px; font-size: 12px;">…</button>
-  <div id="headerMenuContent" style="display:none; position:absolute; right:0; top:40px; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.2); width:210px; text-align:left; overflow:hidden;">
-    <div id="menuAccountBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">👤 アカウント管理</div>
-    <div id="menuStockBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">📈 株画面</div>
-    <div id="menuRedeemBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">🪙 コインチャージ画面</div>
-    <div id="menuTagShopBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">🏷️ タグ購入画面</div>
-    <div id="menuEmojiShopBtn" style="padding:12px; border-bottom:1px solid #eee; cursor:pointer; color:#333; font-size:13px;">😀 絵文字購入画面</div>
-    <div id="menuRoomBtn" style="padding:12px; cursor:pointer; color:#333; font-size:13px;">🚪 部屋選択</div>
+  
+  <!-- 全画面グリッドメニュー -->
+  <div id="headerMenuContent">
+    <div style="grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 4px;">
+      <h3 style="margin:0; color:#2c3e50; font-size: 20px;">📱 機能・メニュー一覧</h3>
+      <button id="closeHeaderMenuBtn" class="redBtn" style="margin:0; padding: 6px 16px; font-size: 14px;">✕ 閉じる</button>
+    </div>
+    
+    <div id="menuAccountBtn" class="menu-grid-item">👤<br>アカウント管理</div>
+    <div id="menuProfileBtn" class="menu-grid-item">📖<br>マイプロフィール</div>
+    <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
+    <div id="menuStockBtn" class="menu-grid-item">📈<br>株画面</div>
+    <div id="menuDiceBtn" class="menu-grid-item">🎲<br>サイコロ勝負</div>
+    <div id="menuGachaBtn" class="menu-grid-item">🎰<br>コインガチャ</div>
+    <div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
+    <div id="menuEffectShopBtn" class="menu-grid-item">✨<br>名前エフェクト購入</div>
+    <div id="menuRedeemBtn" class="menu-grid-item">🪙<br>コインチャージ</div>
+    <div id="menuTagShopBtn" class="menu-grid-item">🏷️<br>タグ購入画面</div>
+    <div id="menuEmojiShopBtn" class="menu-grid-item">😀<br>絵文字購入画面</div>
+    <div id="menuRoomBtn" class="menu-grid-item">🚪<br>部屋選択</div>
   </div>
 </div>
 
@@ -141,10 +249,14 @@ textarea { min-height:60px; resize: vertical; }
 
 <!-- スレッド詳細・投稿画面 -->
 <div id="threadDetailSection">
-  <div id="threadHeader">
+  <div id="threadHeader" style="position: relative;">
     <h3 id="threadTitle"></h3>
     <small id="threadDetail"></small>
     <small id="threadCreator"></small>
+    <div style="position: absolute; top: 0; right: 0; display: flex; gap: 6px;">
+      <button id="favoriteThreadBtn" class="greenBtn" style="background: #f1c40f; font-size: 12px; padding: 6px 12px; color: #333;">⭐ お気に入り</button>
+      <button id="boostThreadBtn" class="greenBtn" style="background: #e67e22; font-size: 12px; padding: 6px 12px;">🚀 10分間 📍固定 (500枚)</button>
+    </div>
   </div>
   <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;"></div>
   
@@ -182,7 +294,72 @@ textarea { min-height:60px; resize: vertical; }
   <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; left:20px; z-index: 1100;">戻る</button>
 </div>
 
-<!-- 1. 株画面（独立セクション） -->
+<!-- マイプロフィール画面 -->
+<div id="profileSection" class="full-screen-section">
+  <div class="store-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">📖 マイプロフィール設定</h3>
+      <div style="background:#e67e22; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size: 16px;">
+        所持コイン: <span class="sharedCoinCount">0</span>枚
+      </div>
+    </div>
+    
+    <div style="background:#f7f9fc; padding:20px; border-radius:12px; margin-bottom:25px;">
+      <label>自己紹介文</label>
+      <textarea id="myBioInput" placeholder="プロフィールや趣味などを入力…"></textarea>
+      <button id="saveBioBtn" class="greenBtn" style="width:100%; margin-top:10px;">プロフィールを保存する</button>
+    </div>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- お気に入りスレッド画面 -->
+<div id="favoritesSection" class="full-screen-section">
+  <div class="store-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">⭐ お気に入りスレッド</h3>
+      <div style="background:#e67e22; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size: 16px;">
+        所持コイン: <span class="sharedCoinCount">0</span>枚
+      </div>
+    </div>
+    
+    <ul id="favoritesList" style="margin-bottom:25px;"></ul>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- サイコロ勝負画面 -->
+<div id="diceSection" class="full-screen-section">
+  <div class="store-container" style="text-align: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">🎲 サイコロ勝負 (偶数・奇数当て)</h3>
+      <div style="background:#e67e22; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size: 16px;">
+        所持コイン: <span class="sharedCoinCount">0</span>枚
+      </div>
+    </div>
+    
+    <div style="background:#f7f9fc; padding:30px; border-radius:16px; margin-bottom:25px;">
+      <div id="diceDisplay" style="font-size: 72px; margin-bottom: 10px;">🎲 ?</div>
+      <h4 style="margin: 0 0 10px; font-size: 20px;">出目を当ててコインを倍増！</h4>
+      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">サイコロが「偶数か奇数か」を当てよう！的中すれば賭け金が2倍になって戻ってくる！</p>
+      
+      <label style="max-width:200px; margin:0 auto 8px;">賭けるコイン数</label>
+      <input type="number" id="diceBetInput" value="100" min="10" max="10000" style="max-width:200px; margin:0 auto 15px; text-align:center; font-weight:bold;">
+      
+      <div style="display:flex; justify-content:center; gap:15px;">
+        <button id="diceEvenBtn" class="greenBtn" style="padding: 12px 24px; font-size: 16px; background: #2980b9;">偶数 (Even) 2倍</button>
+        <button id="diceOddBtn" class="greenBtn" style="padding: 12px 24px; font-size: 16px; background: #e74c3c;">奇数 (Odd) 2倍</button>
+      </div>
+      <div id="diceResultText" style="margin-top:20px; font-size:18px; font-weight:bold; color:#333;"></div>
+    </div>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- 株式画面 -->
 <div id="stockSection" class="full-screen-section">
   <div class="store-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
@@ -234,7 +411,47 @@ textarea { min-height:60px; resize: vertical; }
   </div>
 </div>
 
-<!-- 2. コインチャージ画面（独立セクション） -->
+<!-- ガチャ画面 -->
+<div id="gachaSection" class="full-screen-section">
+  <div class="store-container" style="text-align: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">🎰 コインガチャ</h3>
+      <div style="background:#e67e22; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size: 16px;">
+        所持コイン: <span class="sharedCoinCount">0</span>枚
+      </div>
+    </div>
+    
+    <div style="background:#f7f9fc; padding:30px; border-radius:16px; margin-bottom:25px;">
+      <div style="font-size: 72px; margin-bottom: 10px;">🎰</div>
+      <h4 style="margin: 0 0 10px; font-size: 20px;">限定スタンプや大量コインが当たる！</h4>
+      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">1回 300コインで挑戦可能！運が良ければガチャ限定レアスタンプ獲得！</p>
+      
+      <button id="playGachaBtn" class="greenBtn" style="padding: 14px 40px; font-size: 18px; font-weight: bold; background: #8e44ad;">ガチャを回す (300🪙)</button>
+    </div>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- 名前エフェクト購入画面 -->
+<div id="effectShopSection" class="full-screen-section">
+  <div class="store-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">✨ 名前エフェクトショップ（全15種）</h3>
+      <div style="background:#e67e22; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size: 16px;">
+        所持コイン: <span class="sharedCoinCount">0</span>枚
+      </div>
+    </div>
+    
+    <div style="margin-bottom:25px;">
+      <div id="fullStoreEffectShopList" class="store-grid"></div>
+    </div>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- コインチャージ画面 -->
 <div id="redeemSection" class="full-screen-section">
   <div class="store-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
@@ -256,7 +473,7 @@ textarea { min-height:60px; resize: vertical; }
   </div>
 </div>
 
-<!-- 3. タグ購入画面（独立セクション） -->
+<!-- タグ購入画面 -->
 <div id="tagShopSection" class="full-screen-section">
   <div class="store-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
@@ -274,7 +491,7 @@ textarea { min-height:60px; resize: vertical; }
   </div>
 </div>
 
-<!-- 4. 絵文字購入画面（独立セクション） -->
+<!-- 絵文字購入画面 -->
 <div id="emojiShopSection" class="full-screen-section">
   <div class="store-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
@@ -292,7 +509,7 @@ textarea { min-height:60px; resize: vertical; }
   </div>
 </div>
 
-<!-- 5. 管理者操作画面（独立フルスクリーンセクション） -->
+<!-- 管理者操作画面 -->
 <div id="adminSection" class="full-screen-section">
   <div class="store-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
@@ -300,18 +517,14 @@ textarea { min-height:60px; resize: vertical; }
       <button class="closeSectionBtn greenBtn" style="margin:0; padding: 6px 16px; background-color:#7f8c8d;">ボードに戻る</button>
     </div>
 
-    <!-- 管理者未ログイン時 -->
     <div id="adminLoginPanel" style="background:#f7f9fc; padding:30px; border-radius:12px; text-align:center; max-width:400px; margin:40px auto;">
       <h4 style="margin-top:0; color:#333;">管理者ログイン</h4>
       <input id="adminPasswordInput" type="password" placeholder="管理者パスワードを入力" style="margin-bottom:15px;">
       <button id="adminLoginSubmitBtn" class="redBtn" style="width:100%; padding:12px; font-weight:bold;">ログインする</button>
     </div>
 
-    <!-- 管理者ログイン後 -->
     <div id="adminDashboardPanel" style="display:none;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 25px;">
-        
-        <!-- バッジ・表示設定 -->
         <div class="adminPanel">
           <h4>🏷️ 公式バッジ設定</h4>
           <div id="adminBadgeStatus" style="font-weight:bold; color:#333; margin-bottom:8px;">公式バッジ: OFF</div>
@@ -323,7 +536,6 @@ textarea { min-height:60px; resize: vertical; }
           </div>
         </div>
 
-        <!-- コインコード生成 -->
         <div class="adminPanel">
           <h4>🪙 コインコード発行</h4>
           <label>コインコード</label>
@@ -336,7 +548,6 @@ textarea { min-height:60px; resize: vertical; }
           <button id="createCoinCodeBtn" type="button" class="greenBtn" style="width:100%; margin-top:10px;">コードを発行する</button>
         </div>
 
-        <!-- 株価編集 -->
         <div class="adminPanel">
           <h4>📈 株価強制編集</h4>
           <label>変更後の株価 (コイン)</label>
@@ -344,7 +555,6 @@ textarea { min-height:60px; resize: vertical; }
           <button id="adminUpdateStockBtn" type="button" class="greenBtn" style="width:100%;">株価を強制変更</button>
         </div>
 
-        <!-- 部屋削除 -->
         <div class="adminPanel">
           <h4>🚪 部屋削除</h4>
           <label>削除する部屋を選択</label>
@@ -352,7 +562,6 @@ textarea { min-height:60px; resize: vertical; }
           <button id="deleteRoomBtn" type="button" class="redBtn" style="width:100%; margin-top:10px;">選択した部屋を削除</button>
         </div>
 
-        <!-- IP BAN管理 -->
         <div class="adminPanel">
           <h4>🚫 IP制限 (BAN)</h4>
           <label>BANするIPアドレス</label>
@@ -362,10 +571,8 @@ textarea { min-height:60px; resize: vertical; }
           <select id="adminBannedIpSelect"><option value="">BAN済みIP選択</option></select>
           <button id="ipUnbanBtn" type="button" class="greenBtn" style="width:100%; margin-top:6px; --btn-color:#2980b9;">BAN解除</button>
         </div>
-
       </div>
 
-      <!-- アカウント管理・スレッド管理セクション -->
       <div class="adminPanel" style="margin-bottom:20px;">
         <h4>👥 アカウント・スレッド・投稿の一括操作管理</h4>
         <div style="display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
@@ -373,7 +580,6 @@ textarea { min-height:60px; resize: vertical; }
           <button id="tabThreadBtn" class="greenBtn" style="background:#95a5a6;">スレッド管理</button>
         </div>
 
-        <!-- アカウント管理タブ -->
         <div id="subTabAcc">
           <label>対象アカウント</label>
           <select id="adminAccountSelect" style="margin-bottom:8px;"><option value="">アカウント選択</option></select>
@@ -389,7 +595,6 @@ textarea { min-height:60px; resize: vertical; }
             <button id="accDeleteBtn" class="redBtn">🗑️ アカウント削除</button>
           </div>
 
-          <!-- チェックボックスによるタグ・スタンプ編集エリア -->
           <div style="background:#fff; border:1px solid #dfe6e9; border-radius:10px; padding:14px; margin-top:10px;">
             <h5 style="margin:0 0 8px; color:#2c3e50;">🏷️ 所有タグ・スタンプのチェックボックス編集</h5>
             <small style="color:#666; display:block; margin-bottom:8px;">上記でアカウントを選択すると、そのユーザーが所持しているアイテムにチェックが入ります。</small>
@@ -410,7 +615,6 @@ textarea { min-height:60px; resize: vertical; }
           </div>
         </div>
 
-        <!-- スレッド・投稿管理タブ -->
         <div id="subTabThread" style="display:none;">
           <label>対象スレッド</label>
           <select id="adminThreadSelect" style="margin-bottom:8px;"><option value="">スレッド選択</option></select>
@@ -419,7 +623,7 @@ textarea { min-height:60px; resize: vertical; }
           
           <div style="display:flex; gap:15px; margin:10px 0; flex-wrap:wrap;">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="chkLock" style="width:auto; height:auto;"> ロックする</label>
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="chkPin" style="width:auto; height:auto;"> ピン留めする</label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="chkPin" style="width:auto; height:auto;"> ピン留めする (📌)</label>
           </div>
 
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -428,14 +632,44 @@ textarea { min-height:60px; resize: vertical; }
             <button id="postDeleteBtn" class="redBtn">🗑️ 選択した投稿を削除</button>
           </div>
         </div>
-
       </div>
     </div>
-
   </div>
 </div>
 
 <div id="overlay"></div>
+
+<!-- ユーザープロフィール閲覧モーダル -->
+<div id="userProfileModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:16px; box-shadow:0 0 15px rgba(0,0,0,0.4); z-index:2600; width:300px; text-align:left; color:#333;">
+  <h3 id="modalProfileName" style="margin-top:0; color:#2c3e50; border-bottom:2px solid #eee; padding-bottom:8px;">ユーザープロフィール</h3>
+  <div style="margin: 12px 0;">
+    <strong style="font-size:13px; color:#555;">自己紹介:</strong>
+    <p id="modalProfileBio" style="background:#f9f9f9; padding:8px; border-radius:6px; min-height:50px; font-size:14px; margin:4px 0 0; white-space:pre-wrap;">(未設定)</p>
+  </div>
+  <div style="font-size:13px; color:#555; margin-bottom:12px;">
+    <div>保有株数: <strong id="modalProfileShares" style="color:#2c3e50;">0 株</strong></div>
+  </div>
+  <button id="closeUserProfileModal" class="greenBtn" style="width:100%; background:#7f8c8d;">閉じる</button>
+</div>
+
+<!-- ガチャ結果用モーダル -->
+<div id="gachaResultModal">
+  <h3 style="margin-top:0; color:#e67e22;">🎰 ガチャ結果</h3>
+  <div id="gachaResultContent" style="font-size:20px; font-weight:bold; margin: 20px 0;"></div>
+  <button id="closeGachaResultBtn" class="greenBtn" style="width:100%;">OK</button>
+</div>
+
+<!-- チップ（投げ銭）ダイアログ -->
+<div id="tipModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:16px; box-shadow:0 0 15px rgba(0,0,0,0.4); z-index:2600; width:280px; text-align:center;">
+  <h3 style="margin-top:0; color:#e67e22;">🎁 チップを送る</h3>
+  <p id="tipTargetText" style="font-size:14px; color:#555;"></p>
+  <label>送信コイン数</label>
+  <input type="number" id="tipAmountInput" value="50" min="10" max="10000" style="text-align:center; font-weight:bold; margin-bottom:15px;">
+  <div style="display:flex; gap:10px;">
+    <button id="confirmTipBtn" class="greenBtn" style="flex:1;">送信</button>
+    <button id="closeTipModalBtn" class="greenBtn" style="flex:1; background:#7f8c8d;">キャンセル</button>
+  </div>
+</div>
 
 <!-- 部屋選択ポップアップ -->
 <div id="roomPopup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:16px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,.5); z-index:2600; width:280px; color:#333;">
@@ -510,6 +744,9 @@ textarea { min-height:60px; resize: vertical; }
     <select id="postColorInput">
       <option value="#3498db">青</option><option value="#2ecc71">緑</option><option value="#e74c3c">赤</option><option value="#9b59b6">紫</option><option value="#f39c12">オレンジ</option><option value="#1abc9c">エメラルド</option><option value="#34495e">ダーク</option><option value="#d35400">茶</option><option value="#7f8c8d">グレー</option><option value="#16a085">深緑</option>
     </select>
+    <div style="margin-top:8px;">
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="postHighlightChk" style="width:auto; height:auto;"> 🌟 投稿をハイライト表示する (100コイン)</label>
+    </div>
   </div>
   <div id="passwordFields" style="display:none;">
     <label>スレッドパスワードを入力してください</label>
@@ -577,9 +814,12 @@ function setupAccountListener() {
       localStorage.removeItem("myShares");
       localStorage.removeItem("purchasedEmojis");
       localStorage.removeItem("purchasedTags");
+      localStorage.removeItem("purchasedEffects");
       localStorage.removeItem("customTagEnabled");
       localStorage.removeItem("customTagName");
       localStorage.removeItem("customTagColor");
+      localStorage.removeItem("activeNameEffect");
+      localStorage.removeItem("myBio");
       
       nickName = generateRandomAnonymousName();
       setCookie("nickName", nickName);
@@ -596,9 +836,12 @@ function setupAccountListener() {
     localStorage.setItem("myShares", acc.shares || 0);
     localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
     localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
+    localStorage.setItem("purchasedEffects", JSON.stringify(acc.purchasedEffects || []));
     localStorage.setItem("customTagEnabled", acc.customTagEnabled ? "true" : "false");
     localStorage.setItem("customTagName", acc.customTagName || "");
     localStorage.setItem("customTagColor", acc.customTagColor || "");
+    localStorage.setItem("activeNameEffect", acc.activeNameEffect || "");
+    localStorage.setItem("myBio", acc.bio || "");
 
     updateCoinButtonDisplay();
     renderStampMenu();
@@ -641,10 +884,13 @@ function setMyCoins(amount) {
       coins: amount,
       purchasedEmojis: getPurchasedEmojis(),
       purchasedTags: getPurchasedTags(),
+      purchasedEffects: getPurchasedEffects(),
       shares: getMyShares(),
       customTagEnabled: localStorage.getItem("customTagEnabled") === "true",
       customTagName: localStorage.getItem("customTagName") || "",
-      customTagColor: localStorage.getItem("customTagColor") || ""
+      customTagColor: localStorage.getItem("customTagColor") || "",
+      activeNameEffect: localStorage.getItem("activeNameEffect") || "",
+      bio: localStorage.getItem("myBio") || ""
     });
   }
 }
@@ -698,19 +944,22 @@ document.getElementById("accountRegisterBtn").onmouseover = () => {
   accountRegisterExtra.style.display = "block";
 };
 
+// 全画面グリッドメニューの開閉制御
 const headerMenuBtn = document.getElementById("headerMenuBtn");
 const headerMenuContent = document.getElementById("headerMenuContent");
+const closeHeaderMenuBtn = document.getElementById("closeHeaderMenuBtn");
 
 headerMenuBtn.onclick = (e) => {
   e.stopPropagation();
-  headerMenuContent.style.display = headerMenuContent.style.display === "block" ? "none" : "block";
+  headerMenuContent.style.display = "grid";
 };
 
-document.addEventListener("click", () => {
-  if (headerMenuContent) headerMenuContent.style.display = "none";
-});
+closeHeaderMenuBtn.onclick = () => {
+  headerMenuContent.style.display = "none";
+};
 
 document.getElementById("menuAccountBtn").onclick = () => {
+  headerMenuContent.style.display = "none";
   accountRegisterExtra.style.display = "block";
   updateAccountStatusUI();
   document.getElementById("accountPopup").style.display = "block";
@@ -719,13 +968,19 @@ document.getElementById("menuAccountBtn").onclick = () => {
 
 // --- 各専用画面の開閉制御 ---
 function hideAllSections() {
+  headerMenuContent.style.display = "none";
   document.getElementById("threadListSection").style.display = "none";
   document.getElementById("threadDetailSection").style.display = "none";
   document.getElementById("stockSection").style.display = "none";
+  document.getElementById("gachaSection").style.display = "none";
+  document.getElementById("effectShopSection").style.display = "none";
   document.getElementById("redeemSection").style.display = "none";
   document.getElementById("tagShopSection").style.display = "none";
   document.getElementById("emojiShopSection").style.display = "none";
   document.getElementById("adminSection").style.display = "none";
+  document.getElementById("profileSection").style.display = "none";
+  document.getElementById("favoritesSection").style.display = "none";
+  document.getElementById("diceSection").style.display = "none";
 }
 
 let stockChart = null;
@@ -744,6 +999,21 @@ document.getElementById("menuStockBtn").onclick = () => {
     const container = document.getElementById('chartWrapper')?.parentElement;
     if (container) container.scrollLeft = container.scrollWidth;
   }, 50);
+};
+
+document.getElementById("menuGachaBtn").onclick = () => {
+  if (!currentAccount) return alert("ガチャ機能を利用するにはアカウントが必要です。");
+  hideAllSections();
+  document.getElementById("gachaSection").style.display = "block";
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+};
+
+document.getElementById("menuEffectShopBtn").onclick = () => {
+  if (!currentAccount) return alert("エフェクトショップを利用するにはアカウントが必要です。");
+  hideAllSections();
+  document.getElementById("effectShopSection").style.display = "block";
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+  renderEffectShop();
 };
 
 document.getElementById("menuRedeemBtn").onclick = () => {
@@ -769,6 +1039,59 @@ document.getElementById("menuEmojiShopBtn").onclick = () => {
   renderEmojiShop();
 };
 
+document.getElementById("menuProfileBtn").onclick = () => {
+  if (!currentAccount) return alert("プロフィール機能を利用するにはアカウントが必要です。");
+  hideAllSections();
+  document.getElementById("profileSection").style.display = "block";
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+  document.getElementById("myBioInput").value = localStorage.getItem("myBio") || "";
+};
+
+document.getElementById("menuFavoritesBtn").onclick = () => {
+  if (!currentAccount) return alert("お気に入り機能を利用するにはアカウントが必要です。");
+  hideAllSections();
+  document.getElementById("favoritesSection").style.display = "block";
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+  renderFavoritesList();
+};
+
+document.getElementById("menuDiceBtn").onclick = () => {
+  if (!currentAccount) return alert("サイコロ勝負を利用するにはアカウントが必要です。");
+  hideAllSections();
+  document.getElementById("diceSection").style.display = "block";
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+  document.getElementById("diceResultText").textContent = "";
+  document.getElementById("diceDisplay").textContent = "🎲 ?";
+};
+
+document.getElementById("menuCoinRainBtn").onclick = async () => {
+  headerMenuContent.style.display = "none";
+  if (!currentAccount) return alert("コインの雨機能を使うにはログインしてください。");
+  const myCoins = getMyCoins();
+  const rainCost = 1000;
+  if (myCoins < rainCost) return alert(`コインが足りません（必要: ${rainCost}枚）`);
+  const onlineUsers = window.currentOnlineUsers || [];
+  if (onlineUsers.length <= 1) return alert("現在他にオンラインのユーザーがいないため、コインの雨を降らせられません。");
+  if (!confirm(`1,000コインを消費して、オンラインの ${onlineUsers.length} 人にコインの雨を降らせますか？`)) return;
+
+  setMyCoins(myCoins - rainCost);
+  const sharePerUser = Math.floor(rainCost / onlineUsers.length);
+  showLoading("コインの雨を降らせています… 🪙");
+  try {
+    for (const targetUser of onlineUsers) {
+      if (targetUser === currentAccount) continue;
+      const userRef = doc(db, "accounts", targetUser);
+      await updateDoc(userRef, { coins: increment(sharePerUser) });
+    }
+    hideLoading();
+    alert(`🎉 「${currentAccount}」さんがコインの雨を降らせました！一人あたり ${sharePerUser} コインが分配されました。`);
+    await saveLog("coin_rain", { amount: rainCost, recipientsCount: onlineUsers.length });
+  } catch(e) {
+    hideLoading();
+    alert("分配処理中にエラーが発生しました。");
+  }
+};
+
 document.querySelectorAll(".closeSectionBtn").forEach(btn => {
   btn.onclick = () => {
     hideAllSections();
@@ -777,6 +1100,7 @@ document.querySelectorAll(".closeSectionBtn").forEach(btn => {
 });
 
 document.getElementById("menuRoomBtn").onclick = async () => {
+  headerMenuContent.style.display = "none";
   document.getElementById("roomPopup").style.display = "block"; 
   document.getElementById("overlay").style.display = "block";
   const sel = document.getElementById("roomSelectDropdown"); 
@@ -789,6 +1113,143 @@ document.getElementById("closeAccountPopup").onclick = () => {
   document.getElementById("accountPopup").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 };
+
+// --- プロフィール保存・閲覧機能 ---
+document.getElementById("saveBioBtn").onclick = async () => {
+  if (!currentAccount) return;
+  const bio = document.getElementById("myBioInput").value.trim();
+  localStorage.setItem("myBio", bio);
+  showLoading("プロフィールを保存中...");
+  try {
+    await saveAccountData({ bio });
+    hideLoading();
+    alert("プロフィールを保存しました！");
+  } catch(e) {
+    hideLoading();
+    alert("保存に失敗しました。");
+  }
+};
+
+async function openUserProfile(accountName) {
+  showLoading("プロフィールを読み込み中...");
+  try {
+    const accData = await getAccountData(accountName);
+    hideLoading();
+    if (!accData) return alert("アカウント情報が見つかりません。");
+    
+    document.getElementById("modalProfileName").textContent = `${accountName} のプロフィール`;
+    document.getElementById("modalProfileBio").textContent = accData.bio || "(自己紹介はありません)";
+    document.getElementById("modalProfileShares").textContent = `${accData.shares || 0} 株`;
+    
+    document.getElementById("userProfileModal").style.display = "block";
+    document.getElementById("overlay").style.display = "block";
+  } catch(e) {
+    hideLoading();
+    alert("情報の取得に失敗しました。");
+  }
+}
+
+document.getElementById("closeUserProfileModal").onclick = () => {
+  document.getElementById("userProfileModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
+
+// --- お気に入り（ブックマーク）機能 ---
+function getFavorites() {
+  const data = localStorage.getItem("myFavorites");
+  return data ? JSON.parse(data) : [];
+}
+
+function saveFavorite(threadId, title) {
+  let favs = getFavorites();
+  const exists = favs.find(f => f.id === threadId);
+  if (!exists) {
+    favs.push({ id: threadId, title: title, room: currentRoom });
+    localStorage.setItem("myFavorites", JSON.stringify(favs));
+    alert("お気に入りに追加しました！");
+  } else {
+    favs = favs.filter(f => f.id !== threadId);
+    localStorage.setItem("myFavorites", JSON.stringify(favs));
+    alert("お気に入りを解除しました。");
+  }
+}
+
+document.getElementById("favoriteThreadBtn").onclick = () => {
+  if (!currentAccount) return alert("お気に入り機能を使うにはログインしてください。");
+  if (!currentThreadId) return;
+  saveFavorite(currentThreadId, currentThreadTitle);
+};
+
+function renderFavoritesList() {
+  const listEl = document.getElementById("favoritesList");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  const favs = getFavorites();
+  if (favs.length === 0) {
+    listEl.innerHTML = "<li style='background:#95a5a6; text-align:center;'>お気に入り登録されたスレッドはありません</li>";
+    return;
+  }
+  favs.forEach(f => {
+    const li = document.createElement("li");
+    li.style.backgroundColor = "#3498db";
+    li.innerHTML = `<strong>⭐ ${f.title}</strong><small>部屋: ${f.room}</small>`;
+    li.onclick = async () => {
+      hideAllSections();
+      currentRoom = f.room;
+      document.getElementById("threadListSection").style.display = "none";
+      document.getElementById("threadDetailSection").style.display = "block";
+      try {
+        const docSnap = await getDoc(doc(db, currentRoom, f.id));
+        if (docSnap.exists()) {
+          openThread(f.id, docSnap.data());
+        } else {
+          alert("このスレッドは削除されています。");
+          document.getElementById("threadDetailSection").style.display = "none";
+          document.getElementById("threadListSection").style.display = "block";
+        }
+      } catch(e) {}
+    };
+    listEl.appendChild(li);
+  });
+}
+
+// --- サイコロ勝負ミニゲーム ---
+document.getElementById("diceEvenBtn").onclick = () => playDice("even");
+document.getElementById("diceOddBtn").onclick = () => playDice("odd");
+
+async function playDice(choice) {
+  if (!currentAccount) return alert("サイコロ勝負を行うにはログインしてください。");
+  const betInput = document.getElementById("diceBetInput");
+  const bet = parseInt(betInput.value, 10);
+  if (isNaN(bet) || bet <= 0) return alert("有効な賭けコイン数を入力してください。");
+  const myCoins = getMyCoins();
+  if (myCoins < bet) return alert("コインが足りません！");
+
+  setMyCoins(myCoins - bet);
+  const resultDisplay = document.getElementById("diceDisplay");
+  resultDisplay.textContent = "🎲 転がし中…";
+  document.getElementById("diceResultText").textContent = "";
+
+  setTimeout(async () => {
+    const diceVal = Math.floor(Math.random() * 6) + 1;
+    resultDisplay.textContent = `🎲 ${diceVal}`;
+    const isEven = (diceVal % 2 === 0);
+    const userWin = (choice === "even" && isEven) || (choice === "odd" && !isEven);
+
+    const resultTextEl = document.getElementById("diceResultText");
+    if (userWin) {
+      const reward = bet * 2;
+      setMyCoins(getMyCoins() + reward);
+      resultTextEl.style.color = "#27ae60";
+      resultTextEl.textContent = `🎉 当たり！ ${reward} コイン獲得しました！`;
+      await saveLog("dice_win", { bet, reward, diceVal });
+    } else {
+      resultTextEl.style.color = "#c0392b";
+      resultTextEl.textContent = `😢 ハズレ… ${bet} コイン没収されました。`;
+      await saveLog("dice_lose", { bet, diceVal });
+    }
+  }, 600);
+}
 
 document.getElementById("accountRegisterBtn").onclick = async () => {
   const name = document.getElementById("accountNameInput").value.trim();
@@ -809,11 +1270,14 @@ document.getElementById("accountRegisterBtn").onclick = async () => {
       password: pass,
       coins: 1000,
       shares: 0,
+      bio: "",
       purchasedEmojis: getPurchasedEmojis(),
       purchasedTags: getPurchasedTags(),
+      purchasedEffects: getPurchasedEffects(),
       customTagEnabled: localStorage.getItem("customTagEnabled") === "true",
       customTagName: localStorage.getItem("customTagName") || "",
-      customTagColor: localStorage.getItem("customTagColor") || ""
+      customTagColor: localStorage.getItem("customTagColor") || "",
+      activeNameEffect: localStorage.getItem("activeNameEffect") || ""
     };
     await setDoc(doc(db, "accounts", name), initialData);
     currentAccount = name;
@@ -859,11 +1323,14 @@ document.getElementById("accountLoginBtn").onclick = async () => {
 
     localStorage.setItem("myCoins", acc.coins !== undefined ? acc.coins : 1000);
     localStorage.setItem("myShares", acc.shares || 0);
+    localStorage.setItem("myBio", acc.bio || "");
     localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
     localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
+    localStorage.setItem("purchasedEffects", JSON.stringify(acc.purchasedEffects || []));
     localStorage.setItem("customTagEnabled", acc.customTagEnabled ? "true" : "false");
     localStorage.setItem("customTagName", acc.customTagName || "");
     localStorage.setItem("customTagColor", acc.customTagColor || "");
+    localStorage.setItem("activeNameEffect", acc.activeNameEffect || "");
 
     setupAccountListener();
     updateAccountStatusUI();
@@ -884,11 +1351,14 @@ document.getElementById("accountLogoutBtn").onclick = () => {
   
   localStorage.setItem("myCoins", 0);
   localStorage.removeItem("myShares");
+  localStorage.removeItem("myBio");
   localStorage.removeItem("purchasedEmojis");
   localStorage.removeItem("purchasedTags");
+  localStorage.removeItem("purchasedEffects");
   localStorage.removeItem("customTagEnabled");
   localStorage.removeItem("customTagName");
   localStorage.removeItem("customTagColor");
+  localStorage.removeItem("activeNameEffect");
   
   nickName = generateRandomAnonymousName();
   setCookie("nickName", nickName);
@@ -1063,6 +1533,253 @@ document.getElementById("sellStockBtn").onclick = async () => {
   setMyCoins(newCoins); setMyShares(newShares);
   alert(`株を ${qty} 株売却しました。`);
   try { await updateDoc(doc(db, "accounts", currentAccount), { coins: newCoins, shares: newShares }); } catch (e) {}
+};
+
+// --- ガチャシステム ---
+// --- ガチャシステム（100種類近くに拡張版） ---
+const GACHA_COINS = [
+  { value: 10, name: "10 コイン", rate: 30 },
+  { value: 30, name: "30 コイン", rate: 25 },
+  { value: 50, name: "50 コイン", rate: 20 },
+  { value: 100, name: "100 コイン", rate: 15 },
+  { value: 200, name: "200 コイン", rate: 10 },
+  { value: 300, name: "300 コイン (トントン!)", rate: 8 },
+  { value: 500, name: "500 コイン", rate: 5 },
+  { value: 1000, name: "1000 コイン (大当り!)", rate: 2 },
+  { value: 5000, name: "5000 コイン (超大当り!!)", rate: 0.5 },
+  { value: 10000, name: "10000 コイン (神引き!!!)", rate: 0.1 }
+];
+
+// 多彩な絵文字（スタンプ）を大量登録
+const GACHA_EMOJIS = [
+  "👑","💎","🦄","🐉","🔥","⚡","🌟","🎉","🎆","🪐","🔱","🍾","🎰","🏆","🧿","🔮","🗿","👾","🤖","👻",
+  "🤡","☠️","👽","🎃","🐙","🦑","🦀","🐡","🐬","🐋","🐅","🐆","🐘","🦣","🦏","🦛","🐪","🦙","🦒","🦘",
+  "🍎","🍏","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑",
+  "🍞","🥐","🥖","🫓","🥨","🥯","🥞","🧇","🧀","🍖","🍗","🥩","🥓","🍔","🍟","🍕","🌭","🥪","🌮","🌯",
+  "⚽️","🏀","🏈","⚾️","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🏒","🏑","🥍","🏏","🪃","🥅","⛳️"
+];
+
+// ガチャ限定の特殊タグ
+const GACHA_TAGS = [
+  { value: "🎰ガチャ廃人|#ff0055", name: "🎰ガチャ廃人", rate: 1 },
+  { value: "✨強運の持ち主|#ffd700", name: "✨強運の持ち主", rate: 2 },
+  { value: "👑神引きの帝王|#9d4edd", name: "👑神引きの帝王", rate: 0.5 },
+  { value: "💸爆死の常連|#6c757d", name: "💸爆死の常連", rate: 3 },
+  { value: "🍀幸運の使者|#2ecc71", name: "幸運の使者", rate: 2 }
+];
+
+// すべてを自動結合して100種類規模のガチャリストを生成
+const GACHA_ITEMS = [
+  ...GACHA_COINS.map(c => ({ type: "coin", value: c.value, name: c.name, rate: c.rate })),
+  ...GACHA_EMOJIS.map(e => ({ type: "emoji", value: e, name: `限定スタンプ ${e}`, rate: 4 })),
+  ...GACHA_TAGS.map(t => ({ type: "tag", value: t.value, name: `限定タグ [${t.name}]`, rate: t.rate }))
+];
+
+document.getElementById("playGachaBtn").onclick = () => {
+  if (!currentAccount) return alert("ガチャを利用するにはアカウントにログインしてください。");
+  const myCoins = getMyCoins();
+  if (myCoins < 300) return alert("コインが足りません (必要: 300コイン)");
+
+  setMyCoins(myCoins - 300);
+
+  const totalRate = GACHA_ITEMS.reduce((sum, item) => sum + item.rate, 0);
+  let random = Math.random() * totalRate;
+  let selected = GACHA_ITEMS[0];
+
+  for (const item of GACHA_ITEMS) {
+    if (random < item.rate) {
+      selected = item;
+      break;
+    }
+    random -= item.rate;
+  }
+
+  if (selected.type === "coin") {
+    setMyCoins(getMyCoins() + selected.value);
+  } else if (selected.type === "emoji") {
+    savePurchasedEmoji(selected.value);
+    renderStampMenu();
+  }
+
+  document.getElementById("gachaResultContent").textContent = selected.name;
+  document.getElementById("gachaResultModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+};
+
+document.getElementById("closeGachaResultBtn").onclick = () => {
+  document.getElementById("gachaResultModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
+
+// --- 名前エフェクトショップ（全15種） ---
+const SHOP_EFFECTS = [
+  { id: "", name: "エフェクトなし（標準）", cssClass: "", price: 0 },
+  { id: "gold", name: "ゴールドネーム", cssClass: "name-effect-gold", price: 2000 },
+  { id: "rainbow", name: "レインボーネーム", cssClass: "name-effect-rainbow", price: 5000 },
+  { id: "neon", name: "ネオンライト", cssClass: "name-effect-neon", price: 3000 },
+  { id: "fire", name: "ファイヤー", cssClass: "name-effect-fire", price: 4000 },
+  { id: "shadow", name: "ダークシャドウ", cssClass: "name-effect-shadow", price: 2500 },
+  { id: "galaxy", name: "ギャラクシー", cssClass: "name-effect-galaxy", price: 6000 },
+  { id: "cyber", name: "サイバーパンク", cssClass: "name-effect-cyber", price: 4500 },
+  { id: "crystal", name: "クリスタル", cssClass: "name-effect-crystal", price: 3500 },
+  { id: "aura", name: "オーラ（赤明滅）", cssClass: "name-effect-aura", price: 5500 },
+  { id: "glitch", name: "グリッチサイバー", cssClass: "name-effect-glitch", price: 5000 },
+  { id: "aurora", name: "流動オーロラ", cssClass: "name-effect-aurora", price: 7000 },
+  { id: "freeze", name: "氷結フリーズ", cssClass: "name-effect-freeze", price: 3800 },
+  { id: "poison", name: "ポイズンフォグ", cssClass: "name-effect-poison", price: 3200 },
+  { id: "holy", name: "黄金神殿", cssClass: "name-effect-holy", price: 10000 }
+];
+
+function getPurchasedEffects() {
+  const data = localStorage.getItem("purchasedEffects");
+  return data ? JSON.parse(data) : [];
+}
+
+function savePurchasedEffect(effId) {
+  if (!effId) return;
+  const list = getPurchasedEffects();
+  if (!list.includes(effId)) {
+    list.push(effId);
+    localStorage.setItem("purchasedEffects", JSON.stringify(list));
+    if (currentAccount) saveAccountData({ purchasedEffects: list });
+  }
+}
+
+function renderEffectShop() {
+  const container = document.getElementById("fullStoreEffectShopList");
+  if (!container) return;
+  container.innerHTML = "";
+  const purchased = getPurchasedEffects();
+  const currentCoins = getMyCoins();
+  const activeEff = localStorage.getItem("activeNameEffect") || "";
+
+  SHOP_EFFECTS.forEach(item => {
+    const isFree = (item.price === 0);
+    const isOwned = isFree || purchased.includes(item.id);
+    const isActive = (activeEff === item.id);
+
+    const card = document.createElement("div");
+    card.className = "store-card";
+
+    const topDiv = document.createElement("div");
+    topDiv.innerHTML = `<strong class="${item.cssClass}" style="font-size: 16px;">${item.name}</strong><br><span style="font-size: 13px; color:#e67e22; font-weight:bold;">${isFree ? '無料' : item.price + ' コイン'}</span>`;
+    if (isOwned && !isFree) topDiv.innerHTML += ` <span class="purchased-badge">所有中</span>`;
+
+    const btn = document.createElement("button");
+    btn.className = "greenBtn";
+    btn.style.width = "100%"; btn.style.marginTop = "10px"; btn.style.padding = "8px"; btn.style.fontSize = "13px";
+
+    if (!isOwned && !isFree) {
+      btn.textContent = "購入する";
+      btn.onclick = () => {
+        if (currentCoins < item.price) return alert("コインが足りません。");
+        setMyCoins(currentCoins - item.price);
+        savePurchasedEffect(item.id);
+        localStorage.setItem("activeNameEffect", item.id);
+        saveAccountData({ activeNameEffect: item.id });
+        renderEffectShop();
+        alert(`${item.name} を購入・適用しました。`);
+      };
+    } else if (isActive) {
+      btn.textContent = "着用中"; btn.disabled = true; btn.style.backgroundColor = "#27ae60";
+    } else {
+      btn.textContent = "適用する"; btn.style.backgroundColor = "#2980b9";
+      btn.onclick = () => {
+        localStorage.setItem("activeNameEffect", item.id);
+        saveAccountData({ activeNameEffect: item.id });
+        renderEffectShop();
+        alert(`${item.name} を適用しました。`);
+      };
+    }
+    card.appendChild(topDiv); card.appendChild(btn); container.appendChild(card);
+  });
+}
+
+// --- チップ（投げ銭）機能 ---
+let currentTipTargetAccount = null;
+
+function openTipModal(targetName) {
+  if (!currentAccount) return alert("チップを送るにはアカウントにログインしてください。");
+  if (targetName === currentAccount) return alert("自分自身にチップを送ることはできません。");
+
+  currentTipTargetAccount = targetName;
+  document.getElementById("tipTargetText").textContent = `「${targetName}」さんへチップを送ります`;
+  document.getElementById("tipModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+}
+
+document.getElementById("closeTipModalBtn").onclick = () => {
+  document.getElementById("tipModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
+
+document.getElementById("confirmTipBtn").onclick = async () => {
+  const amount = parseInt(document.getElementById("tipAmountInput").value, 10);
+  if (isNaN(amount) || amount <= 0) return alert("有効なコイン数を入力してください");
+  const myCoins = getMyCoins();
+  if (myCoins < amount) return alert(`コインが足りません (所持: ${myCoins}枚)`);
+
+  showLoading("チップを送信中...");
+  try {
+    const targetData = await getAccountData(currentTipTargetAccount);
+    if (!targetData) {
+      hideLoading();
+      return alert("相手のアカウントが存在しないか削除されています。");
+    }
+
+    setMyCoins(myCoins - amount);
+
+    const targetRef = doc(db, "accounts", currentTipTargetAccount);
+    await updateDoc(targetRef, {
+      coins: increment(amount),
+      updated_at: Timestamp.now()
+    });
+
+    await saveLog("send_tip", { from: currentAccount, to: currentTipTargetAccount, amount });
+
+    hideLoading();
+    alert(`「${currentTipTargetAccount}」さんに ${amount} コインのチップを送りました！`);
+    document.getElementById("tipModal").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  } catch(e) {
+    hideLoading();
+    alert("チップの送信に失敗しました。");
+  }
+};
+
+// --- スレッド注目ブースト機能（10分間限定 📍マーク・金払ったやつのみ） ---
+function isThreadBoostedValid(data) {
+  if (!data.boosted || !data.boostedAt) return false;
+  const boostedTime = data.boostedAt.toMillis ? data.boostedAt.toMillis() : new Date(data.boostedAt).getTime();
+  const tenMinutes = 10 * 60 * 1000;
+  return (Date.now() - boostedTime) <= tenMinutes;
+}
+
+document.getElementById("boostThreadBtn").onclick = async () => {
+  if (!currentAccount) return alert("注目固定機能を利用するにはアカウントにログインしてください。");
+  if (!currentThreadId) return;
+
+  const myCoins = getMyCoins();
+  if (myCoins < 500) return alert("コインが足りません (必要: 500コイン)");
+
+  if (!confirm("500コインを消費してこのスレッドを10分間 📍マーク付きで注目固定しますか？")) return;
+
+  showLoading("ブースト適用中...");
+  try {
+    setMyCoins(myCoins - 500);
+    await updateDoc(doc(db, currentRoom, currentThreadId), {
+      boosted: true,
+      boostedBy: currentAccount,
+      boostedAt: serverTimestamp(),
+      ...getBoardWriteMeta()
+    });
+    await saveLog("boost_thread", { threadId: currentThreadId, title: currentThreadTitle });
+    hideLoading();
+    alert("スレッドを10分間 📍マーク付きで注目固定しました！");
+  } catch(e) {
+    hideLoading();
+    alert("ブーストに失敗しました。");
+  }
 };
 
 const SHOP_TAGS = [
@@ -1283,7 +2000,12 @@ document.getElementById("fullStoreRedeemBtn").onclick = async () => {
 
 function getCustomTagData() {
   const enabled = localStorage.getItem("customTagEnabled") === "true";
-  return { customTag: enabled, customTagName: localStorage.getItem("customTagName") || "", customTagColor: localStorage.getItem("customTagColor") || "#e74c3c" };
+  return {
+    customTag: enabled,
+    customTagName: localStorage.getItem("customTagName") || "",
+    customTagColor: localStorage.getItem("customTagColor") || "#e74c3c",
+    nameEffect: localStorage.getItem("activeNameEffect") || ""
+  };
 }
 
 function renderCustomTag(data) {
@@ -1293,6 +2015,15 @@ function renderCustomTag(data) {
 
 function renderAccountUserMark(isAccountUser) {
   return isAccountUser ? `<span style="font-size:12px; margin-left:2px;" title="ログインユーザー">👤</span>` : "";
+}
+
+function formatNameWithEffect(name, effectId) {
+  if (!effectId) return name;
+  const match = SHOP_EFFECTS.find(e => e.id === effectId);
+  if (match) {
+    return `<span class="${match.cssClass}">${name}</span>`;
+  }
+  return name;
 }
 
 async function saveLog(action, detail = {}) {
@@ -1430,10 +2161,15 @@ function setSectionsHeight(){
   
   const sectionHeight = (window.innerHeight - 70) + 'px';
   document.getElementById('stockSection').style.height = sectionHeight;
+  document.getElementById('gachaSection').style.height = sectionHeight;
+  document.getElementById('effectShopSection').style.height = sectionHeight;
   document.getElementById('redeemSection').style.height = sectionHeight;
   document.getElementById('tagShopSection').style.height = sectionHeight;
   document.getElementById('emojiShopSection').style.height = sectionHeight;
   document.getElementById('adminSection').style.height = sectionHeight;
+  document.getElementById('profileSection').style.height = sectionHeight;
+  document.getElementById('favoritesSection').style.height = sectionHeight;
+  document.getElementById('diceSection').style.height = sectionHeight;
 }
 window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
@@ -1491,6 +2227,7 @@ function clearFormFields(fieldId){
     if (currentAccount) { input.disabled = true; input.style.background = "#e9ecef"; } 
     else { input.disabled = false; input.style.background = "#fff"; }
     ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; 
+    document.getElementById('postHighlightChk').checked = false;
   }
   else if(fieldId==="passwordFields"){ document.getElementById('threadPasswordCheckInput').value=""; }
 }
@@ -1541,8 +2278,19 @@ function renderThreadsPage(){
     const data=docItem.data(), postCount = data.postCount || 0;
     const li=document.createElement("li"); li.style.backgroundColor = data.color || "#3498db";
 
+    const isBoostedActive = isThreadBoostedValid(data);
+
     let titleText = data.locked ? `🔒 ${data.title}` : data.title;
-    if (data.password) titleText += " 🔑"; if (data.pinned) titleText = "📌 " + titleText; if (isTrendingThread(data)) titleText = "🔥 " + titleText;
+    if (data.password) titleText += " 🔑"; 
+    
+    // ▼ 状態に応じたプレフィックス付与
+    if (data.pinned) {
+      titleText = "📌 " + titleText;
+    } else if (isBoostedActive) {
+      titleText = "📍 " + titleText; 
+    }
+    
+    if (isTrendingThread(data) && !data.pinned && !isBoostedActive) titleText = "🔥 " + titleText;
 
     const titleEl = document.createElement('div'); titleEl.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; display: inline-block; padding-right: 36px;">${titleText}</strong>`;
     const countEl = document.createElement('small'); countEl.textContent = `投稿数: ${postCount}`;
@@ -1591,17 +2339,23 @@ async function listenThreads(){
 
   const listenNormal = () => {
     if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-    let isInitialLoad = true; let normalThreads = []; let pinnedThreads = [];
+    let isInitialLoad = true; let normalThreads = [];
 
     const mergeAndRender = () => {
       const map = new Map();
-      pinnedThreads.forEach(t => map.set(t.id, t));
-      normalThreads.forEach(t => { if (!map.has(t.id)) map.set(t.id, t); });
+      normalThreads.forEach(t => map.set(t.id, t));
 
       const allArray = Array.from(map.values());
       allArray.sort((a, b) => {
-        const aPinned = a.data().pinned ? 1 : 0, bPinned = b.data().pinned ? 1 : 0;
+        // 管理者ピン留め最優先、次に金払ったブースト（有料固定）
+        const aPinned = a.data().pinned ? 1 : 0;
+        const bPinned = b.data().pinned ? 1 : 0;
         if (aPinned !== bPinned) return bPinned - aPinned;
+
+        const aBoosted = isThreadBoostedValid(a.data()) ? 1 : 0;
+        const bBoosted = isThreadBoostedValid(b.data()) ? 1 : 0;
+        if (aBoosted !== bBoosted) return bBoosted - aBoosted;
+
         const aTime = a.data().created_at?.toMillis ? a.data().created_at.toMillis() : 0;
         const bTime = b.data().created_at?.toMillis ? b.data().created_at.toMillis() : 0;
         return bTime - aTime;
@@ -1619,12 +2373,6 @@ async function listenThreads(){
       normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); 
       mergeAndRender();
     }, (error) => {});
-
-    const qPinned = query(collection(db, currentRoom), where("pinned", "==", true));
-    pinnedUnsub = onSnapshot(qPinned, snap => { 
-      pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); 
-      mergeAndRender(); 
-    }, (error) => {});
   };
 
   const listenSearch = (word) => {
@@ -1634,8 +2382,13 @@ async function listenThreads(){
       const allDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
       const filtered = allDocs.filter(item => (item.data().title || "").includes(word));
       filtered.sort((a, b) => {
-        const aPinned = a.data().pinned ? 1 : 0, bPinned = b.data().pinned ? 1 : 0;
+        const aPinned = a.data().pinned ? 1 : 0;
+        const bPinned = b.data().pinned ? 1 : 0;
         if (aPinned !== bPinned) return bPinned - aPinned;
+
+        const aBoosted = isThreadBoostedValid(a.data()) ? 1 : 0;
+        const bBoosted = isThreadBoostedValid(b.data()) ? 1 : 0;
+        if (aBoosted !== bBoosted) return bBoosted - aBoosted;
         return 0;
       });
       threadsData = filtered;
@@ -1696,13 +2449,21 @@ function openThread(threadId, data){
   currentThreadCreatorName = data.memberId || "";
   currentThreadLocked = !!data.locked;
 
-  const displayTitle = currentThreadLocked ? `🔒 ${data.title}` : data.title;
+  const isBoostedActive = isThreadBoostedValid(data);
+  const prefix = data.pinned ? "📌 " : (isBoostedActive ? "📍 " : "");
+  const displayTitle = prefix + (currentThreadLocked ? `🔒 ${data.title}` : data.title);
+  
   threadTitleElem.textContent = displayTitle;
   threadDetailElem.textContent = data.detail || ""; 
   
   const creatorUserMark = renderAccountUserMark(data.isAccountUser);
-  threadCreatorElem.innerHTML = `作成者: ${data.memberId || "名称未設定"}${creatorUserMark} ${formatDate(data.created_at)}`;
+  threadCreatorElem.innerHTML = `作成者: <span class="creatorProfileLink" data-user="${data.memberId || ""}" style="cursor:pointer; text-decoration:underline;">${data.memberId || "名称未設定"}</span>${creatorUserMark} ${formatDate(data.created_at)}`;
   
+  const creatorLink = threadCreatorElem.querySelector('.creatorProfileLink');
+  if (creatorLink && data.memberId) {
+    creatorLink.onclick = () => openUserProfile(data.memberId);
+  }
+
   updateLockUIState(currentThreadLocked);
 
   threadListSection.style.display='none'; 
@@ -1744,6 +2505,9 @@ async function loadPosts(threadId) {
               const li = document.createElement("li");
               li.id = "post-" + docId;
               li.style.backgroundColor = data.color || "#3498db";
+              if (data.highlighted) {
+                li.classList.add("post-highlighted");
+              }
               
               let displayBody = convertText(data.body || "");
               if (data.body && data.body.startsWith("[STAMP:") && data.body.endsWith("]")) {
@@ -1753,26 +2517,49 @@ async function loadPosts(threadId) {
 
               const bodyHtml = data.body ? `<div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>` : "";
               const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: rgba(0,0,0,0.25); cursor: pointer;";
+              
+              const tipBtnHtml = data.isAccountUser && data.memberId !== currentAccount ? 
+                `<button class="tip-btn" data-user="${data.memberId}" style="background: #e67e22; border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px; cursor: pointer;">🎁 チップ</button>` : '';
+
               const actionBox = `<div style="position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; align-items: center; z-index: 10;">
+                ${tipBtnHtml}
                 <button class="reply-btn" data-index="${data.index}" style="${replyBtnStyle} border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px;" ${currentThreadLocked ? 'disabled' : ''}>→</button>
                 <button class="info-btn" data-info="【投稿情報】\n\n・番号: ${data.index ?? "?"}\n・投稿者: ${data.memberId || "名称未設定"}\n・日時: ${formatDate(data.created_at)}\n・IP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
               </div>`;
 
               const userMark = renderAccountUserMark(data.isAccountUser);
+              const formattedName = formatNameWithEffect(data.memberId || "名称未設定", data.nameEffect);
 
               li.innerHTML = `
                 ${actionBox}
                 ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;">${data.memberId || "名称未設定"}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
+              const userLinkSpan = li.querySelector('.postUserLink');
+              if (userLinkSpan && data.memberId) {
+                userLinkSpan.style.cursor = "pointer";
+                userLinkSpan.style.textDecoration = "underline";
+                userLinkSpan.onclick = (e) => {
+                  e.stopPropagation();
+                  openUserProfile(data.memberId);
+                };
+              }
+
               if (!currentThreadLocked) {
                 li.querySelector('.reply-btn').onclick = (e) => {
                   e.stopPropagation();
                   const input = document.getElementById("quickPostInput");
                   input.value = `>${e.target.dataset.index} ` + input.value;
                   input.focus();
+                };
+              }
+              const tipBtn = li.querySelector('.tip-btn');
+              if (tipBtn) {
+                tipBtn.onclick = (e) => {
+                  e.stopPropagation();
+                  openTipModal(e.target.dataset.user);
                 };
               }
               li.querySelector('.info-btn').onclick = (e) => {
@@ -1861,7 +2648,7 @@ document.getElementById('createThreadBtn').onclick=async()=>{
 
     try{
       const isAccountUser = !!currentAccount;
-      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
+      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, boosted: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
       await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, isAccountUser: isAccountUser, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
@@ -1884,6 +2671,14 @@ document.getElementById('createPostBtn').onclick=async()=>{
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
     if(valid && !currentAccount) { nickName=valid; setCookie("nickName", nickName); } else if (currentAccount) { nickName = currentAccount; }
 
+    const isHighlight = document.getElementById('postHighlightChk').checked;
+    if (isHighlight) {
+      if (!currentAccount) return alert("投稿のハイライト表示はログインユーザーのみ利用できます。");
+      const myCoins = getMyCoins();
+      if (myCoins < 100) return alert("ハイライト表示に必要なコインが足りません (必要: 100コイン)");
+      setMyCoins(myCoins - 100);
+    }
+
     const iconFile=document.getElementById('postIconInput').files[0]; let iconId = getCookie('iconId');
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('アイコン保存に失敗しました'); } }
 
@@ -1901,9 +2696,9 @@ document.getElementById('createPostBtn').onclick=async()=>{
 
     try{
       const isAccountUser = !!currentAccount;
-      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, body, image:imageBase64, color, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
+      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, body, image:imageBase64, color, highlighted: isHighlight, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
-      await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64 });
+      await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64, highlighted: isHighlight });
     }catch(e){
       showAlert("投稿に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; }
@@ -1974,7 +2769,6 @@ async function loadAdminData() {
   renderAdminStoreCheckboxes([], []);
 }
 
-// チェックボックス一覧をDOMで安全に描画
 function renderAdminStoreCheckboxes(ownedTags = [], ownedEmojis = []) {
   const tagContainer = document.getElementById('adminTagCheckboxes');
   const emojiContainer = document.getElementById('adminEmojiCheckboxes');
@@ -2019,7 +2813,6 @@ function renderAdminStoreCheckboxes(ownedTags = [], ownedEmojis = []) {
   });
 }
 
-// アカウント選択時にチェックボックスの状態を更新
 document.getElementById('adminAccountSelect').onchange = async () => {
   const accName = document.getElementById('adminAccountSelect').value;
   if (!accName) {
@@ -2034,7 +2827,6 @@ document.getElementById('adminAccountSelect').onchange = async () => {
   }
 };
 
-// 選択したアカウントのタグ・スタンプチェック状態を保存
 document.getElementById('saveAccountStoreItemsBtn').onclick = async () => {
   const accName = document.getElementById('adminAccountSelect').value;
   if (!accName) return alert("対象のアカウントを選択してください");
@@ -2072,6 +2864,15 @@ document.getElementById('adminThreadSelect').onchange = async () => {
   const postSelect = document.getElementById('adminPostSelect');
   postSelect.innerHTML = "<option value=''>投稿選択 (必要な場合)</option>"; 
   if(tid){ 
+    try {
+      const threadDoc = await getDoc(doc(db, currentRoom, tid));
+      if (threadDoc.exists()) {
+        const tData = threadDoc.data();
+        document.getElementById('chkLock').checked = !!tData.locked;
+        document.getElementById('chkPin').checked = !!tData.pinned;
+      }
+    } catch(e) {}
+
     const psnap = await getDocs(collection(db, currentRoom, tid, "posts")); 
     const docs = psnap.docs.slice().sort((a,b)=> (Number(a.data().index)||0) - (Number(b.data().index)||0)); 
     docs.forEach(d => { const pdata = d.data(), opt = document.createElement('option'); opt.value = d.id; opt.textContent = `#${pdata.index ?? '?'} ${pdata.body ? pdata.body.slice(0, 14) : "[画像のみ]"}`; postSelect.appendChild(opt); }); 
@@ -2120,7 +2921,6 @@ document.getElementById('createCoinCodeBtn').onclick = async () => {
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
 
-// 株価強制変更
 document.getElementById('adminUpdateStockBtn').onclick = async () => {
   const priceStr = document.getElementById('adminStockPriceInput').value.trim();
   if (priceStr === "") return alert("変更後の株価を入力してください");
@@ -2202,7 +3002,6 @@ document.getElementById('ipUnbanBtn').onclick = async () => {
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
 
-// 情報確認（クルクルを表示しないように直接ポップアップ表示）
 document.getElementById('accInfoBtn').onclick = async () => {
   const accName = document.getElementById('adminAccountSelect').value;
   if (!accName) return alert("アカウントを選択してください");
@@ -2236,7 +3035,6 @@ document.getElementById('accCoinBtn').onclick = async () => {
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
 
-// 保有株変更
 document.getElementById('accShareBtn').onclick = async () => {
   const accName = document.getElementById('adminAccountSelect').value;
   const newSharesStr = document.getElementById('adminShareEditInput').value.trim();
@@ -2404,8 +3202,14 @@ function loadAllThreads(){
     isInitialLoadAll = false; 
     const allDocs = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() }));
     allDocs.sort((a, b) => {
-      const aPinned = a.data().pinned ? 1 : 0, bPinned = b.data().pinned ? 1 : 0;
+      const aPinned = a.data().pinned ? 1 : 0;
+      const bPinned = b.data().pinned ? 1 : 0;
       if (aPinned !== bPinned) return bPinned - aPinned;
+
+      const aBoosted = isThreadBoostedValid(a.data()) ? 1 : 0;
+      const bBoosted = isThreadBoostedValid(b.data()) ? 1 : 0;
+      if (aBoosted !== bBoosted) return bBoosted - aBoosted;
+
       const aTime = a.data().created_at?.toMillis ? a.data().created_at.toMillis() : 0;
       const bTime = b.data().created_at?.toMillis ? b.data().created_at.toMillis() : 0;
       return bTime - aTime;
@@ -2488,41 +3292,30 @@ document.getElementById("quickSendBtn").onclick = async () => {
     await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index, text });
   } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); } finally { isQuickSending = false; }
 };
-// ▼ 以下のコードを <script type="module"> の中に追加
+
 document.getElementById('boardLogoBtn').onclick = () => {
-  // 1. スレッド詳細のリアルタイム通信を解除
   if (postsUnsub) {
     postsUnsub();
     postsUnsub = null;
   }
-
-  // 2. ブラウザのURL履歴を初期状態（通常ボードの1ページ目）に書き換え
   history.pushState({}, "", `${location.pathname}?room=threads`);
-
-  // 3. すべての専用画面（株・ショップ・管理者など）を閉じて、スレッド一覧画面を表示
   hideAllSections();
   document.getElementById('threadListSection').style.display = 'block';
 
-  // 4. スレッド内の目次（TOC）をクリア・非表示
   const tocContainer = document.getElementById("threadToc");
   if (tocContainer) {
     tocContainer.innerHTML = "";
     tocContainer.style.display = "none";
   }
 
-  // 5. 部屋をデフォルト（bord/threads）に戻し、ページ番号を1ページ目にリセット
   currentRoom = "threads";
   pageByRoom["threads"] = 1;
   document.getElementById("currentRoomLabel").textContent = "現在の部屋：bord";
 
-  // 6. 検索フォームに入力されていた文字をクリア
   const searchInput = document.getElementById("threadSearchInput");
   if (searchInput) searchInput.value = "";
 
-  // 7. スレッド一覧の再読み込み・描画を実行
   listenThreads();
-
-  // 8. スレッド一覧のスクロール位置を一番上に戻す
   document.getElementById("threadListSection").scrollTop = 0;
 };
 </script>
