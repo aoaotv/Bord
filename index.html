@@ -55,7 +55,6 @@ li small span { white-space: nowrap; }
   display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: white; padding: 12px 16px; border-radius: 24px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 2500; width: 280px; max-width: 90%; color: #333;
-  animation: popupIn 0.5s ease-out;
 }
 
 #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 2400; }
@@ -85,11 +84,6 @@ textarea { min-height:60px; resize: vertical; }
 #quickSendBtn { background: #27ae60; color: white; }
 #postList { padding-bottom: 80px; }
 
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes popupIn { from { opacity: 0; transform: translate(-50%, -60%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-@keyframes slideInFromLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
-
-.new-post-slide { animation: slideInFromLeft 0.4s ease-out; }
 .adminTwoColumns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
 .adminPanel { background: #f7f9fc; border: 1px solid #dfe6e9; border-radius: 14px; padding: 14px; }
 .adminPanel h4 { margin: 4px 0 8px; color: #333; font-size: 16px; border-bottom: 2px solid #3498db; padding-bottom: 4px; }
@@ -103,7 +97,7 @@ textarea { min-height:60px; resize: vertical; }
 <body>
 
 <div id="topNotification"></div>
-<a href="https://sinzo.site" id="boardLogoLink">
+<a href="https://sites.google.com/view/sinzobord/Home?authuser=0" id="boardLogoLink">
   <h1 style="display:flex; align-items:center; justify-content:center; gap:20px;">
     <img src="logo.png" alt="bord" style="height:60px;">
   </h1>
@@ -169,12 +163,12 @@ textarea { min-height:60px; resize: vertical; }
     <div id="stampMenuWrapper" style="position: relative;">
       <button id="stampMenuBtn" style="background: #f1c40f; color: white; width: 40px; padding: 0; border-radius: 20px;">😀</button>
       <div id="stampMenuContent" style="display:none; position:absolute; bottom:55px; left:0; background:white; border:1px solid #ccc; border-radius:12px; box-shadow:0 -2px 10px rgba(0,0,0,0.2); z-index:1300; width:200px; max-height:220px; overflow-y:auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😀</div>
-        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😊</div>
-        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">😭</div>
-        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">🎉</div>
-        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">👍</div>
-        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;">👀</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px;">😀</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px;">😊</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px;">😭</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px;">🎉</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px;">👍</div>
+        <div class="stampItem" style="cursor:pointer; text-align:center; font-size: 24px;">👀</div>
       </div>
     </div>
 
@@ -341,6 +335,14 @@ textarea { min-height:60px; resize: vertical; }
           <button id="createCoinCodeBtn" type="button" class="greenBtn" style="width:100%; margin-top:10px;">コードを発行する</button>
         </div>
 
+        <!-- 株価編集 -->
+        <div class="adminPanel">
+          <h4>📈 株価強制編集</h4>
+          <label>変更後の株価 (コイン)</label>
+          <input id="adminStockPriceInput" type="number" placeholder="例: 150" style="margin-bottom:8px;">
+          <button id="adminUpdateStockBtn" type="button" class="greenBtn" style="width:100%;">株価を強制変更</button>
+        </div>
+
         <!-- 部屋削除 -->
         <div class="adminPanel">
           <h4>🚪 部屋削除</h4>
@@ -376,10 +378,12 @@ textarea { min-height:60px; resize: vertical; }
           <select id="adminAccountSelect" style="margin-bottom:8px;"><option value="">アカウント選択</option></select>
           <input id="adminBanReasonInput" placeholder="BANの理由（例: 規約違反のため）" style="margin-bottom:8px;">
           <input id="adminCoinEditInput" type="number" placeholder="変更後のコイン数 (例: 5000)" style="margin-bottom:8px;">
+          <input id="adminShareEditInput" type="number" placeholder="変更後の保有株数 (例: 50)" style="margin-bottom:8px;">
           
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
             <button id="accInfoBtn" class="greenBtn" style="background:#2980b9;">ℹ️ 情報確認</button>
             <button id="accCoinBtn" class="greenBtn" style="background:#e67e22;">🪙 コイン変更</button>
+            <button id="accShareBtn" class="greenBtn" style="background:#27ae60;">📈 保有株変更</button>
             <button id="accBanBtn" class="redBtn">🚫 アカウントBAN</button>
             <button id="accDeleteBtn" class="redBtn">🗑️ アカウント削除</button>
           </div>
@@ -555,8 +559,52 @@ const db = initializeFirestore(app, {
   })
 });
 
-// アカウント管理＆コイン・データ同期システム
+// アカウント管理＆リアルタイム同期システム
 let currentAccount = localStorage.getItem("currentAccountName") || null;
+let accountUnsub = null;
+
+function setupAccountListener() {
+  if (accountUnsub) accountUnsub();
+  if (!currentAccount) return;
+
+  accountUnsub = onSnapshot(doc(db, "accounts", currentAccount), (snap) => {
+    if (!snap.exists()) {
+      alert("アカウントが削除されました。");
+      currentAccount = null;
+      localStorage.removeItem("currentAccountName");
+      localStorage.setItem("myCoins", 0);
+      localStorage.removeItem("myShares");
+      localStorage.removeItem("purchasedEmojis");
+      localStorage.removeItem("purchasedTags");
+      localStorage.removeItem("customTagEnabled");
+      localStorage.removeItem("customTagName");
+      localStorage.removeItem("customTagColor");
+      
+      nickName = generateRandomAnonymousName();
+      setCookie("nickName", nickName);
+
+      updateAccountStatusUI();
+      renderStampMenu();
+      hideAllSections();
+      document.getElementById("threadListSection").style.display = "block";
+      return;
+    }
+
+    const acc = snap.data();
+    localStorage.setItem("myCoins", acc.coins !== undefined ? acc.coins : 1000);
+    localStorage.setItem("myShares", acc.shares || 0);
+    localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
+    localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
+    localStorage.setItem("customTagEnabled", acc.customTagEnabled ? "true" : "false");
+    localStorage.setItem("customTagName", acc.customTagName || "");
+    localStorage.setItem("customTagColor", acc.customTagColor || "");
+
+    updateCoinButtonDisplay();
+    renderStampMenu();
+  }, (error) => {});
+}
+
+setupAccountListener();
 
 async function getAccountData(name) {
   try {
@@ -772,6 +820,7 @@ document.getElementById("accountRegisterBtn").onclick = async () => {
     nickName = name;
     setCookie("nickName", name);
     setMyCoins(1000);
+    setupAccountListener();
     hideLoading();
     updateAccountStatusUI();
     alert("アカウントを作成し、ログインしました。（初回報酬1000コイン獲得！）");
@@ -799,7 +848,7 @@ document.getElementById("accountLoginBtn").onclick = async () => {
 
     const acc = await getAccountData(name);
     hideLoading();
-    if (!acc) return alert("アカウントが存在しません。");
+    if (!acc) return alert("アカウントは削除されました");
     if (acc.password !== pass) return alert("パスワードが間違っています。");
 
     currentAccount = name;
@@ -815,6 +864,7 @@ document.getElementById("accountLoginBtn").onclick = async () => {
     localStorage.setItem("customTagName", acc.customTagName || "");
     localStorage.setItem("customTagColor", acc.customTagColor || "");
 
+    setupAccountListener();
     updateAccountStatusUI();
     renderStampMenu();
     alert("ログインしました。");
@@ -829,6 +879,7 @@ document.getElementById("accountLoginBtn").onclick = async () => {
 document.getElementById("accountLogoutBtn").onclick = () => {
   currentAccount = null;
   localStorage.removeItem("currentAccountName");
+  if (accountUnsub) { accountUnsub(); accountUnsub = null; }
   
   localStorage.setItem("myCoins", 0);
   localStorage.removeItem("myShares");
@@ -1098,7 +1149,8 @@ function savePurchasedTag(tagVal) {
 
 function renderStampMenu() {
   const menuContent = document.getElementById("stampMenuContent");
-  const defaultStamps = ["😀", "😊", "😅", "🎉", "👍", "👀"];
+  if (!menuContent) return;
+  const defaultStamps = ["😀", "😊", "🥶", "🎉", "👍", "👀"];
   const purchased = getPurchasedEmojis();
   const allStamps = [...new Set([...defaultStamps, ...purchased])];
   
@@ -1106,7 +1158,7 @@ function renderStampMenu() {
   allStamps.forEach(st => {
     const div = document.createElement("div");
     div.className = "stampItem";
-    div.style.cssText = "cursor:pointer; text-align:center; font-size: 24px; transition: transform 0.1s;";
+    div.style.cssText = "cursor:pointer; text-align:center; font-size: 24px;";
     div.textContent = st;
     div.onclick = async () => {
       if (currentThreadLocked) return;
@@ -1857,7 +1909,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
   };
 };
 
-// --- 高速化・チェックボックス対応版管理者パネル ---
+// --- 管理者パネル ---
 document.getElementById('adminBtn').onclick = async () => {
   hideAllSections();
   document.getElementById('adminSection').style.display = 'block';
@@ -1921,7 +1973,7 @@ async function loadAdminData() {
   renderAdminStoreCheckboxes([], []);
 }
 
-// チェックボックス一覧を描画
+// チェックボックス一覧をDOMで安全に描画
 function renderAdminStoreCheckboxes(ownedTags = [], ownedEmojis = []) {
   const tagContainer = document.getElementById('adminTagCheckboxes');
   const emojiContainer = document.getElementById('adminEmojiCheckboxes');
@@ -1932,7 +1984,17 @@ function renderAdminStoreCheckboxes(ownedTags = [], ownedEmojis = []) {
     const isChecked = ownedTags.includes(item.value);
     const label = document.createElement("label");
     label.style.cssText = "display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer; background:#fff; padding:4px 6px; border-radius:4px; border:1px solid #ccc;";
-    label.innerHTML = `<input type="checkbox" name="adminTagCheck" value="${item.value}" ${isChecked ? 'checked' : ''} style="width:auto; height:auto;"> ${item.name}`;
+    
+    const chkInput = document.createElement("input");
+    chkInput.type = "checkbox";
+    chkInput.name = "adminTagCheck";
+    chkInput.value = item.value;
+    chkInput.checked = isChecked;
+    chkInput.style.width = "auto";
+    chkInput.style.height = "auto";
+    
+    label.appendChild(chkInput);
+    label.appendChild(document.createTextNode(" " + item.name));
     tagContainer.appendChild(label);
   });
 
@@ -1941,7 +2003,17 @@ function renderAdminStoreCheckboxes(ownedTags = [], ownedEmojis = []) {
     const isChecked = ownedEmojis.includes(item.emoji);
     const label = document.createElement("label");
     label.style.cssText = "display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer; background:#fff; padding:4px 6px; border-radius:4px; border:1px solid #ccc;";
-    label.innerHTML = `<input type="checkbox" name="adminEmojiCheck" value="${item.emoji}" ${isChecked ? 'checked' : ''} style="width:auto; height:auto;"> ${item.emoji} ${item.name}`;
+    
+    const chkInput = document.createElement("input");
+    chkInput.type = "checkbox";
+    chkInput.name = "adminEmojiCheck";
+    chkInput.value = item.emoji;
+    chkInput.checked = isChecked;
+    chkInput.style.width = "auto";
+    chkInput.style.height = "auto";
+    
+    label.appendChild(chkInput);
+    label.appendChild(document.createTextNode(` ${item.emoji} ${item.name}`));
     emojiContainer.appendChild(label);
   });
 }
@@ -1975,6 +2047,11 @@ document.getElementById('saveAccountStoreItemsBtn').onclick = async () => {
   showLoading("保存中...");
   try {
     const accountRef = doc(db, "accounts", accName);
+    const snap = await getDoc(accountRef);
+    if (!snap.exists()) {
+      hideLoading();
+      return alert("アカウントは既に削除されています。");
+    }
     await updateDoc(accountRef, {
       purchasedTags: selectedTags,
       purchasedEmojis: selectedEmojis,
@@ -2042,6 +2119,44 @@ document.getElementById('createCoinCodeBtn').onclick = async () => {
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
 
+// 株価強制変更
+document.getElementById('adminUpdateStockBtn').onclick = async () => {
+  const priceStr = document.getElementById('adminStockPriceInput').value.trim();
+  if (priceStr === "") return alert("変更後の株価を入力してください");
+  const newPrice = parseInt(priceStr, 10);
+  if (isNaN(newPrice) || newPrice < 0) return alert("有効な株価を入力してください");
+  
+  try {
+    const marketRef = doc(db, "market", "global");
+    const snap = await getDoc(marketRef);
+    let history = [];
+    let minPrice = newPrice;
+    let maxPrice = newPrice;
+    if (snap.exists()) {
+      const data = snap.data();
+      history = data.priceHistory || [];
+      history.push(newPrice);
+      if (history.length > 300) history.shift();
+      minPrice = Math.min(data.minPrice || newPrice, newPrice);
+      maxPrice = Math.max(data.maxPrice || newPrice, newPrice);
+    } else {
+      history = [newPrice];
+    }
+    await setDoc(marketRef, {
+      currentPrice: newPrice,
+      priceHistory: history,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      updated_at: Timestamp.now()
+    }, { merge: true });
+    await saveLog("admin_edit_stock_price", { newPrice });
+    alert(`株価を ${newPrice} コインに変更しました。`);
+    document.getElementById('adminStockPriceInput').value = "";
+  } catch(e) {
+    alert("株価の変更に失敗しました。");
+  }
+};
+
 document.getElementById('deleteRoomBtn').onclick = async () => {
   const roomId = document.getElementById('adminRoomSelect').value;
   if (!roomId) return alert("削除する部屋を選択してください");
@@ -2086,16 +2201,15 @@ document.getElementById('ipUnbanBtn').onclick = async () => {
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
 
+// 情報確認（クルクルを表示しないように直接ポップアップ表示）
 document.getElementById('accInfoBtn').onclick = async () => {
   const accName = document.getElementById('adminAccountSelect').value;
   if (!accName) return alert("アカウントを選択してください");
-  showLoading("取得中...");
   const accData = await getAccountData(accName);
-  hideLoading();
-  if (!accData) return alert("アカウントデータが見つかりません。");
+  if (!accData) return alert("アカウントは削除されました");
   const coins = accData.coins !== undefined ? accData.coins : 1000;
   const shares = accData.shares || 0;
-  alert(`【アカウント情報】\n\n・ユーザー名：${accName}\n・所持コイン：${coins} 枚\n・保有株数：${shares} 株`);
+  showInfoDialog(`【アカウント情報】\n\n・ユーザー名：${accName}\n・所持コイン：${coins} 枚\n・保有株数：${shares} 株`);
 };
 
 document.getElementById('accCoinBtn').onclick = async () => {
@@ -2107,11 +2221,41 @@ document.getElementById('accCoinBtn').onclick = async () => {
   if (isNaN(newCoins)) return alert("有効な数値を入力してください");
   showLoading("変更中...");
   try {
-    await updateDoc(doc(db, "accounts", accName), { coins: newCoins, updated_at: Timestamp.now() });
+    const accRef = doc(db, "accounts", accName);
+    const snap = await getDoc(accRef);
+    if (!snap.exists()) {
+      hideLoading();
+      return alert("アカウントは削除されました");
+    }
+    await updateDoc(accRef, { coins: newCoins, updated_at: Timestamp.now() });
     await saveLog("admin_edit_account_coins", { targetAccount: accName, newCoins });
     hideLoading();
     alert(`アカウント「${accName}」のコインを ${newCoins} 枚に変更しました。`);
     document.getElementById('adminCoinEditInput').value = "";
+  } catch(e) { hideLoading(); alert("エラーが発生しました"); }
+};
+
+// 保有株変更
+document.getElementById('accShareBtn').onclick = async () => {
+  const accName = document.getElementById('adminAccountSelect').value;
+  const newSharesStr = document.getElementById('adminShareEditInput').value.trim();
+  if (!accName) return alert("アカウントを選択してください");
+  if (newSharesStr === "") return alert("変更後の保有株数を入力してください");
+  const newShares = parseInt(newSharesStr, 10);
+  if (isNaN(newShares) || newShares < 0) return alert("有効な数値を入力してください");
+  showLoading("変更中...");
+  try {
+    const accRef = doc(db, "accounts", accName);
+    const snap = await getDoc(accRef);
+    if (!snap.exists()) {
+      hideLoading();
+      return alert("アカウントは削除されました");
+    }
+    await updateDoc(accRef, { shares: newShares, updated_at: Timestamp.now() });
+    await saveLog("admin_edit_account_shares", { targetAccount: accName, newShares });
+    hideLoading();
+    alert(`アカウント「${accName}」の保有株数を ${newShares} 株に変更しました。`);
+    document.getElementById('adminShareEditInput').value = "";
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
 
@@ -2121,6 +2265,12 @@ document.getElementById('accBanBtn').onclick = async () => {
   if (!accName) return alert("アカウントを選択してください");
   showLoading("処理中...");
   try {
+    const accRef = doc(db, "accounts", accName);
+    const snap = await getDoc(accRef);
+    if (!snap.exists()) {
+      hideLoading();
+      return alert("アカウントは削除されました");
+    }
     await setDoc(doc(db, "accountBans", accName), { account: accName, reason: reasonText, banned_at: Timestamp.now(), ...getBoardWriteMeta() });
     await saveLog("admin_account_ban", { targetAccount: accName, reason: reasonText });
     hideLoading();
@@ -2148,11 +2298,17 @@ document.getElementById('accDeleteBtn').onclick = async () => {
   if (!confirm(`アカウント「${accName}」を完全に削除してもよろしいですか？`)) return;
   showLoading("削除中...");
   try {
-    await deleteDoc(doc(db, "accounts", accName));
+    const accRef = doc(db, "accounts", accName);
+    const snap = await getDoc(accRef);
+    if (!snap.exists()) {
+      hideLoading();
+      return alert("アカウントはすでに削除されています");
+    }
+    await deleteDoc(accRef);
     try { await deleteDoc(doc(db, "accountBans", accName)); } catch(e) {}
     await saveLog("admin_account_delete", { targetAccount: accName });
     hideLoading();
-    alert(`アカウント「${accName}」を削除しました。`);
+    alert("アカウントは削除されました");
     await loadAdminData();
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
@@ -2215,7 +2371,7 @@ document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
   const name=document.getElementById("newRoomInput").value.trim(); if(!name) return alert("部屋名を入力してください");
   await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("create_room", { roomName: name }); switchRoom(name);
 };
-document.getElementById("closeRoomPopup").onclick = ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; };
+document.getElementById("closeRoomPopup", ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; });
 
 setSectionsHeight(); listenThreads(); stopIfBanned(); renderStampMenu();
 async function openThreadFromURL() {
