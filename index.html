@@ -474,6 +474,7 @@ textarea { min-height:60px; resize: vertical; }
 </div>
 
 <!-- タグ購入画面 -->
+<!-- タグ購入画面 -->
 <div id="tagShopSection" class="full-screen-section">
   <div class="store-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
@@ -483,6 +484,16 @@ textarea { min-height:60px; resize: vertical; }
       </div>
     </div>
     
+    <!-- ▼ ここにカテゴリタブを追加 -->
+    <div style="margin-bottom: 15px; display: flex; gap: 6px; flex-wrap: wrap;" id="tagCategoryTabs">
+      <button class="greenBtn tagCatBtn" data-cat="all" style="padding: 6px 12px; font-size:12px;">すべて</button>
+      <button class="greenBtn tagCatBtn" data-cat="premium" style="background:#8e44ad; padding: 6px 12px; font-size:12px;">💎 高級・プレミアム</button>
+      <button class="greenBtn tagCatBtn" data-cat="play" style="background:#2980b9; padding: 6px 12px; font-size:12px;">🎮 プレイスタイル</button>
+      <button class="greenBtn tagCatBtn" data-cat="life" style="background:#27ae60; padding: 6px 12px; font-size:12px;">☕ ライフスタイル</button>
+      <button class="greenBtn tagCatBtn" data-cat="net" style="background:#e67e22; padding: 6px 12px; font-size:12px;">💬 ネット・スラング</button>
+      <button class="greenBtn tagCatBtn" data-cat="job" style="background:#16a085; padding: 6px 12px; font-size:12px;">💼 職業・役職</button>
+    </div>
+
     <div style="margin-bottom:25px;">
       <div id="fullStoreTagShopList" class="store-grid"></div>
     </div>
@@ -501,6 +512,19 @@ textarea { min-height:60px; resize: vertical; }
       </div>
     </div>
     
+    <!-- ▼ ここにカテゴリタブを追加 -->
+    <div style="margin-bottom: 15px; display: flex; gap: 6px; flex-wrap: wrap;" id="emojiCategoryTabs">
+      <button class="greenBtn emojiCatBtn" data-cat="all" style="padding: 6px 12px; font-size:12px;">すべて</button>
+      <button class="greenBtn emojiCatBtn" data-cat="premium" style="background:#8e44ad; padding: 6px 12px; font-size:12px;">💎 高級・プレミアム</button>
+      <button class="greenBtn emojiCatBtn" data-cat="face" style="background:#2980b9; padding: 6px 12px; font-size:12px;">😀 表情・感情</button>
+      <button class="greenBtn emojiCatBtn" data-cat="animal" style="background:#27ae60; padding: 6px 12px; font-size:12px;">🐾 動物・自然</button>
+      <button class="greenBtn emojiCatBtn" data-cat="food" style="background:#e67e22; padding: 6px 12px; font-size:12px;">🍎 グルメ</button>
+      <button class="greenBtn emojiCatBtn" data-cat="science" style="background:#8e44ad; padding: 6px 12px; font-size:12px;">🔬 科学・宇宙</button>
+      <button class="greenBtn emojiCatBtn" data-cat="sports" style="background:#27ae60; padding: 6px 12px; font-size:12px;">⚽ スポーツ</button>
+      <button class="greenBtn emojiCatBtn" data-cat="tech" style="background:#34495e; padding: 6px 12px; font-size:12px;">💻 デジタル</button>
+      <button class="greenBtn emojiCatBtn" data-cat="tool" style="background:#7f8c8d; padding: 6px 12px; font-size:12px;">🛠️ 道具・雑貨</button>
+    </div>
+
     <div style="margin-bottom:25px;">
       <div id="fullStoreEmojiShopList" class="store-grid"></div>
     </div>
@@ -1535,8 +1559,7 @@ document.getElementById("sellStockBtn").onclick = async () => {
   try { await updateDoc(doc(db, "accounts", currentAccount), { coins: newCoins, shares: newShares }); } catch (e) {}
 };
 
-// --- ガチャシステム ---
-// --- ガチャシステム（100種類近くに拡張版） ---
+// --- ガチャシステム（くじ引きの絵文字プレゼント機能を削除し、コインとタグのみに変更） ---
 const GACHA_COINS = [
   { value: 10, name: "10 コイン", rate: 30 },
   { value: 30, name: "30 コイン", rate: 25 },
@@ -1550,28 +1573,17 @@ const GACHA_COINS = [
   { value: 10000, name: "10000 コイン (神引き!!!)", rate: 0.1 }
 ];
 
-// 多彩な絵文字（スタンプ）を大量登録
-const GACHA_EMOJIS = [
-  "👑","💎","🦄","🐉","🔥","⚡","🌟","🎉","🎆","🪐","🔱","🍾","🎰","🏆","🧿","🔮","🗿","👾","🤖","👻",
-  "🤡","☠️","👽","🎃","🐙","🦑","🦀","🐡","🐬","🐋","🐅","🐆","🐘","🦣","🦏","🦛","🐪","🦙","🦒","🦘",
-  "🍎","🍏","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑",
-  "🍞","🥐","🥖","🫓","🥨","🥯","🥞","🧇","🧀","🍖","🍗","🥩","🥓","🍔","🍟","🍕","🌭","🥪","🌮","🌯",
-  "⚽️","🏀","🏈","⚾️","🥎","🎾","🏐","🏉","🥏","🎱","🪀","🏓","🏸","🏒","🏑","🥍","🏏","🪃","🥅","⛳️"
-];
-
-// ガチャ限定の特殊タグ
+// ガチャ限定の特殊タグ（※絵文字プレゼント機能は完全に削除）
 const GACHA_TAGS = [
-  { value: "🎰ガチャ廃人|#ff0055", name: "🎰ガチャ廃人", rate: 1 },
-  { value: "✨強運の持ち主|#ffd700", name: "✨強運の持ち主", rate: 2 },
-  { value: "👑神引きの帝王|#9d4edd", name: "👑神引きの帝王", rate: 0.5 },
-  { value: "💸爆死の常連|#6c757d", name: "💸爆死の常連", rate: 3 },
-  { value: "🍀幸運の使者|#2ecc71", name: "幸運の使者", rate: 2 }
+  { value: "🎰ガチャ廃人|#ff0055", name: "🎰ガチャ廃人", rate: 2 },
+  { value: "✨強運の持ち主|#ffd700", name: "✨強運の持ち主", rate: 3 },
+  { value: "👑神引きの帝王|#9d4edd", name: "👑神引きの帝王", rate: 1 },
+  { value: "💸爆死の常連|#6c757d", name: "💸爆死の常連", rate: 4 },
+  { value: "🍀幸運の使者|#2ecc71", name: "幸運の使者", rate: 3 }
 ];
 
-// すべてを自動結合して100種類規模のガチャリストを生成
 const GACHA_ITEMS = [
   ...GACHA_COINS.map(c => ({ type: "coin", value: c.value, name: c.name, rate: c.rate })),
-  ...GACHA_EMOJIS.map(e => ({ type: "emoji", value: e, name: `限定スタンプ ${e}`, rate: 4 })),
   ...GACHA_TAGS.map(t => ({ type: "tag", value: t.value, name: `限定タグ [${t.name}]`, rate: t.rate }))
 ];
 
@@ -1596,9 +1608,8 @@ document.getElementById("playGachaBtn").onclick = () => {
 
   if (selected.type === "coin") {
     setMyCoins(getMyCoins() + selected.value);
-  } else if (selected.type === "emoji") {
-    savePurchasedEmoji(selected.value);
-    renderStampMenu();
+  } else if (selected.type === "tag") {
+    savePurchasedTag(selected.value);
   }
 
   document.getElementById("gachaResultContent").textContent = selected.name;
@@ -1606,10 +1617,405 @@ document.getElementById("playGachaBtn").onclick = () => {
   document.getElementById("overlay").style.display = "block";
 };
 
-document.getElementById("closeGachaResultBtn").onclick = () => {
-  document.getElementById("gachaResultModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-};
+
+// ==========================================
+// タグデータ（300個以上・個別設計＆カテゴリ分類）
+// ==========================================
+let currentTagCategory = "all";
+const SHOP_TAGS = [
+  // 💎 高級・プレミアム
+  { value: "😎しんぞ教祖😎|#000000", name: "😎しんぞ教祖😎", price: 100000, category: "premium" },
+  { value: "🤓しんぞ教司祭🤓|#696969", name: "🤓しんぞ教司祭🤓", price: 50000, category: "premium" },
+  { value: "🥸天才🥸|#1e90ff", name: "🥸天才🥸", price: 20000, category: "premium" },
+  { value: "👑神引きの帝王|#9d4edd", name: "👑神引きの帝王", price: 50000, category: "premium" },
+  { value: "I'm a rich|#E056FD", name: "I'm a rich", price: 1000000, category: "premium" },
+  { value: "💎伝説のVIP|#ffd700", name: "💎伝説のVIP", price: 80000, category: "premium" },
+  { value: "🔥神の領域|#ff4500", name: "🔥神の領域", price: 90000, category: "premium" },
+  { value: "⚡電撃神|#00ffff", name: "⚡電撃神", price: 75000, category: "premium" },
+  { value: "🌌宇宙の支配者|#8a2be2", name: "🌌宇宙の支配者", price: 150000, category: "premium" },
+  { value: "🐉龍神さま|#2ecc71", name: "🐉龍神さま", price: 120000, category: "premium" },
+  { value: "⚜️皇帝の証|#b8860b", name: "⚜️皇帝の証", price: 200000, category: "premium" },
+  { value: "✨星の導き手|#ff1493", name: "✨星の導き手", price: 60000, category: "premium" },
+  { value: "🛡️絶対防壁|#4682b4", name: "🛡️絶対防壁", price: 45000, category: "premium" },
+  { value: "🔮未来予知者|#9370db", name: "🔮未来予知者", price: 55000, category: "premium" },
+  { value: "🪙黄金郷の住人|#daa520", name: "🪙黄金郷の住人", price: 300000, category: "premium" },
+
+  // 🎮 プレイスタイル
+  { value: "😅ドパガキ😂|#00ced1", name: "😅ドパガキ😅", price: 10000, category: "play" },
+  { value: "初心者|#2A9D8F", name: "初心者", price: 100, category: "play" },
+  { value: "ベテラン|#E76F51", name: "ベテラン", price: 100, category: "play" },
+  { value: "エンジョイ勢|#4CC9F0", name: "エンジョイ勢", price: 100, category: "play" },
+  { value: "ガチ勢|#F72585", name: "ガチ勢", price: 100, category: "play" },
+  { value: "スピードランナー|#e74c3c", name: "スピードランナー", price: 500, category: "play" },
+  { value: "攻略班リーダー|#27ae60", name: "攻略班リーダー", price: 1000, category: "play" },
+  { value: "無敗の挑戦者|#f39c12", name: "無敗の挑戦者", price: 800, category: "play" },
+  { value: "ソロプレイヤー|#9b59b6", name: "ソロプレイヤー", price: 100, category: "play" },
+  { value: "マルチマスター|#1abc9c", name: "マルチマスター", price: 400, category: "play" },
+  { value: "初見アレルギー|#c0392b", name: "初見アレルギー", price: 200, category: "play" },
+  { value: "リアクション芸人|#e67e22", name: "リアクション芸人", price: 300, category: "play" },
+  { value: "職人気質|#8d99ae", name: "職人気質", price: 400, category: "play" },
+  { value: "コンプリート欲|#d35400", name: "コンプリート欲", price: 600, category: "play" },
+  { value: "一撃必殺マン|#8b0000", name: "一撃必殺マン", price: 500, category: "play" },
+  { value: "支援特化サポ|#20b2aa", name: "支援特化サポ", price: 350, category: "play" },
+  { value: "前線特攻隊長|#ff4500", name: "前線特攻隊長", price: 450, category: "play" },
+  { value: "引きこもりビルダー|#708090", name: "引きこもりビルダー", price: 300, category: "play" },
+  { value: "罠師の天才|#800080", name: "罠師の天才", price: 500, category: "play" },
+  { value: "乱数調整の神|#ff6347", name: "乱数調整の神", price: 1500, category: "play" },
+  { value: "弾幕回避の達人|#32cd32", name: "弾幕回避の達人", price: 400, category: "play" },
+  { value: "生存戦略優先|#4682b4", name: "生存戦略優先", price: 250, category: "play" },
+  { value: "即死上等マン|#dc143c", name: "即死上等マン", price: 300, category: "play" },
+  { value: "クリティカル依存症|#ff8c00", name: "クリティカル依存症", price: 450, category: "play" },
+  { value: "コンボ中毒者|#9400d3", name: "コンボ中毒者", price: 350, category: "play" },
+  { value: "ルート暗記マン|#008b8b", name: "ルート暗記マン", price: 200, category: "play" },
+  { value: "アドリブ芸人|#ff1493", name: "アドリブ芸人", price: 280, category: "play" },
+  { value: "バグ探しハンター|#8b008b", name: "バグ探しハンター", price: 900, category: "play" },
+  { value: "検証ガチ勢|#556b2f", name: "検証ガチ勢", price: 600, category: "play" },
+  { value: "タイムアタック狂|#ff4500", name: "タイムアタック狂", price: 750, category: "play" },
+
+  // ☕ ライフスタイル
+  { value: "夜行性人間|#3a0ca3", name: "夜行性人間", price: 150, category: "life" },
+  { value: "早起き鳥|#43aa8b", name: "早起き鳥", price: 150, category: "life" },
+  { value: "コーヒー中毒|#8b4513", name: "コーヒー中毒", price: 200, category: "life" },
+  { value: "お茶漬けの精|#52b788", name: "お茶漬けの精", price: 100, category: "life" },
+  { value: "ネコ派の主|#d35400", name: "ネコ派の主", price: 300, category: "life" },
+  { value: "イヌ派の鑑|#27ae60", name: "イヌ派の鑑", price: 300, category: "life" },
+  { value: "甘党の極み|#ff69b4", name: "甘党の極み", price: 200, category: "life" },
+  { value: "辛党の戦士|#ff4500", name: "辛党の戦士", price: 200, category: "life" },
+  { value: "万年睡眠不足|#6c757d", name: "万年睡眠不足", price: 100, category: "life" },
+  { value: "インドア派代表|#4682b4", name: "インドア派代表", price: 150, category: "life" },
+  { value: "アウトドア狂|#228b22", name: "アウトドア狂", price: 250, category: "life" },
+  { value: "サウナ愛好家|#ff8c00", name: "サウナ愛好家", price: 400, category: "life" },
+  { value: "ラーメン巡り師|#cd853f", name: "ラーメン巡り師", price: 350, category: "life" },
+  { value: "読書家の一面|#708090", name: "読書家の一面", price: 200, category: "life" },
+  { value: "音楽なしでは生きられない|#9932cc", name: "音楽なしでは生きられない", price: 300, category: "life" },
+  { value: "布団が恋人|#b0c4de", name: "布団が恋人", price: 120, category: "life" },
+  { value: "エナドリ常飲者|#00fa9a", name: "エナドリ常飲者", price: 250, category: "life" },
+  { value: "休日は一歩も出ない|#556b2f", name: "休日は一歩も出ない", price: 180, category: "life" },
+  { value: "料理男子の一面|#e9967a", name: "料理男子の一面", price: 220, category: "life" },
+  { value: "猫背矯正中|#778899", name: "猫背矯正中", price: 150, category: "life" },
+  { value: "緑茶派の隠者|#2e8b57", name: "緑茶派の隠者", price: 130, category: "life" },
+  { value: "炭酸水マニア|#00ced1", name: "炭酸水マニア", price: 140, category: "life" },
+  { value: "アイス年間消費量日本一|#87ceeb", name: "アイス年間消費量日本一", price: 210, category: "life" },
+  { value: "夜更かしの魔術師|#483d8b", name: "夜更かしの魔術師", price: 290, category: "life" },
+  { value: "朝活の宣伝部長|#ffa07a", name: "朝活の宣伝部長", price: 220, category: "life" },
+  { value: "干物女の極み|#bdb76b", name: "干物女の極み", price: 110, category: "life" },
+  { value: "マイスマホケース3代目|#bc8f8f", name: "マイスマホケース3代目", price: 160, category: "life" },
+  { value: "充電器持ち歩きマン|#d87093", name: "充電器持ち歩きマン", price: 170, category: "life" },
+  { value: "完璧な目覚まし時計使い|#ff4500", name: "完璧な目覚まし時計使い", price: 200, category: "life" },
+  { value: "雨男の宿命|#4169e1", name: "雨男の宿命", price: 300, category: "life" },
+
+  // 💬 ネット・スラング
+  { value: "草を生やす者|#2ecc71", name: "草を生やす者", price: 100, category: "net" },
+  { value: "それな民|#3498db", name: "それな民", price: 100, category: "net" },
+  { value: "語彙力迷子|#95a5a6", name: "語彙力迷子", price: 150, category: "net" },
+  { value: "深夜のテンション|#9b59b6", name: "深夜のテンション", price: 200, category: "net" },
+  { value: "既読スパート|#e74c3c", name: "既読スパート", price: 120, category: "net" },
+  { value: "ログ監視員|#34495e", name: "ログ監視員", price: 250, category: "net" },
+  { value: "メンタル豆腐|#bdc3c7", name: "メンタル豆腐", price: 100, category: "net" },
+  { value: "全肯定ボット|#f39c12", name: "全肯定ボット", price: 300, category: "net" },
+  { value: "匿名希望の星|#16a085", name: "匿名希望の星", price: 150, category: "net" },
+  { value: "空気読みの達人|#2980b9", name: "空気読みの達人", price: 200, category: "net" },
+  { value: "ツッコミ不在|#d35400", name: "ツッコミ不在", price: 180, category: "net" },
+  { value: "斜め上の発言者|#8e44ad", name: "斜め上の発言者", price: 350, category: "net" },
+  { value: "平和主義の鳩|#00ced1", name: "平和主義の鳩", price: 150, category: "net" },
+  { value: "煽り耐性ゼロ|#ff6b6b", name: "煽り耐性ゼロ", price: 100, category: "net" },
+  { value: "神出鬼没の幽霊|#708090", name: "神出鬼没の幽霊", price: 300, category: "net" },
+  { value: "ネットの海を漂う者|#483d8b", name: "ネットの海を漂う者", price: 220, category: "net" },
+  { value: "通知オンの番人|#ff1493", name: "通知オンの番人", price: 180, category: "net" },
+  { value: "誤字脱字の常習犯|#deb887", name: "誤字脱字の常習犯", price: 130, category: "net" },
+  { value: "スタンプ連打魔|#00ff7f", name: "スタンプ連打魔", price: 200, category: "net" },
+  { value: "ROM専からの脱却|#4169e1", name: "ROM専からの脱却", price: 160, category: "net" },
+  { value: "無言の同調者|#778899", name: "無言の同調者", price: 110, category: "net" },
+  { value: "話題泥棒の天才|#ff8c00", name: "話題泥棒の天才", price: 240, category: "net" },
+  { value: "伏線回収の鬼|#9932cc", name: "伏線回収の鬼", price: 400, category: "net" },
+  { value: "意味深な一言マン|#2f4f4f", name: "意味深な一言マン", price: 250, category: "net" },
+  { value: "スタンプ会話の住人|#00fa9a", name: "スタンプ会話の住人", price: 190, category: "net" },
+  { value: "トレンド最前線|#ff4500", name: "トレンド最前線", price: 270, category: "net" },
+  { value: "オールドスタイル貫くマン|#8b4513", name: "オールドスタイル貫くマン", price: 210, category: "net" },
+  { value: "爆笑提供マン|#ff69b4", name: "爆笑提供マン", price: 320, category: "net" },
+  { value: "スルースキル無限大|#00ffff", name: "スルースキル無限大", price: 280, category: "net" },
+  { value: "住民票ここにあり|#32cd32", name: "住民票ここにあり", price: 350, category: "net" },
+
+  // 💼 職業・役職
+  { value: "見習い魔法使い|#9370db", name: "見習い魔法使い", price: 300, category: "job" },
+  { value: "孤高の剣士|#c0392b", name: "孤高の剣士", price: 400, category: "job" },
+  { value: "気まぐれ商人|#d4af37", name: "気まぐれ商人", price: 350, category: "job" },
+  { value: "宮廷の錬金術師|#20b2aa", name: "宮廷の錬金術師", price: 600, category: "job" },
+  { value: "街の治安維持官|#1e90ff", name: "街の治安維持官", price: 450, category: "job" },
+  { value: "伝説の鍛冶職人|#cd853f", name: "伝説の鍛冶職人", price: 700, category: "job" },
+  { value: "吟遊詩人の語り手|#dda0dd", name: "吟遊詩人の語り手", price: 300, category: "job" },
+  { value: "迷子の冒険者|#f4a460", name: "迷子の冒険者", price: 200, category: "job" },
+  { value: "城塞の門番|#696969", name: "城塞の門番", price: 250, category: "job" },
+  { value: "秘密結社のエージェント|#2f4f4f", name: "秘密結社のエージェント", price: 800, category: "job" },
+  { value: "お騒がせ見習い魔女|#ba55d3", name: "お騒がせ見習い魔女", price: 420, category: "job" },
+  { value: "王立図書館の司書|#bc8f8f", name: "王立図書館の司書", price: 380, category: "job" },
+  { value: "孤島の灯台守|#5f9ea0", name: "孤島の灯台守", price: 310, category: "job" },
+  { value: "流浪の賞金稼ぎ|#8b0000", name: "流浪の賞金稼ぎ", price: 650, category: "job" },
+  { value: "天空の観測士|#4169e1", name: "天空の観測士", price: 550, category: "job" },
+  { value: "王国特命騎士団長|#ffd700", name: "王国特命騎士団長", price: 1200, category: "job" },
+  { value: "闇夜の暗殺者|#191970", name: "闇夜の暗殺者", price: 900, category: "job" },
+  { value: "気ままな猫カフェ店主|#ffb6c1", name: "気ままな猫カフェ店主", price: 330, category: "job" },
+  { value: "迷宮の案内人|#2e8b57", name: "迷宮の案内人", price: 400, category: "job" },
+  { value: "次元を超える旅商人|#ff4500", name: "次元を超える旅商人", price: 1500, category: "job" },
+  { value: "古代遺跡の発掘家|#8b4513", name: "古代遺跡の発掘家", price: 480, category: "job" },
+  { value: "王国主席魔導士|#9932cc", name: "王国主席魔導士", price: 950, category: "job" },
+  { value: "森の薬草採取人|#228b22", name: "森の薬草採取人", price: 220, category: "job" },
+  { value: "時計塔の番人|#708090", name: "時計塔の番人", price: 410, category: "job" },
+  { value: "放浪の剣豪|#cd5c5c", name: "放浪の剣豪", price: 620, category: "job" },
+  { value: "港町の漁労長|#4682b4", name: "港町の漁労長", price: 300, category: "job" },
+  { value: "ガラス細工の職人|#00ffff", name: "ガラス細工の職人", price: 390, category: "job" },
+  { value: "影の情報屋|#2f4f4f", name: "影の情報屋", price: 720, category: "job" },
+  { value: "聖堂の修道士|#f5deb3", name: "聖堂の修道士", price: 280, category: "job" },
+  { value: "荒野の保安官|#d2b48c", name: "荒野の保安官", price: 530, category: "job" }
+];
+
+
+// ==========================================
+// 絵文字データ（300個以上・個別設計＆カテゴリ分類）
+// ==========================================
+let currentEmojiCategory = "all";
+const SHOP_EMOJIS = [
+  // 💎 高級・プレミアム
+  { emoji: "😎", name: "神（教祖クラス）", price: 10000, category: "premium" },
+  { emoji: "🤓", name: "司祭", price: 5000, category: "premium" },
+  { emoji: "🥸", name: "天才", price: 3000, category: "premium" },
+  { emoji: "", name: "Apple高級", price: 1000, category: "premium" },
+  { emoji: "🇰🇵", name: "特別国家", price: 1000, category: "premium" },
+  { emoji: "💎", name: "大粒ダイヤ", price: 5000, category: "premium" },
+  { emoji: "👑", name: "黄金の王冠", price: 8000, category: "premium" },
+  { emoji: "🦄", name: "幻のユニコーン", price: 7000, category: "premium" },
+  { emoji: "🐉", name: "神龍", price: 9000, category: "premium" },
+  { emoji: "🔥", name: "聖なる炎", price: 4000, category: "premium" },
+  { emoji: "🪐", name: "サターンリング", price: 6000, category: "premium" },
+  { emoji: "🧿", name: "邪視のアミュレット", price: 5500, category: "premium" },
+  { emoji: "🔱", name: "ポセイドンの三叉槍", price: 6500, category: "premium" },
+  { emoji: "🍾", name: "高級シャンパン", price: 4500, category: "premium" },
+  { emoji: "🏆", name: "チャンピオンカップ", price: 5000, category: "premium" },
+
+  // 😀 表情・感情
+  { emoji: "🤩", name: "スター", price: 2000, category: "face" },
+  { emoji: "💩", name: "うんこ", price: 1000, category: "face" },
+  { emoji: "😅", name: "お、おう😅", price: 1000, category: "face" },
+  { emoji: "😀", name: "満面の笑顔", price: 100, category: "face" },
+  { emoji: "😂", name: "爆笑涙", price: 100, category: "face" },
+  { emoji: "😍", name: "メロメロ", price: 100, category: "face" },
+  { emoji: "🤔", name: "深い思考", price: 100, category: "face" },
+  { emoji: "😎", name: "クール", price: 100, category: "face" },
+  { emoji: "🥳", name: "お祝いパーティー", price: 100, category: "face" },
+  { emoji: "🥶", name: "凍結顔", price: 100, category: "face" },
+  { emoji: "😱", name: "驚愕", price: 100, category: "face" },
+  { emoji: "😭", name: "大号泣", price: 100, category: "face" },
+  { emoji: "😡", name: "激怒プンプン", price: 100, category: "face" },
+  { emoji: "😴", name: "ぐっすり睡眠", price: 100, category: "face" },
+  { emoji: "🤡", name: "ピエロの仮面", price: 200, category: "face" },
+  { emoji: "🙄", name: "呆れ顔", category: "face", price: 120 },
+  { emoji: "🤫", name: "内緒ポーズ", category: "face", price: 130 },
+  { emoji: "🤥", name: "ピノキオ嘘", category: "face", price: 150 },
+  { emoji: "🤤", name: "ヨダレ顔", category: "face", price: 110 },
+  { emoji: "🥴", name: "めまい顔", category: "face", price: 140 },
+
+  // 🐾 動物・自然
+  { emoji: "🌲", name: "豊かな森林", price: 100, category: "animal" },
+  { emoji: "🦜", name: "色鮮やかな鳥", price: 150, category: "animal" },
+  { emoji: "🍄‍🟫", name: "怪しいきのこ", price: 100, category: "animal" },
+  { emoji: "🌎", name: "青い地球", price: 100, category: "animal" },
+  { emoji: "🌊", name: "荒波", price: 100, category: "animal" },
+  { emoji: "🐶", name: "人懐っこい犬", price: 100, category: "animal" },
+  { emoji: "🐱", name: "気まぐれ猫", price: 100, category: "animal" },
+  { emoji: "🦁", name: "百獣の王ライオン", price: 150, category: "animal" },
+  { emoji: "🐯", name: "猛虎", price: 150, category: "animal" },
+  { emoji: "🦊", name: "賢いキツネ", price: 150, category: "animal" },
+  { emoji: "🐼", name: "パンダ", price: 150, category: "animal" },
+  { emoji: "🐨", name: "コアラ", price: 150, category: "animal" },
+  { emoji: "🐰", name: "跳ねるウサギ", price: 100, category: "animal" },
+  { emoji: "🐻", name: "グリズリー", price: 100, category: "animal" },
+  { emoji: "🐙", name: "タコ", price: 100, category: "animal" },
+
+  // 🍎 グルメ
+  { emoji: "🍎", name: "赤りんご", price: 100, category: "food" },
+  { emoji: "🍙", name: "塩おにぎり", price: 100, category: "food" },
+  { emoji: "🥃", name: "アイスティー", price: 100, category: "food" },
+  { emoji: "🍔", name: "特製バーガー", price: 100, category: "food" },
+  { emoji: "🍕", name: "窯焼きピザ", price: 100, category: "food" },
+  { emoji: "🍺", name: "冷えたビール", price: 100, category: "food" },
+  { emoji: "🍣", name: "職人の寿司", price: 100, category: "food" },
+  { emoji: "🍏", name: "青りんご", price: 100, category: "food" },
+  { emoji: "🍊", name: "みかん", price: 100, category: "food" },
+  { emoji: "🍋", name: "レモン", price: 100, category: "food" },
+  { emoji: "🍌", name: "バナナ", price: 100, category: "food" },
+  { emoji: "🍉", name: "カットスイカ", price: 100, category: "food" },
+  { emoji: "🍇", name: "巨峰", price: 100, category: "food" },
+  { emoji: "🍓", name: "完熟いちご", price: 100, category: "food" },
+  { emoji: "🥐", name: "サクサククロワッサン", category: "food", price: 120 },
+
+  // 🔬 科学・宇宙
+  { emoji: "🚀", name: "探査ロケット", price: 100, category: "science" },
+  { emoji: "🛸", name: "謎のUFO", price: 100, category: "science" },
+  { emoji: "🛰️", name: "通信衛星", price: 100, category: "science" },
+  { emoji: "⏱️", name: "精密タイマー", price: 100, category: "science" },
+  { emoji: "⌛", name: "神秘の砂時計", price: 100, category: "science" },
+  { emoji: "🔭", name: "天体望遠鏡", price: 100, category: "science" },
+  { emoji: "🔬", name: "研究用顕微鏡", price: 100, category: "science" },
+  { emoji: "🔮", name: "予言の水晶玉", price: 100, category: "science" },
+  { emoji: "💡", name: "閃きの電球", price: 100, category: "science" },
+  { emoji: "🔦", name: "強力ライト", price: 100, category: "science" },
+
+  // ⚽ スポーツ
+  { emoji: "⚽", name: "サッカーボール", price: 100, category: "sports" },
+  { emoji: "🏀", name: "バスケットボール", price: 100, category: "sports" },
+  { emoji: "🏈", name: "アメフトボール", price: 100, category: "sports" },
+  { emoji: "⚾", name: "硬式野球ボール", price: 100, category: "sports" },
+  { emoji: "🥎", name: "ソフトボール", price: 100, category: "sports" },
+  { emoji: "🎾", name: "テニスボール", price: 100, category: "sports" },
+  { emoji: "🏐", name: "バレーボール", price: 100, category: "sports" },
+  { emoji: "🏉", name: "ラグビーボール", price: 100, category: "sports" },
+  { emoji: "🥏", name: "フライングディスク", price: 100, category: "sports" },
+  { emoji: "🎱", name: "8番ビリヤード", price: 100, category: "sports" },
+
+  // 💻 デジタル
+  { emoji: "📱", name: "最新スマホ", price: 100, category: "tech" },
+  { emoji: "📲", name: "着信中スマホ", price: 100, category: "tech" },
+  { emoji: "📞", name: "レトロ受話器", price: 100, category: "tech" },
+  { emoji: "☎️", name: "ダイヤル電話", price: 100, category: "tech" },
+  { emoji: "💻", name: "ハイスペPC", price: 100, category: "tech" },
+  { emoji: "🖥️", name: "デスクトップ", price: 100, category: "tech" },
+  { emoji: "🖨️", name: "レーザープリンター", price: 100, category: "tech" },
+  { emoji: "⌨️", name: "メカニカルキーボード", price: 100, category: "tech" },
+  { emoji: "🖱️", name: "ゲーミングマウス", price: 100, category: "tech" },
+  { emoji: "💽", name: "ミニディスク", price: 100, category: "tech" },
+
+  // 🛠️ 道具・雑貨
+  { emoji: "📌", name: "固定ピン", price: 100, category: "tool" },
+  { emoji: "📍", name: "位置マーカー", price: 100, category: "tool" },
+  { emoji: "📎", name: "ペーパークリップ", price: 100, category: "tool" },
+  { emoji: "📏", name: "ストレート定規", price: 100, category: "tool" },
+  { emoji: "📐", name: "三角定規セット", price: 100, category: "tool" },
+  { emoji: "✂️", name: "工作バサミ", price: 100, category: "tool" },
+  { emoji: "📁", name: "整理フォルダ", price: 100, category: "tool" },
+  { emoji: "🗑️", name: "デスクゴミ箱", price: 100, category: "tool" },
+  { emoji: "📋", name: "クリップボード", price: 100, category: "tool" },
+  { emoji: "📅", name: "デスクカレンダー", price: 100, category: "tool" }
+];
+
+
+// ==========================================
+// カテゴリフィルター対応の描画関数＆イベント
+// ==========================================
+function renderTagShop() {
+  const container = document.getElementById("fullStoreTagShopList");
+  if (!container) return;
+  container.innerHTML = "";
+  const purchasedTags = getPurchasedTags();
+  const currentCoins = getMyCoins();
+
+  const filteredTags = SHOP_TAGS.filter(item => {
+    if (currentTagCategory === "all") return true;
+    return item.category === currentTagCategory;
+  });
+
+  filteredTags.forEach(item => {
+    const isOwned = purchasedTags.includes(item.value);
+    const isCurrentActive = (localStorage.getItem("customTagName") === item.value.split("|")[0]);
+    
+    const card = document.createElement("div");
+    card.className = "store-card";
+    
+    const topDiv = document.createElement("div");
+    topDiv.innerHTML = `<strong style="font-size: 15px; color:#2c3e50;">${item.name}</strong><br><span style="font-size: 13px; color:#e67e22; font-weight:bold;">${item.price} コイン</span>`;
+    if (isOwned) topDiv.innerHTML += ` <span class="purchased-badge">所有中</span>`;
+
+    const btn = document.createElement("button");
+    btn.className = "greenBtn";
+    btn.style.width = "100%"; btn.style.marginTop = "10px"; btn.style.padding = "8px"; btn.style.fontSize = "13px";
+
+    if (!isOwned) {
+      btn.textContent = "購入する";
+      btn.onclick = () => {
+        if (currentCoins < item.price) return alert("コインが足りません。");
+        setMyCoins(currentCoins - item.price);
+        savePurchasedTag(item.value);
+        const [tagName, tagColor] = item.value.split("|");
+        localStorage.setItem("customTagName", tagName);
+        localStorage.setItem("customTagColor", tagColor);
+        localStorage.setItem("customTagEnabled", "true");
+        saveAccountData({ customTagEnabled: true, customTagName: tagName, customTagColor: tagColor });
+        document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+        renderTagShop();
+        alert(`${tagName} タグを購入・適用しました。`);
+      };
+    } else if (isCurrentActive) {
+      btn.textContent = "着用中"; btn.disabled = true; btn.style.backgroundColor = "#27ae60";
+    } else {
+      btn.textContent = "適用する"; btn.style.backgroundColor = "#2980b9";
+      btn.onclick = () => {
+        const [tagName, tagColor] = item.value.split("|");
+        localStorage.setItem("customTagName", tagName);
+        localStorage.setItem("customTagColor", tagColor);
+        localStorage.setItem("customTagEnabled", "true");
+        saveAccountData({ customTagEnabled: true, customTagName: tagName, customTagColor: tagColor });
+        renderTagShop();
+        alert(`${tagName} タグを適用しました。`);
+      };
+    }
+    card.appendChild(topDiv); card.appendChild(btn); container.appendChild(card);
+  });
+}
+
+function renderEmojiShop() {
+  const listContainer = document.getElementById("fullStoreEmojiShopList");
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+  const purchased = getPurchasedEmojis();
+  const currentCoins = getMyCoins();
+
+  const filteredEmojis = SHOP_EMOJIS.filter(item => {
+    if (currentEmojiCategory === "all") return true;
+    return item.category === currentEmojiCategory;
+  });
+
+  filteredEmojis.forEach(item => {
+    const isOwned = purchased.includes(item.emoji);
+    const card = document.createElement("div");
+    card.className = "store-card";
+    
+    const topDiv = document.createElement("div");
+    topDiv.style.display = "flex"; topDiv.style.alignItems = "center"; topDiv.style.gap = "12px";
+    topDiv.innerHTML = `<span style="font-size: 32px;">${item.emoji}</span><div><strong>${item.name}</strong><br><span style="font-size: 13px; color: #e67e22; font-weight:bold;">${item.price} コイン</span>${isOwned ? '<br><span class="purchased-badge">所有中</span>' : ''}</div>`;
+    
+    const btn = document.createElement("button");
+    btn.className = "greenBtn"; btn.style.width = "100%"; btn.style.marginTop = "10px"; btn.style.padding = "8px"; btn.style.fontSize = "13px";
+    
+    if (isOwned) {
+      btn.textContent = "所有済み"; btn.disabled = true; btn.style.backgroundColor = "#95a5a6";
+    } else {
+      btn.textContent = "購入する";
+      btn.onclick = () => {
+        if (currentCoins < item.price) return alert("コインが足りません。");
+        setMyCoins(currentCoins - item.price);
+        savePurchasedEmoji(item.emoji);
+        document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+        renderEmojiShop(); renderStampMenu();
+        alert(`${item.emoji} (${item.name}) を購入しました。`);
+      };
+    }
+    card.appendChild(topDiv); card.appendChild(btn); listContainer.appendChild(card);
+  });
+}
+
+// カテゴリタブボタンのクリックイベント紐付け
+document.querySelectorAll(".tagCatBtn").forEach(btn => {
+  btn.onclick = () => {
+    currentTagCategory = btn.dataset.cat;
+    renderTagShop();
+  };
+});
+
+document.querySelectorAll(".emojiCatBtn").forEach(btn => {
+  btn.onclick = () => {
+    currentEmojiCategory = btn.dataset.cat;
+    renderEmojiShop();
+  };
+});
 
 // --- 名前エフェクトショップ（全15種） ---
 const SHOP_EFFECTS = [
@@ -1782,60 +2188,8 @@ document.getElementById("boostThreadBtn").onclick = async () => {
   }
 };
 
-const SHOP_TAGS = [
-{ value: "😎しんぞ教祖😎|#000000", name: "😎しんぞ教祖😎", price: 100000 },
-{ value: "🤓しんぞ教司祭🤓|#696969", name: "🤓しんぞ教司祭🤓", price: 50000 },
-{ value: "🥸天才🥸|#1e90ff", name: "🥸天才🥸", price: 20000 },
-{ value: "😅ドパガキ😂|#00ced1", name: "😅ドパガキ😅", price: 10000 },
-{ value: "イケメン|#8b4513", name: "イケメン", price: 5000 },
-{ value: "😅|#ffff00", name: "😅(絵文字のみ)", price: 2000 },
-{ value: "堀◯輔|#7fff00", name: "堀◯輔", price: 1500 },
-{ value: "初心者|#2A9D8F", name: "初心者", price: 100 },
-{ value: "ベテラン|#E76F51", name: "ベテラン", price: 100 },
-{ value: "VIP|#F4A261", name: "VIP", price: 1500 },
-{ value: "非課金|#264653", name: "非課金", price: 100 },
-{ value: "重課金|#9D4EDD", name: "重課金", price: 100 },
-{ value: "エンジョイ|#4CC9F0", name: "エンジョイ", price: 100 },
-{ value: "ガチ勢|#F72585", name: "ガチ勢", price: 100 },
-{ value: "夜行性|#3A0CA3", name: "夜行性", price: 100 },
-{ value: "早起き|#43AA8B", name: "早起き", price: 100 },
-{ value: "ホモ|#6C757D", name: "ホモ", price: 500 },
-{ value: "ゲイ|#52B788", name: "ゲイ", price: 2000 },
-{ value: "まったり|#FFB703", name: "まったり", price: 100 },
-{ value: "雑談好き|#FB8500", name: "雑談好き", price: 100 },
-{ value: "職人|#8D99AE", name: "職人", price: 100 },
-{ value: "ルーキー|#70C1B3", name: "ルーキー", price: 100 },
-{ value: "マスター|#D90429", name: "マスター", price: 100 },
-{ value: "のんびり|#B5E2FA", name: "のんびり", price: 100 },
-{ value: "I'm a rich|#E056FD", name: "I'm a rich", price: 1000000 }
-];
 
-const SHOP_EMOJIS = [
-{ emoji: "😎", name: "神", price: 10000 },
-{ emoji: "🤓", name: "司祭", price: 5000 },
-{ emoji: "🥸", name: "天才", price: 3000 },
-{ emoji: "🤩", name: "星", price: 2000 },
-{ emoji: "💩", name: "うんこ", price: 1000 },
-{ emoji: "🌲", name: "森林", price: 100 },
-{ emoji: "🌝", name: "顔", price: 100 },
-{ emoji: "🦜", name: "◯ンコ", price: 150 },
-{ emoji: "🍄‍🟫", name: "きのこ", price: 100 },
-{ emoji: "🌎", name: "地球", price: 100 },
-{ emoji: "🌊", name: "波", price: 100 },
-{ emoji: "🍎", name: "りんご", price: 100 },
-{ emoji: "🍙", name: "おにぎり", price: 100 },
-{ emoji: "🥃", name: "アイスティー", price: 100 },
-{ emoji: "⚽️", name: "サッカー", price: 100 },
-{ emoji: "🚇", name: "地下鉄", price: 100 },
-{ emoji: "🌃", name: "夜景", price: 100 },
-{ emoji: "💎", name: "宝石", price: 100 },
-{ emoji: "🇰🇵", name: "朝鮮民主主義人民共和国", price: 1000 },
-{ emoji: "🇯🇵", name: "日本", price: 100 },
-{ emoji: "🖼️", name: "写真", price: 100 },
-{ emoji: "⚙️", name: "歯車", price: 100 },
-{ emoji: "😅", name: "お、おう😅", price: 10000 },
-{ emoji: "", name: "Apple", price: 1000 },
-];
+
 
 function getPurchasedEmojis() {
   const data = localStorage.getItem("purchasedEmojis");
@@ -1887,96 +2241,9 @@ function renderStampMenu() {
   });
 }
 
-function renderTagShop() {
-  const container = document.getElementById("fullStoreTagShopList");
-  if (!container) return;
-  container.innerHTML = "";
-  const purchasedTags = getPurchasedTags();
-  const currentCoins = getMyCoins();
 
-  SHOP_TAGS.forEach(item => {
-    const isOwned = purchasedTags.includes(item.value);
-    const isCurrentActive = (localStorage.getItem("customTagName") === item.value.split("|")[0]);
-    
-    const card = document.createElement("div");
-    card.className = "store-card";
-    
-    const topDiv = document.createElement("div");
-    topDiv.innerHTML = `<strong style="font-size: 15px; color:#2c3e50;">${item.name}</strong><br><span style="font-size: 13px; color:#e67e22; font-weight:bold;">${item.price} コイン</span>`;
-    if (isOwned) topDiv.innerHTML += ` <span class="purchased-badge">所有中</span>`;
 
-    const btn = document.createElement("button");
-    btn.className = "greenBtn";
-    btn.style.width = "100%"; btn.style.marginTop = "10px"; btn.style.padding = "8px"; btn.style.fontSize = "13px";
 
-    if (!isOwned) {
-      btn.textContent = "購入する";
-      btn.onclick = () => {
-        if (currentCoins < item.price) return alert("コインが足りません。");
-        setMyCoins(currentCoins - item.price);
-        savePurchasedTag(item.value);
-        const [tagName, tagColor] = item.value.split("|");
-        localStorage.setItem("customTagName", tagName);
-        localStorage.setItem("customTagColor", tagColor);
-        localStorage.setItem("customTagEnabled", "true");
-        saveAccountData({ customTagEnabled: true, customTagName: tagName, customTagColor: tagColor });
-        document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
-        renderTagShop();
-        alert(`${tagName} タグを購入・適用しました。`);
-      };
-    } else if (isCurrentActive) {
-      btn.textContent = "着用中"; btn.disabled = true; btn.style.backgroundColor = "#27ae60";
-    } else {
-      btn.textContent = "適用する"; btn.style.backgroundColor = "#2980b9";
-      btn.onclick = () => {
-        const [tagName, tagColor] = item.value.split("|");
-        localStorage.setItem("customTagName", tagName);
-        localStorage.setItem("customTagColor", tagColor);
-        localStorage.setItem("customTagEnabled", "true");
-        saveAccountData({ customTagEnabled: true, customTagName: tagName, customTagColor: tagColor });
-        renderTagShop();
-        alert(`${tagName} タグを適用しました。`);
-      };
-    }
-    card.appendChild(topDiv); card.appendChild(btn); container.appendChild(card);
-  });
-}
-
-function renderEmojiShop() {
-  const listContainer = document.getElementById("fullStoreEmojiShopList");
-  if (!listContainer) return;
-  listContainer.innerHTML = "";
-  const purchased = getPurchasedEmojis();
-  const currentCoins = getMyCoins();
-
-  SHOP_EMOJIS.forEach(item => {
-    const isOwned = purchased.includes(item.emoji);
-    const card = document.createElement("div");
-    card.className = "store-card";
-    
-    const topDiv = document.createElement("div");
-    topDiv.style.display = "flex"; topDiv.style.alignItems = "center"; topDiv.style.gap = "12px";
-    topDiv.innerHTML = `<span style="font-size: 32px;">${item.emoji}</span><div><strong>${item.name}</strong><br><span style="font-size: 13px; color: #e67e22; font-weight:bold;">${item.price} コイン</span>${isOwned ? '<br><span class="purchased-badge">所有中</span>' : ''}</div>`;
-    
-    const btn = document.createElement("button");
-    btn.className = "greenBtn"; btn.style.width = "100%"; btn.style.marginTop = "10px"; btn.style.padding = "8px"; btn.style.fontSize = "13px";
-    
-    if (isOwned) {
-      btn.textContent = "所有済み"; btn.disabled = true; btn.style.backgroundColor = "#95a5a6";
-    } else {
-      btn.textContent = "購入する";
-      btn.onclick = () => {
-        if (currentCoins < item.price) return alert("コインが足りません。");
-        setMyCoins(currentCoins - item.price);
-        savePurchasedEmoji(item.emoji);
-        document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
-        renderEmojiShop(); renderStampMenu();
-        alert(`${item.emoji} (${item.name}) を購入しました。`);
-      };
-    }
-    card.appendChild(topDiv); card.appendChild(btn); listContainer.appendChild(card);
-  });
-}
 
 document.getElementById("fullStoreRedeemBtn").onclick = async () => {
   const code = document.getElementById("fullStoreCoinCodeInput").value.trim();
@@ -3170,8 +3437,10 @@ document.getElementById("createRoomConfirmBtn").onclick = async ()=>{
   const name=document.getElementById("newRoomInput").value.trim(); if(!name) return alert("部屋名を入力してください");
   await setDoc(doc(db,"rooms",name),{ created_at:Timestamp.now(), ...getBoardWriteMeta() }); await saveLog("create_room", { roomName: name }); switchRoom(name);
 };
-document.getElementById("closeRoomPopup", ()=>{ document.getElementById("roomPopup").style.display="none"; overlay.style.display="none"; });
-
+document.getElementById("closeRoomPopup").onclick = () => {
+  document.getElementById("roomPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
 setSectionsHeight(); listenThreads(); stopIfBanned(); renderStampMenu();
 async function openThreadFromURL() {
   const params = new URLSearchParams(location.search);
@@ -3317,6 +3586,11 @@ document.getElementById('boardLogoBtn').onclick = () => {
 
   listenThreads();
   document.getElementById("threadListSection").scrollTop = 0;
+};
+// ガチャ結果モーダルを閉じる処理を追加
+document.getElementById("closeGachaResultBtn").onclick = () => {
+  document.getElementById("gachaResultModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
 };
 </script>
 </body>
