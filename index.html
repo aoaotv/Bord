@@ -1508,8 +1508,14 @@ async function initMarketSystem() {
 
       const data = marketSnap.data();
       const price = data.currentPrice || 100;
-      const delta = Math.floor(Math.random() * 21) - 10;
-      const nextPrice = Math.max(10, price + delta);
+    const delta = Math.floor(Math.random() * 101) - 50;
+      let nextPrice = price + delta;
+
+      // ▼ 株価の範囲を指定（例: 最低50、最高1000に制限する）
+      const MIN_PRICE = 50;
+      const MAX_PRICE = 500;
+      if (nextPrice < MIN_PRICE) nextPrice = MIN_PRICE;
+      if (nextPrice > MAX_PRICE) nextPrice = MAX_PRICE;
 
       const history = data.priceHistory || [];
       history.push(nextPrice);
@@ -1528,7 +1534,7 @@ async function initMarketSystem() {
         updated_at: Timestamp.now()
       });
     } catch(e) {}
-  }, 3000);
+  }, 5000);
 }
 initMarketSystem();
 
