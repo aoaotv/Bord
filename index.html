@@ -1508,7 +1508,7 @@ async function initMarketSystem() {
 
       const data = marketSnap.data();
       const price = data.currentPrice || 100;
-      const delta = Math.floor(Math.random() * 101) - 50;
+      const delta = Math.floor(Math.random() * 21) - 10;
       const nextPrice = Math.max(10, price + delta);
 
       const history = data.priceHistory || [];
@@ -1528,7 +1528,7 @@ async function initMarketSystem() {
         updated_at: Timestamp.now()
       });
     } catch(e) {}
-  }, 1000);
+  }, 3000);
 }
 initMarketSystem();
 
