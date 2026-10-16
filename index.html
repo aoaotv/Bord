@@ -514,10 +514,10 @@ textarea { min-height:60px; resize: vertical; }
     
     <div style="background:#f7f9fc; padding:30px; border-radius:16px; margin-bottom:25px;">
       <div style="font-size: 72px; margin-bottom: 10px;">🎰</div>
-      <h4 style="margin: 0 0 10px; font-size: 20px;">限定スタンプや大量コインが当たる！</h4>
-      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">1回 300コインで挑戦可能！運が良ければガチャ限定レアスタンプ獲得！</p>
+      <h4 style="margin: 0 0 10px; font-size: 20px;">大量コインが当たる！</h4>
+      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">1回 500コインで挑戦可能！運が良ければ最大10000コイン獲得！</p>
       
-      <button id="playGachaBtn" class="greenBtn" style="padding: 14px 40px; font-size: 18px; font-weight: bold; background: #8e44ad;">ガチャを回す (300🪙)</button>
+      <button id="playGachaBtn" class="greenBtn" style="padding: 14px 40px; font-size: 18px; font-weight: bold; background: #8e44ad;">ガチャを回す (500🪙)</button>
     </div>
 
     <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
@@ -611,6 +611,9 @@ textarea { min-height:60px; resize: vertical; }
       <button class="greenBtn emojiCatBtn" data-cat="sports" style="background:#27ae60; padding: 6px 12px; font-size:12px;">⚽ スポーツ</button>
       <button class="greenBtn emojiCatBtn" data-cat="tech" style="background:#34495e; padding: 6px 12px; font-size:12px;">💻 デジタル</button>
       <button class="greenBtn emojiCatBtn" data-cat="tool" style="background:#7f8c8d; padding: 6px 12px; font-size:12px;">🛠️ 道具・雑貨</button>
+      <button class="greenBtn emojiCatBtn" data-cat="people" style="background:#e84393; padding: 6px 12px; font-size:12px;">🙌 人・手</button>
+      <button class="greenBtn emojiCatBtn" data-cat="travel" style="background:#16a085; padding: 6px 12px; font-size:12px;">🚗 乗り物・場所</button>
+      <button class="greenBtn emojiCatBtn" data-cat="symbol" style="background:#d35400; padding: 6px 12px; font-size:12px;">💠 記号</button>
     </div>
 
     <div style="margin-bottom:25px;">
@@ -637,6 +640,15 @@ textarea { min-height:60px; resize: vertical; }
 
     <div id="adminDashboardPanel" style="display:none;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 25px;">
+        <div class="adminPanel">
+          <h4>📢 通知を送る</h4>
+          <label>宛先（アカウント名／空欄で全員）</label>
+          <input id="adminNoticeTo" placeholder="空欄＝全員に送信">
+          <label>通知内容</label>
+          <textarea id="adminNoticeText" rows="3" placeholder="例：今夜メンテナンスを行います" style="width:100%; box-sizing:border-box;"></textarea>
+          <button id="adminSendNoticeBtn" type="button" class="greenBtn" style="width:100%; margin-top:8px;">通知を送信</button>
+        </div>
+
         <div class="adminPanel">
           <h4>🏷️ 公式バッジ設定</h4>
           <div id="adminBadgeStatus" style="font-weight:bold; color:#333; margin-bottom:8px;">公式バッジ: OFF</div>
@@ -1418,6 +1430,7 @@ document.getElementById("dmSendBtn").onclick = async () => {
     await setDoc(doc(db, "dm_conversations", currentChatId), {
       participants: [currentAccount, currentChatPartner],
       lastMessage: text || "[画像]",
+      lastSender: currentAccount,
       updated_at: timeNow
     }, { merge: true });
 
@@ -1451,22 +1464,33 @@ document.getElementById("menuCoinRainBtn").onclick = async () => {
   const myCoins = getMyCoins();
   const rainCost = 1000;
   if (myCoins < rainCost) return alert(`コインが足りません（必要: ${rainCost}枚）`);
-  const onlineUsers = window.currentOnlineUsers || [];
-  if (onlineUsers.length <= 1) return alert("現在他にオンラインのユーザーがいないため、コインの雨を降らせられません。");
-  if (!confirm(`1,000コインを消費して、オンラインの ${onlineUsers.length} 人にコインの雨を降らせますか？`)) return;
+
+  // ★自分を除いたオンラインのユーザーだけが対象
+  const others = (window.currentOnlineUsers || []).filter(u => u !== currentAccount);
+  if (others.length === 0) return alert("現在あなた以外にオンラインのユーザーがいないため、コインの雨を降らせられません。");
+
+  // ★アカウントを持つ人だけに絞る（未ログインの人は更新エラーになり、途中で止まるため）
+  showLoading("オンラインのユーザーを確認中…");
+  const checked = await Promise.all(others.map(async u => {
+    try { return (await getDoc(doc(db, "accounts", u))).exists() ? u : null; } catch (e) { return null; }
+  }));
+  hideLoading();
+  const recipients = checked.filter(Boolean);
+  if (recipients.length === 0) return alert("コインを受け取れるオンラインのユーザーがいません。");
+
+  const sharePerUser = Math.floor(rainCost / recipients.length);
+  if (sharePerUser < 1) return alert("人数が多すぎて分配できません。");
+  if (!confirm(`${rainCost.toLocaleString()}コインを消費して、あなた以外のオンライン ${recipients.length} 人にコインの雨を降らせますか？\n（一人あたり ${sharePerUser} コイン）`)) return;
 
   setMyCoins(myCoins - rainCost);
-  const sharePerUser = Math.floor(rainCost / onlineUsers.length);
   showLoading("コインの雨を降らせています… 🪙");
   try {
-    for (const targetUser of onlineUsers) {
-      if (targetUser === currentAccount) continue;
-      const userRef = doc(db, "accounts", targetUser);
-      await updateDoc(userRef, { coins: increment(sharePerUser) });
+    for (const targetUser of recipients) {
+      await updateDoc(doc(db, "accounts", targetUser), { coins: increment(sharePerUser) });
     }
     hideLoading();
     alert(`🎉 「${currentAccount}」さんがコインの雨を降らせました！一人あたり ${sharePerUser} コインが分配されました。`);
-    await saveLog("coin_rain", { amount: rainCost, recipientsCount: onlineUsers.length });
+    await saveLog("coin_rain", { amount: rainCost, recipientsCount: recipients.length });
   } catch(e) {
     hideLoading();
     alert("分配処理中にエラーが発生しました。");
@@ -1921,58 +1945,37 @@ document.getElementById("sellStockBtn").onclick = async () => {
   try { await updateDoc(doc(db, "accounts", currentAccount), { coins: newCoins, shares: newShares }); } catch (e) {}
 };
 
-// --- ガチャシステム（くじ引きの絵文字プレゼント機能を削除し、コインとタグのみに変更） ---
+// --- ガチャシステム（コインのみ） ---
+const GACHA_COST = 500; // ★1回の値段
+
+// ★rate は確率(%)。合計100。還元率 約86% ／ 500コイン以上が出る確率 約37%
 const GACHA_COINS = [
-  { value: 10, name: "10 コイン", rate: 30 },
-  { value: 30, name: "30 コイン", rate: 25 },
-  { value: 50, name: "50 コイン", rate: 20 },
-  { value: 100, name: "100 コイン", rate: 15 },
-  { value: 200, name: "200 コイン", rate: 10 },
-  { value: 300, name: "300 コイン (トントン!)", rate: 8 },
-  { value: 500, name: "500 コイン", rate: 5 },
-  { value: 1000, name: "1000 コイン (大当り!)", rate: 2 },
-  { value: 5000, name: "5000 コイン (超大当り!!)", rate: 0.5 },
-  { value: 10000, name: "10000 コイン (神引き!!!)", rate: 0.1 }
+  { value: 100,   name: "100 コイン",               rate: 25 },
+  { value: 200,   name: "200 コイン",               rate: 22 },
+  { value: 300,   name: "300 コイン",               rate: 16 },
+  { value: 500,   name: "500 コイン (トントン!)",    rate: 17 },
+  { value: 800,   name: "800 コイン",               rate: 10 },
+  { value: 1000,  name: "1000 コイン (大当り!)",     rate: 7 },
+  { value: 2000,  name: "2000 コイン (大当り!!)",    rate: 2.5 },
+  { value: 5000,  name: "5000 コイン (超大当り!!)",  rate: 0.4 },
+  { value: 10000, name: "10000 コイン (神引き!!!)",  rate: 0.1 }
 ];
-
-// ガチャ限定の特殊タグ（※絵文字プレゼント機能は完全に削除）
-const GACHA_TAGS = [
-  { value: "🎰ガチャ廃人|#ff0055", name: "🎰ガチャ廃人", rate: 2 },
-  { value: "✨強運の持ち主|#ffd700", name: "✨強運の持ち主", rate: 3 },
-  { value: "👑神引きの帝王|#9d4edd", name: "👑神引きの帝王", rate: 1 },
-  { value: "💸爆死の常連|#6c757d", name: "💸爆死の常連", rate: 4 },
-  { value: "🍀幸運の使者|#2ecc71", name: "幸運の使者", rate: 3 }
-];
-
-const GACHA_ITEMS = [
-  ...GACHA_COINS.map(c => ({ type: "coin", value: c.value, name: c.name, rate: c.rate })),
-  ...GACHA_TAGS.map(t => ({ type: "tag", value: t.value, name: `限定タグ [${t.name}]`, rate: t.rate }))
-];
+const GACHA_ITEMS = GACHA_COINS; // ★限定タグは廃止（コインだけ）
 
 document.getElementById("playGachaBtn").onclick = () => {
   if (!currentAccount) return alert("ガチャを利用するにはアカウントにログインしてください。");
   const myCoins = getMyCoins();
-  if (myCoins < 300) return alert("コインが足りません (必要: 300コイン)");
-
-  setMyCoins(myCoins - 300);
+  if (myCoins < GACHA_COST) return alert(`コインが足りません (必要: ${GACHA_COST}コイン)`);
 
   const totalRate = GACHA_ITEMS.reduce((sum, item) => sum + item.rate, 0);
   let random = Math.random() * totalRate;
   let selected = GACHA_ITEMS[0];
-
   for (const item of GACHA_ITEMS) {
-    if (random < item.rate) {
-      selected = item;
-      break;
-    }
+    if (random < item.rate) { selected = item; break; }
     random -= item.rate;
   }
 
-  if (selected.type === "coin") {
-    setMyCoins(getMyCoins() + selected.value);
-  } else if (selected.type === "tag") {
-    savePurchasedTag(selected.value);
-  }
+  setMyCoins(myCoins - GACHA_COST + selected.value);
 
   document.getElementById("gachaResultContent").textContent = selected.name;
   document.getElementById("gachaResultModal").style.display = "block";
@@ -2131,6 +2134,16 @@ const SHOP_TAGS = [
   { value: "荒野の保安官|#d2b48c", name: "荒野の保安官", price: 530, category: "job" }
 ];
 
+// ★タグ価格の調整（高すぎる価格を圧縮）
+// 〜500: そのまま / 〜2,000: 半額 / 〜20,000: 1/4 / それ以上: 1/10（下限5,000・上限100,000）
+SHOP_TAGS.forEach(t => {
+  const p = t.price;
+  if (p <= 500) return;
+  const n = p <= 2000 ? p / 2 : p <= 20000 ? p / 4 : Math.min(Math.max(p / 10, 5000), 100000);
+  t.price = Math.max(100, Math.round(n / 50) * 50);
+});
+
+
 
 // ==========================================
 // 絵文字データ（300個以上・個別設計＆カテゴリ分類）
@@ -2258,6 +2271,45 @@ const SHOP_EMOJIS = [
   { emoji: "📋", name: "クリップボード", price: 100, category: "tool" },
   { emoji: "📅", name: "デスクカレンダー", price: 100, category: "tool" }
 ];
+// ★ほぼ全ての絵文字を自動追加（基本100コイン。高そうなものは少し高め）
+const EMOJI_CATS = [
+  { id: "face", label: "😀 表情" }, { id: "people", label: "🙌 人・手" }, { id: "animal", label: "🐾 動物・自然" },
+  { id: "food", label: "🍎 食べ物" }, { id: "sports", label: "⚽ スポーツ" }, { id: "travel", label: "🚗 乗り物・場所" },
+  { id: "tool", label: "🛠️ 道具・雑貨" }, { id: "tech", label: "💻 デジタル" }, { id: "science", label: "🔬 科学" },
+  { id: "symbol", label: "💠 記号" }, { id: "premium", label: "💎 高級" }
+];
+const EMOJI_PRICE = {
+  "💰":300,"🪙":300,"💵":200,"💴":200,"💶":200,"💷":200,"💸":200,"💳":200,"🏆":500,"🥇":300,"🥈":250,"🥉":200,"🏅":250,"🎖":250,
+  "💍":400,"🏰":300,"🏯":250,"🏦":250,"🏨":200,"🏝":250,"🗽":200,"🗼":200,"🎡":200,"🎢":200,"\u26E9":200,
+  "🚀":300,"🛸":300,"\u2708":200,"🚁":200,"🚢":250,"🛳":250,"🏎":300,"🚗":150,"🚂":150,
+  "🎰":300,"🔱":300,"\u269C":300,"🎩":200,"🔮":200,"🧿":200,"🪄":200,"🌟":200,"\u2B50":150,"🌈":150,"🎁":150,"🎆":200,"🎇":200,"💼":150,"📈":150
+};
+(function addAllEmojis() {
+  const norm = s => s.replace(/\uFE0F/g, "");
+  const have = new Set(SHOP_EMOJIS.map(e => norm(e.emoji)));
+  const CAT = [
+    [0x1F600,0x1F644,"face"],[0x1F910,0x1F917,"face"],[0x1F920,0x1F925,"face"],[0x1F927,0x1F92F,"face"],[0x1F970,0x1F97A,"face"],[0x1FAE0,0x1FAE8,"face"],
+    [0x1F645,0x1F64F,"people"],[0x1F440,0x1F487,"people"],[0x1F918,0x1F91F,"people"],[0x1F926,0x1F926,"people"],[0x1F930,0x1F93A,"people"],[0x1F9B0,0x1F9BF,"people"],[0x1F9D0,0x1F9DF,"people"],
+    [0x1F330,0x1F344,"animal"],[0x1F300,0x1F32C,"animal"],[0x1F400,0x1F43E,"animal"],[0x1F980,0x1F9AE,"animal"],
+    [0x1F32D,0x1F37F,"food"],[0x1F950,0x1F96B,"food"],[0x1F9C0,0x1F9CB,"food"],
+    [0x1F3E0,0x1F3F0,"travel"],[0x1F680,0x1F6FF,"travel"],
+    [0x1F380,0x1F3DF,"sports"],[0x1F93C,0x1F94F,"sports"],
+    [0x1F493,0x1F4A0,"symbol"],[0x1F500,0x1F53D,"symbol"],[0x1F550,0x1F567,"symbol"],[0x1F7E0,0x1F7EB,"symbol"],
+    [0x1F4BB,0x1F4FC,"tech"]
+  ];
+  const catOf = cp => { const r = CAT.find(([a, b]) => cp >= a && cp <= b); return r ? r[2] : (cp < 0x1F000 ? "symbol" : "tool"); };
+  for (const [a, b] of [[0x203C, 0x3299], [0x1F000, 0x1FAFF]]) {
+    for (let cp = a; cp <= b; cp++) {
+      if ((cp >= 0x1F1E6 && cp <= 0x1F1FF) || (cp >= 0x1F3FB && cp <= 0x1F3FF)) continue; // 国旗の文字・肌色は除外
+      const ch = String.fromCodePoint(cp);
+      const pres = /^\p{Emoji_Presentation}$/u.test(ch);
+      if (!pres && !/^\p{Emoji}$/u.test(ch)) continue;
+      if (have.has(ch)) continue;
+      SHOP_EMOJIS.push({ emoji: pres ? ch : ch + "\uFE0F", name: "スタンプ", price: EMOJI_PRICE[ch] || 100, category: catOf(cp) });
+    }
+  }
+})();
+
 
 
 // ==========================================
@@ -2323,6 +2375,7 @@ function renderTagShop() {
   });
 }
 
+let emojiShopLimit = 120;
 function renderEmojiShop() {
   const listContainer = document.getElementById("fullStoreEmojiShopList");
   if (!listContainer) return;
@@ -2335,7 +2388,7 @@ function renderEmojiShop() {
     return item.category === currentEmojiCategory;
   });
 
-  filteredEmojis.forEach(item => {
+  filteredEmojis.slice(0, emojiShopLimit).forEach(item => {
     const isOwned = purchased.includes(item.emoji);
     const card = document.createElement("div");
     card.className = "store-card";
@@ -2362,6 +2415,13 @@ function renderEmojiShop() {
     }
     card.appendChild(topDiv); card.appendChild(btn); listContainer.appendChild(card);
   });
+  if (filteredEmojis.length > emojiShopLimit) {
+    const more = document.createElement("button");
+    more.className = "greenBtn"; more.style.cssText = "grid-column:1/-1; padding:10px;";
+    more.textContent = `さらに表示 (${emojiShopLimit}/${filteredEmojis.length})`;
+    more.onclick = () => { emojiShopLimit += 120; renderEmojiShop(); };
+    listContainer.appendChild(more);
+  }
 }
 
 // カテゴリタブボタンのクリックイベント紐付け
@@ -2374,7 +2434,7 @@ document.querySelectorAll(".tagCatBtn").forEach(btn => {
 
 document.querySelectorAll(".emojiCatBtn").forEach(btn => {
   btn.onclick = () => {
-    currentEmojiCategory = btn.dataset.cat;
+    currentEmojiCategory = btn.dataset.cat; emojiShopLimit = 120;
     renderEmojiShop();
   };
 });
@@ -2577,15 +2637,20 @@ function savePurchasedTag(tagVal) {
   }
 }
 
+const DEFAULT_STAMPS = ["😀", "😊", "🥶", "🎉", "👍", "👀"];
+function getStampCategory(st) {
+  const hit = SHOP_EMOJIS.find(e => e.emoji === st);
+  return hit ? hit.category : "face";
+}
+
 function renderStampMenu() {
   const menuContent = document.getElementById("stampMenuContent");
   if (!menuContent) return;
-  const defaultStamps = ["😀", "😊", "🥶", "🎉", "👍", "👀"];
-  const purchased = getPurchasedEmojis();
-  const allStamps = [...new Set([...defaultStamps, ...purchased])];
-  
+  const allStamps = [...new Set([...DEFAULT_STAMPS, ...getPurchasedEmojis()])];
+
   menuContent.innerHTML = "";
-  allStamps.forEach(st => {
+  // ★メニューには最初の6個だけ表示
+  allStamps.slice(0, 6).forEach(st => {
     const div = document.createElement("div");
     div.className = "stampItem";
     div.style.cssText = "cursor:pointer; text-align:center; font-size: 24px;";
@@ -2597,6 +2662,49 @@ function renderStampMenu() {
     };
     menuContent.appendChild(div);
   });
+  if (allStamps.length > 6) {
+    const more = document.createElement("div");
+    more.textContent = `もっと見る (${allStamps.length}) ▶`;
+    more.style.cssText = "grid-column:1/-1; text-align:center; cursor:pointer; font-size:13px; color:#2980b9; font-weight:bold; padding:4px;";
+    more.onclick = () => { menuContent.style.display = "none"; openStampPicker(); };
+    menuContent.appendChild(more);
+  }
+}
+
+// ★「もっと見る」ポップアップ（カテゴリで絞り込んで選べる）
+function openStampPicker() {
+  const old = document.getElementById("stampPickerPopup"); if (old) old.remove();
+  const owned = [...new Set([...DEFAULT_STAMPS, ...getPurchasedEmojis()])];
+  let cat = "all";
+  const pop = document.createElement("div");
+  pop.id = "stampPickerPopup";
+  pop.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:3000; display:flex; align-items:center; justify-content:center;";
+  pop.innerHTML = `<div style="background:#fff; border-radius:14px; width:92%; max-width:420px; max-height:80vh; display:flex; flex-direction:column; padding:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><strong>スタンプを選ぶ (${owned.length})</strong><button id="stampPickerClose" style="border:none; background:#ecf0f1; border-radius:50%; width:28px; height:28px; cursor:pointer;">✕</button></div>
+    <div id="stampPickerTabs" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px;"></div>
+    <div id="stampPickerGrid" style="overflow-y:auto; display:grid; grid-template-columns:repeat(6,1fr); gap:6px; font-size:26px; text-align:center;"></div>
+  </div>`;
+  document.body.appendChild(pop);
+  const tabs = pop.querySelector("#stampPickerTabs"), grid = pop.querySelector("#stampPickerGrid");
+  const close = () => pop.remove();
+  pop.onclick = e => { if (e.target === pop) close(); };
+  pop.querySelector("#stampPickerClose").onclick = close;
+  const draw = () => {
+    tabs.innerHTML = ""; grid.innerHTML = "";
+    const cats = [{ id: "all", label: "すべて" }, ...EMOJI_CATS.filter(c => owned.some(s => getStampCategory(s) === c.id))];
+    cats.forEach(c => {
+      const b = document.createElement("button"); b.textContent = c.label;
+      b.style.cssText = `flex:0 0 auto; padding:5px 10px; border:none; border-radius:14px; font-size:12px; cursor:pointer; background:${c.id === cat ? "#27ae60" : "#ecf0f1"}; color:${c.id === cat ? "#fff" : "#333"};`;
+      b.onclick = () => { cat = c.id; draw(); };
+      tabs.appendChild(b);
+    });
+    owned.filter(s => cat === "all" || getStampCategory(s) === cat).forEach(st => {
+      const d = document.createElement("div"); d.textContent = st; d.style.cursor = "pointer";
+      d.onclick = async () => { close(); if (currentThreadLocked) return; await sendStamp(st); };
+      grid.appendChild(d);
+    });
+  };
+  draw();
 }
 
 document.getElementById("fullStoreRedeemBtn").onclick = async () => {
@@ -2893,7 +3001,9 @@ function isTrendingThread(data) {
 function renderThreadsPage(){
   const threadListSection = document.getElementById('threadListSection'); const scrollTop = threadListSection.scrollTop;
   const threadList=document.getElementById('threadList'); threadList.innerHTML="";
-  const start = (getCurrentPage() - 1) * pageSize, pageThreads=threadsData.slice(start,start+pageSize);
+  const start = (getCurrentPage() - 1) * pageSize;
+  // ★「さらに読み込む」前は、ピン留め＋最新15件をすべて表示（ピン留めで最新スレが押し出されないように）
+  const pageThreads = isAllLoaded ? threadsData.slice(start, start + pageSize) : threadsData;
   if(pageThreads.length===0){ threadList.innerHTML="<li>まだありません</li>"; return; }
   
   pageThreads.forEach(docItem=>{
@@ -2960,11 +3070,12 @@ async function listenThreads(){
 
   const listenNormal = () => {
     if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-    let isInitialLoad = true; let normalThreads = [];
+    let isInitialLoad = true; let normalThreads = []; let pinnedThreads = [];
 
     const mergeAndRender = () => {
       const map = new Map();
       normalThreads.forEach(t => map.set(t.id, t));
+      pinnedThreads.forEach(t => map.set(t.id, t)); // ★ピン留めスレを合流（同じIDは1件にまとまる）
 
       const allArray = Array.from(map.values());
       allArray.sort((a, b) => {
@@ -2985,6 +3096,13 @@ async function listenThreads(){
       isAllLoaded = false; 
       renderThreadsPage(); 
     };
+
+    // ★ピン留めスレは別クエリで常に取得（「さらに読み込む」を押さなくても表示される）
+    const qPinned = query(collection(db, currentRoom), where("pinned", "==", true));
+    pinnedUnsub = onSnapshot(qPinned, snap => {
+      pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
+      mergeAndRender();
+    }, (error) => {});
 
     const qNormal = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(pageSize));
     threadsUnsub = onSnapshot(qNormal, snap => {
@@ -3945,6 +4063,95 @@ document.getElementById('boardLogoBtn').onclick = () => {
 document.getElementById("closeGachaResultBtn").onclick = () => {
   document.getElementById("gachaResultModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
+};
+
+// ==========================================
+// 通知機能（DMが届いたとき ＋ 管理者からのお知らせ）
+// ==========================================
+let notifAccount = "__init__", dmNotifUnsub = null, noticeUnsubs = [], noticeQueue = [];
+const dmNotifiedAt = {};
+
+function showNoticePopup(items, key) {
+  noticeQueue.push(...items);
+  let pop = document.getElementById("noticePopup");
+  if (!pop) {
+    pop = document.createElement("div");
+    pop.id = "noticePopup";
+    pop.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:3500; display:flex; align-items:center; justify-content:center;";
+    pop.innerHTML = '<div style="background:#fff; border-radius:14px; width:90%; max-width:400px; max-height:80vh; display:flex; flex-direction:column; padding:16px;"><h3 style="margin:0 0 10px; color:#e67e22;">📢 お知らせ</h3><div id="noticeList" style="overflow-y:auto; display:flex; flex-direction:column; gap:10px;"></div><button id="noticeOkBtn" class="greenBtn" style="margin-top:12px; width:100%;">OK</button></div>';
+    document.body.appendChild(pop);
+    pop.querySelector("#noticeOkBtn").onclick = () => {
+      localStorage.setItem(pop.dataset.key, String(Math.max(...noticeQueue.map(n => n.created_at.toMillis()))));
+      noticeQueue = []; pop.remove();
+    };
+  }
+  pop.dataset.key = key;
+  const list = pop.querySelector("#noticeList"); list.innerHTML = "";
+  noticeQueue.forEach(n => {
+    const box = document.createElement("div");
+    box.style.cssText = "background:#fff8e1; border-left:4px solid #f39c12; padding:8px 10px; border-radius:6px; white-space:pre-wrap; word-break:break-word;";
+    const body = document.createElement("div"); body.textContent = n.text;
+    const meta = document.createElement("small"); meta.style.color = "#888";
+    meta.textContent = `${n.to === "*" ? "全員へ" : "あなた宛"} / ${formatDate(n.created_at)}`;
+    box.append(body, meta); list.appendChild(box);
+  });
+}
+
+function setupNotifications() {
+  if (notifAccount === (currentAccount || null)) return;
+  notifAccount = currentAccount || null;
+  if (dmNotifUnsub) { dmNotifUnsub(); dmNotifUnsub = null; }
+  noticeUnsubs.forEach(u => u()); noticeUnsubs = [];
+
+  // 管理者からのお知らせ（全員宛 "*" ＋ 自分宛）
+  const key = "noticeSeenAt_" + (currentAccount || "guest");
+  if (localStorage.getItem(key) === null) localStorage.setItem(key, String(Date.now()));
+  const shown = new Set();
+  const handle = snap => {
+    const seenAt = Number(localStorage.getItem(key) || 0);
+    const fresh = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(n => n.created_at && n.created_at.toMillis() > seenAt && !shown.has(n.id))
+      .sort((a, b) => a.created_at.toMillis() - b.created_at.toMillis());
+    if (!fresh.length) return;
+    fresh.forEach(n => shown.add(n.id));
+    showNoticePopup(fresh, key);
+  };
+  noticeUnsubs.push(onSnapshot(query(collection(db, "notifications"), where("to", "==", "*")), handle, () => {}));
+  if (currentAccount) noticeUnsubs.push(onSnapshot(query(collection(db, "notifications"), where("to", "==", currentAccount)), handle, () => {}));
+
+  // DMが届いたら画面上部に通知
+  if (!currentAccount) return;
+  let first = true;
+  dmNotifUnsub = onSnapshot(query(collection(db, "dm_conversations"), where("participants", "array-contains", currentAccount)), snap => {
+    if (!first) snap.docChanges().forEach(ch => {
+      if (ch.type === "removed") return;
+      const d = ch.doc.data();
+      if (!d.lastSender || d.lastSender === currentAccount) return;
+      const stamp = d.updated_at && d.updated_at.toMillis ? d.updated_at.toMillis() : 0;
+      if (!stamp || dmNotifiedAt[ch.doc.id] === stamp) return;
+      dmNotifiedAt[ch.doc.id] = stamp;
+      const viewing = currentChatId === ch.doc.id && document.getElementById("dmSection").style.display === "block" && document.getElementById("dmChatSubSection").style.display !== "none";
+      if (!viewing) showTopNotification(`💬 ${d.lastSender}さんからDM: ${d.lastMessage || ""}`.slice(0, 60));
+    });
+    first = false;
+  }, () => {});
+}
+setupNotifications(); setInterval(setupNotifications, 3000);
+
+// 管理者：通知の送信（個別 or 全員）
+document.getElementById("adminSendNoticeBtn").onclick = async () => {
+  if (!adminLoggedIn) return alert("管理者ログインが必要です");
+  const to = document.getElementById("adminNoticeTo").value.trim() || "*";
+  const text = document.getElementById("adminNoticeText").value.trim();
+  if (!text) return alert("通知内容を入力してください");
+  try {
+    if (to === "*") { if (!confirm("全員に通知を送りますか？")) return; }
+    else if (!(await getDoc(doc(db, "accounts", to))).exists()) return alert(`アカウント「${to}」は存在しません`);
+    await addDoc(collection(db, "notifications"), { to, text, from: "管理者", created_at: serverTimestamp(), ...getBoardWriteMeta() });
+    await saveLog("admin_send_notice", { to, text });
+    document.getElementById("adminNoticeText").value = "";
+    alert(to === "*" ? "全員に通知を送信しました" : `「${to}」に通知を送信しました`);
+  } catch (e) { alert("通知の送信に失敗しました（Firestoreルールで notifications が許可されているか確認してください）"); }
 };
 </script>
 </body>
