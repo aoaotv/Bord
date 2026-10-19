@@ -242,9 +242,12 @@ textarea { min-height:60px; resize: vertical; }
 .stk-sub{font-size:11px;color:#666;margin-top:3px}
 .stk-detail{background:#f7f9fc;padding:14px;border-radius:12px;margin-bottom:16px}
 .stk-dtitle{font-weight:bold;margin-bottom:8px;color:#2c3e50}
-.stk-chart{position:relative;height:180px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:12px;overflow:hidden}
-.stk-chart svg{width:100%;height:100%;display:block}
-.stk-chart .lbl{position:absolute;left:6px;font-size:11px;color:#666;background:rgba(255,255,255,.8)}
+.stk-hold{background:#fff8ef;border:1px solid #f0d9b5;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px;color:#2c3e50}
+.stk-tipbar{background:#eef6ff;border:1px solid #cfe3f7;border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:13px;color:#2c3e50;min-height:1.3em}
+.stk-chart{position:relative;height:220px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;cursor:crosshair}
+.stk-inner{position:relative;height:220px}
+.stk-view{position:sticky;left:0;height:220px;overflow:hidden}
+.stk-view svg{display:block;height:220px}
 .stk-trade{display:flex;align-items:center;gap:10px;background:#fff;padding:10px;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:8px}
 .stk-est{font-size:13px;color:#555;margin-bottom:10px;min-height:1.2em}
 .stk-msg{font-size:13px;margin-top:10px;min-height:1.2em;color:#2c3e50}
@@ -372,6 +375,11 @@ textarea { min-height:60px; resize: vertical; }
       </div>
     </div>
     
+    <div style="background:#f7f9fc; padding:16px 20px; border-radius:12px; margin-bottom:16px;">
+      <div style="font-weight:bold;color:#2c3e50;margin-bottom:6px;">💰 所持金: <span class="sharedCoinCount">0</span> コイン</div>
+      <div style="font-weight:bold;color:#2c3e50;">📈 保有株</div>
+      <div id="myProfileHoldings" style="margin-top:4px;line-height:1.7;"></div>
+    </div>
     <div style="background:#f7f9fc; padding:20px; border-radius:12px; margin-bottom:25px;">
       <label>自己紹介文</label>
       <textarea id="myBioInput" placeholder="プロフィールや趣味などを入力…"></textarea>
@@ -492,7 +500,10 @@ textarea { min-height:60px; resize: vertical; }
     <div id="stockList" class="stk-list"></div>
     <div class="stk-detail">
       <div id="stockDetailTitle" class="stk-dtitle"></div>
+      <div id="stockHoldInfo" class="stk-hold"></div>
+      <div id="stockTip" class="stk-tipbar"></div>
       <div id="stockChartBox" class="stk-chart"></div>
+      <div id="stockHistStatus" class="stk-sub" style="margin-bottom:10px;"></div>
       <div class="stk-trade">
         <label for="tradeShareInput" style="font-weight:bold;font-size:14px;white-space:nowrap;">取引数量:</label>
         <input type="number" id="tradeShareInput" value="1" min="1" max="10000" style="margin:0; height:38px; text-align:center; font-weight:bold; font-size:16px;">
@@ -781,7 +792,9 @@ textarea { min-height:60px; resize: vertical; }
     <p id="modalProfileBio" style="background:#f9f9f9; padding:8px; border-radius:6px; min-height:50px; font-size:14px; margin:4px 0 0; white-space:pre-wrap;">(未設定)</p>
   </div>
   <div style="font-size:13px; color:#555; margin-bottom:12px;">
-    <div>保有株数: <strong id="modalProfileShares" style="color:#2c3e50;">0 株</strong></div>
+    <div>所持金: <strong id="modalProfileCoins" style="color:#e67e22;">0 コイン</strong></div>
+    <div style="margin-top:6px;">保有株:</div>
+    <div id="modalProfileHoldings" style="margin-top:4px;line-height:1.6;max-height:150px;overflow-y:auto;"></div>
   </div>
   <button id="modalSendDmBtn" class="greenBtn" style="width:100%; margin-bottom:8px; background-color:#27ae60;">💬 このユーザーにDMを送る</button>
   <button id="closeUserProfileModal" class="greenBtn" style="width:100%; background:#7f8c8d;">閉じる</button>
@@ -1163,6 +1176,7 @@ document.getElementById("menuProfileBtn").onclick = () => {
   document.getElementById("profileSection").style.display = "block";
   document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
   document.getElementById("myBioInput").value = localStorage.getItem("myBio") || "";
+  document.getElementById("myProfileHoldings").innerHTML = holdingsListHtml({ holdings: getHoldings() });
 };
 
 document.getElementById("menuFavoritesBtn").onclick = () => {
@@ -1536,7 +1550,8 @@ async function openUserProfile(accountName) {
     
     document.getElementById("modalProfileName").textContent = `${accountName} のプロフィール`;
     document.getElementById("modalProfileBio").textContent = accData.bio || "(自己紹介はありません)";
-    document.getElementById("modalProfileShares").textContent = `${accData.shares || 0} 株`;
+    document.getElementById("modalProfileCoins").textContent = `${accData.coins !== undefined ? accData.coins : 1000} コイン`;
+    document.getElementById("modalProfileHoldings").innerHTML = holdingsListHtml(accData);
     
     document.getElementById("userProfileModal").style.display = "block";
     document.getElementById("overlay").style.display = "block";
@@ -1781,7 +1796,7 @@ const STOCKS = [
 ];
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.id, s]));
 const LEGACY_STOCK_ID = "gsho";   // 旧「単一株」の保有分はこの銘柄に引き継ぐ
-const TICK_MS = 1000, HISTORY_MAX = 120, MAX_CATCHUP = 30;
+const TICK_MS = 1000, MAIN_MAX = 240, ARCH = 120, MAX_CATCHUP = 30;   // 本体に240点まで持ち、超えたら古い120点を履歴ドキュメントへ退避
 const marketRef = doc(db, "market", "global");
 let marketData = null, selectedStockId = STOCKS[0].id, tradeBusy = false, statusTimer = null;
 const stkEl = id => document.getElementById(id);
@@ -1815,30 +1830,42 @@ function getHoldings() {
 }
 
 // 価格更新: トランザクションで「前回更新から一定時間たっていれば1人だけ更新」。全員が毎回書き込む必要はない
+// 全銘柄で共通の時刻配列(ts)を持ち、揃っていない旧データは補正する
+function alignMarket(data, now) {
+  const stocks = data.stocks || {};
+  STOCKS.forEach(d => { if (!stocks[d.id]) stocks[d.id] = freshStock(d); });
+  let ts = Array.isArray(data.ts) ? data.ts.slice() : [], H = ts.length;
+  STOCKS.forEach(d => { H = Math.max(H, stocks[d.id].h.length); });
+  if (ts.length !== H) { const end = typeof data.tickAt === "number" ? data.tickAt : now; ts = Array.from({ length: H }, (_, i) => end - (H - 1 - i) * TICK_MS); }
+  STOCKS.forEach(d => { const h = stocks[d.id].h; while (h.length < H) h.unshift(h[0]); });
+  return { stocks, ts, chunks: data.chunks || 0 };
+}
+// 古い点は market/h_番号 ドキュメントに退避して保存し続ける（本体ドキュメントは軽いまま）
+function writeMarket(tx, m, now) {
+  while (m.ts.length > MAIN_MAX) {
+    const p = {}; STOCKS.forEach(d => { p[d.id] = m.stocks[d.id].h.splice(0, ARCH); });
+    tx.set(doc(db, "market", "h_" + m.chunks), { n: m.chunks, ts: m.ts.splice(0, ARCH), p });
+    m.chunks++;
+  }
+  tx.set(marketRef, { stocks: m.stocks, ts: m.ts, chunks: m.chunks, tickAt: now, updated_at: Timestamp.now() }, { merge: true });
+}
 async function tickMarket() {
   if (document.hidden || stkEl("stockSection").style.display !== "block") return;
   try {
     await runTransaction(db, async tx => {
       const snap = await tx.get(marketRef);
-      const data = snap.exists() ? snap.data() : {};
-      const now = Date.now();
-      const stocks = data.stocks || {};
+      const data = snap.exists() ? snap.data() : {}, now = Date.now();
       let last = typeof data.tickAt === "number" ? data.tickAt : 0;
       if (last > now + 60000) last = now - TICK_MS;           // 端末時計のずれ対策
-      const needInit = STOCKS.some(d => !stocks[d.id]);
+      const needInit = !data.stocks || !Array.isArray(data.ts) || STOCKS.some(d => !data.stocks[d.id]);
       if (!needInit && now - last < TICK_MS - 300) return;     // 他の人が更新済み
-      const steps = needInit ? 0 : Math.min(MAX_CATCHUP, Math.max(1, Math.floor((now - last) / TICK_MS)));
-      STOCKS.forEach(d => {
-        const s = stocks[d.id] || freshStock(d);
-        for (let i = 0; i < steps; i++) {
-          s.p = nextPrice(d, s.p); s.h.push(s.p);
-          if (s.h.length > HISTORY_MAX) s.h.shift();
-          if (s.p < s.lo) s.lo = s.p;
-          if (s.p > s.hi) s.hi = s.p;
-        }
-        stocks[d.id] = s;
-      });
-      tx.set(marketRef, { stocks, tickAt: now, updated_at: Timestamp.now() }, { merge: true });
+      const m = alignMarket(data, now);
+      const steps = data.stocks ? Math.min(MAX_CATCHUP, Math.max(1, Math.floor((now - last) / TICK_MS))) : 0;
+      for (let i = 0; i < steps; i++) {
+        m.ts.push(now - (steps - 1 - i) * TICK_MS);
+        STOCKS.forEach(d => { const s = m.stocks[d.id]; s.p = nextPrice(d, s.p); s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
+      }
+      writeMarket(tx, m, now);
     });
   } catch (e) {}
 }
@@ -1848,32 +1875,157 @@ function scheduleTick() {
 }
 function startMarket() {
   if (marketUnsub) return;
+  resetHist();
   stkEl("stockStatus").textContent = "株価を読み込み中...";
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => { if (!marketData) stkEl("stockStatus").textContent = "株価を取得できません。通信状況を確認してください。"; }, 8000);
   marketUnsub = onSnapshot(marketRef, snap => {
-    const st = snap.exists() && snap.data().stocks;
+    const data = snap.exists() ? snap.data() : null, st = data && data.stocks;
     if (!st) return;
     if (stkEl("stockSection").style.display !== "block") { stopMarket(); return; }
-    marketData = st; stkEl("stockStatus").textContent = ""; renderStockUI();
+    marketData = st; applyHistory(data); stkEl("stockStatus").textContent = ""; renderStockUI();
   }, () => { stkEl("stockStatus").textContent = "株価の取得に失敗しました。"; });
   tickMarket(); scheduleTick();
 }
 function stopMarket() {
   if (marketUnsub) { marketUnsub(); marketUnsub = null; }
   clearTimeout(tickTimer); clearTimeout(statusTimer); tickTimer = null;
+  resetHist();
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden && marketUnsub) tickMarket(); });
 
-function drawChart(d, s) {
-  const box = stkEl("stockChartBox"), h = s.h;
-  if (h.length < 2) { box.innerHTML = '<div style="padding:70px 0;color:#888;font-size:13px;">データを蓄積中...</div>'; return; }
-  const W = 600, H = 180, P = 14;
-  let lo = Math.min(...h), hi = Math.max(...h); if (lo === hi) { lo -= 1; hi += 1; }
-  const pts = h.map((v, i) => `${(P + (W - 2 * P) * i / (h.length - 1)).toFixed(1)},${(P + (H - 2 * P) * (1 - (v - lo) / (hi - lo))).toFixed(1)}`);
-  const col = h[h.length - 1] >= h[0] ? "#27ae60" : "#c0392b";
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polygon points="${P},${H - P} ${pts.join(" ")} ${W - P},${H - P}" fill="${col}" opacity="0.1"/><polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><span class="lbl" style="top:4px">高 ${hi}</span><span class="lbl" style="bottom:4px">安 ${lo}</span>`;
+function holdingsListHtml(acc) {
+  const h = normalizeHoldings(acc), rows = STOCKS.filter(s => h[s.id] > 0).map(s => `<div>${s.emoji} ${s.name}：<strong>${h[s.id]}</strong> 株</div>`);
+  return rows.length ? rows.join("") : '<div style="color:#888;">保有株はありません</div>';
 }
+
+// ===== 履歴グラフ =====
+const STK_PX = 5, STK_CH = 220, STK_AXB = 32;
+let mainTs = [], mainP = {}, mainChunks = 0, oldTs = [], oldP = {}, oldestLoaded = 0;
+let histInit = false, loadStep = 1, loadingOlder = false, histEnd = false, histGen = 0, selAbs = null, scrollRaf = false, firstDraw = false;
+function resetHist() {
+  mainTs = []; mainP = {}; mainChunks = 0; oldTs = []; oldP = {}; oldestLoaded = 0;
+  histInit = false; loadStep = 1; loadingOlder = false; histEnd = false; selAbs = null; histGen++;
+  const b = document.getElementById("stockChartBox"); if (b) b.innerHTML = "";
+}
+function applyHistory(data) {
+  const st = data.stocks; let H = 0;
+  STOCKS.forEach(d => { if (st[d.id]) H = Math.max(H, st[d.id].h.length); });
+  let ts = Array.isArray(data.ts) ? data.ts : [];
+  if (ts.length !== H) { const end = typeof data.tickAt === "number" ? data.tickAt : Date.now(); ts = Array.from({ length: H }, (_, i) => end - (H - 1 - i) * TICK_MS); }
+  const chunks = data.chunks || 0, np = {};
+  STOCKS.forEach(d => { const a = (st[d.id] ? st[d.id].h : []).slice(); while (a.length < H) a.unshift(a.length ? a[0] : null); np[d.id] = a; });
+  if (!histInit) { oldestLoaded = chunks; oldTs = []; oldP = {}; histInit = true; }
+  else if (chunks !== mainChunks) {
+    if (chunks - mainChunks === 1 && mainTs.length >= ARCH) {   // 退避された120点は手元にあるので読み直さない
+      const prev = oldTs.length;
+      oldTs = oldTs.concat(mainTs.slice(0, ARCH));
+      STOCKS.forEach(d => { oldP[d.id] = (oldP[d.id] || new Array(prev).fill(null)).concat(mainP[d.id].slice(0, ARCH)); });
+    } else { oldTs = []; oldP = {}; oldestLoaded = chunks; }
+  }
+  mainTs = ts; mainP = np; mainChunks = chunks;
+}
+const stkTotal = () => oldTs.length + mainTs.length;
+const stkTs = i => i < oldTs.length ? oldTs[i] : mainTs[i - oldTs.length];
+function stkP(id, i) { if (i < oldTs.length) { const a = oldP[id]; return a ? a[i] : null; } const a = mainP[id]; return a ? a[i - oldTs.length] : null; }
+const stkPad = n => String(n).padStart(2, "0");
+const stkDate = t => { const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
+const stkTime = t => { const d = new Date(t); return `${stkPad(d.getHours())}:${stkPad(d.getMinutes())}:${stkPad(d.getSeconds())}`; };
+
+function updateTip() {
+  const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId];
+  if (selAbs == null) { el.textContent = "グラフをタップすると、その時点の株価が表示されます"; return; }
+  const i = selAbs - oldestLoaded * ARCH, v = (i >= 0 && i < stkTotal()) ? stkP(selectedStockId, i) : null;
+  el.textContent = v == null ? "この時点のデータはありません" : `📍 ${stkDate(stkTs(i))} ${stkTime(stkTs(i))} の ${d.name} は ${v} コイン`;
+}
+function setHistStatus() {
+  stkEl("stockHistStatus").textContent = histEnd ? "これより古いデータは取得できませんでした"
+    : oldestLoaded > 0 ? `◀ 左にスクロールすると過去の株価をさらに読み込みます（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます（${stkTotal()}件）`;
+}
+function renderChart() {
+  const box = stkEl("stockChartBox"), N = stkTotal();
+  if (!N) { box.innerHTML = '<div style="padding:90px 0;color:#888;font-size:13px;text-align:center;">データを蓄積中...</div>'; return; }
+  let inner = box.firstElementChild;
+  if (!inner || inner.id !== "stkInner") {
+    box.innerHTML = '<div id="stkInner" class="stk-inner"><div class="stk-view"><svg id="stkSvg"></svg></div></div>';
+    inner = box.firstElementChild; firstDraw = true;
+  }
+  const atRight = box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
+  inner.style.width = (N * STK_PX + 30) + "px";
+  inner.firstElementChild.style.width = box.clientWidth + "px";
+  if (atRight || firstDraw) { box.scrollLeft = box.scrollWidth; firstDraw = false; }
+  drawChartFrame(); setHistStatus();
+  if (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2) loadOlder();   // 画面が埋まるまで過去を足す
+}
+// 見えている範囲だけを描く（何万点あっても軽い）
+function drawChartFrame() {
+  const box = stkEl("stockChartBox"), svg = document.getElementById("stkSvg"); if (!svg) return;
+  const W = box.clientWidth, N = stkTotal(), sl = box.scrollLeft, id = selectedStockId, base = oldestLoaded * ARCH;
+  const first = Math.max(0, Math.floor(sl / STK_PX) - 1), last = Math.min(N - 1, Math.ceil((sl + W) / STK_PX) + 1);
+  let lo = Infinity, hi = -Infinity;
+  for (let i = first; i <= last; i++) { const v = stkP(id, i); if (v == null) continue; if (v < lo) lo = v; if (v > hi) hi = v; }
+  if (lo === Infinity) { svg.innerHTML = ""; return; }
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const pv = (hi - lo) * 0.1; lo -= pv; hi += pv;
+  const plotH = STK_CH - STK_AXB, y = v => 6 + (plotH - 12) * (1 - (v - lo) / (hi - lo)), x = i => i * STK_PX - sl + STK_PX / 2;
+  let g = "";
+  const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 5, 10].map(k => k * mag).find(s => s >= raw);
+  for (let k = Math.ceil(lo / step); k * step <= hi; k++) {          // 横の目安線＋価格
+    const v = k * step, yy = y(v).toFixed(1);
+    g += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="#e3e8ee" stroke-dasharray="3 3"/><text x="4" y="${(y(v) - 3).toFixed(1)}" font-size="10" fill="#8795a1">${Math.round(v * 10) / 10}</text>`;
+  }
+  const G = [10, 20, 30, 60, 120, 300, 600, 1200, 3600, 7200, 14400, 43200, 86400].find(n => n * STK_PX >= 90) || 86400;
+  for (let i = first; i <= last; i++) {                                // 縦の目安線＋日時
+    if ((base + i) % G !== 0) continue;
+    const xx = x(i).toFixed(1), t = stkTs(i), anc = x(i) < 40 ? "start" : "middle";
+    g += `<line x1="${xx}" x2="${xx}" y1="0" y2="${plotH}" stroke="#e3e8ee"/><text x="${xx}" y="${plotH + 12}" font-size="10" fill="#555" text-anchor="${anc}">${stkTime(t)}</text><text x="${xx}" y="${plotH + 24}" font-size="9" fill="#8795a1" text-anchor="${anc}">${stkDate(t)}</text>`;
+  }
+  let dstr = "", pen = false, fv = null, lv = null;
+  for (let i = first; i <= last; i++) {
+    const v = stkP(id, i); if (v == null) { pen = false; continue; }
+    if (fv === null) fv = v; lv = v;
+    dstr += (pen ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1) + " "; pen = true;
+  }
+  g += `<path d="${dstr}" fill="none" stroke="${lv >= fv ? "#27ae60" : "#c0392b"}" stroke-width="2" stroke-linejoin="round"/>`;
+  if (selAbs != null) {                                                // タップした位置
+    const i = selAbs - base, v = (i >= first && i <= last) ? stkP(id, i) : null;
+    if (v != null) g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="0" y2="${plotH}" stroke="#e67e22" stroke-width="1.5"/><circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" fill="#e67e22" stroke="#fff" stroke-width="1.5"/>`;
+  }
+  svg.setAttribute("width", W); svg.setAttribute("height", STK_CH); svg.setAttribute("viewBox", `0 0 ${W} ${STK_CH}`);
+  svg.innerHTML = g;
+}
+async function loadOlder() {   // スクロールするたび 1→2→4→…→16個 と、読み込む量を増やす
+  if (loadingOlder || oldestLoaded <= 0 || histEnd) return;
+  loadingOlder = true; const gen = histGen;
+  stkEl("stockHistStatus").textContent = "過去の株価を読み込み中...";
+  try {
+    const count = Math.min(loadStep, oldestLoaded), from = oldestLoaded - count;
+    const snaps = await Promise.all(Array.from({ length: count }, (_, k) => getDoc(doc(db, "market", "h_" + (from + k)))));
+    if (gen !== histGen) return;
+    const got = [];
+    for (let k = count - 1; k >= 0; k--) { if (!snaps[k].exists()) break; got.unshift(snaps[k].data()); }
+    if (!got.length) { histEnd = true; setHistStatus(); return; }
+    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length;
+    const addTs = [].concat(...got.map(c => c.ts));
+    STOCKS.forEach(d => { oldP[d.id] = [].concat(...got.map(c => (c.p && c.p[d.id]) || new Array(c.ts.length).fill(null)), oldP[d.id] || new Array(prevLen).fill(null)); });
+    oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; loadStep = Math.min(loadStep * 2, 16);
+    renderChart();
+    box.scrollLeft = prevSL + addTs.length * STK_PX;                   // 見ている位置を保つ
+    drawChartFrame(); updateTip(); setHistStatus();
+  } catch (e) { histEnd = true; setHistStatus(); }
+  finally { loadingOlder = false; }
+}
+stkEl("stockChartBox").onscroll = () => {
+  if (scrollRaf) return; scrollRaf = true;
+  requestAnimationFrame(() => { scrollRaf = false; drawChartFrame(); if (stkEl("stockChartBox").scrollLeft < 400 && oldestLoaded > 0) loadOlder(); });
+};
+stkEl("stockChartBox").onclick = e => {
+  const box = e.currentTarget, N = stkTotal(); if (!N) return;
+  let i = Math.round((e.clientX - box.getBoundingClientRect().left + box.scrollLeft - STK_PX / 2) / STK_PX);
+  i = Math.max(0, Math.min(N - 1, i));
+  selAbs = oldestLoaded * ARCH + i; updateTip(); drawChartFrame();
+};
+window.addEventListener("resize", () => { if (marketUnsub) renderChart(); });
 
 function renderStockUI() {
   const coins = getMyCoins(), hold = getHoldings();
@@ -1895,7 +2047,9 @@ function renderStockUI() {
   stkEl("stockEvalDisplay").textContent = `${evalSum} コイン`;
   const d = STOCK_MAP[selectedStockId], s = marketData && marketData[selectedStockId];
   stkEl("stockDetailTitle").textContent = `${d.emoji} ${d.name}（${d.desc}）`;
-  if (s) drawChart(d, s);
+  const q = hold[selectedStockId] || 0;
+  stkEl("stockHoldInfo").innerHTML = `📦 ${d.name}の保有: <strong>${q} 株</strong>　💰 評価額: <strong>${s ? q * s.p : "---"} コイン</strong>`;
+  renderChart(); updateTip();
   updateEstimate();
 }
 function updateEstimate() {
@@ -3697,13 +3851,11 @@ document.getElementById('adminUpdateStockBtn').onclick = async () => {
   const sid = document.getElementById('adminStockSelect').value, d = STOCK_MAP[sid];
   try {
     await runTransaction(db, async tx => {
-      const snap = await tx.get(marketRef);
-      const stocks = (snap.exists() && snap.data().stocks) || {};
-      const s = stocks[sid] || freshStock(d);
-      s.p = newPrice; s.h.push(newPrice); if (s.h.length > HISTORY_MAX) s.h.shift();
-      s.lo = Math.min(s.lo, newPrice); s.hi = Math.max(s.hi, newPrice);
-      stocks[sid] = s;
-      tx.set(marketRef, { stocks, updated_at: Timestamp.now() }, { merge: true });
+      const snap = await tx.get(marketRef), data = snap.exists() ? snap.data() : {}, now = Date.now();
+      const m = alignMarket(data, now);
+      m.ts.push(now);
+      STOCKS.forEach(x => { const s = m.stocks[x.id]; if (x.id === sid) s.p = newPrice; s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
+      writeMarket(tx, m, typeof data.tickAt === "number" ? data.tickAt : now);
     });
     await saveLog("admin_edit_stock_price", { stock: sid, newPrice });
     alert(`${d.name}の株価を ${newPrice} コインに変更しました。`);
