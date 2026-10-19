@@ -1967,7 +1967,7 @@ function setHistStatus() {
   const el = stkEl("stockHistStatus");
   el.textContent = histEnd ? "これより古いデータは取得できませんでした"
     : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `表示中: ${stkTotal() - rangeFirst()}件の履歴`)
-    : oldestLoaded > 0 ? `◀ 左にスクロールすると過去の株価をさらに読み込みます（表示中: ${stkTotal()}件）` : `◀ ここが保存されている最初のデータです（${stkTotal()}件）`;
+    : oldestLoaded > 0 ? `◀ 左にスクロールすると過去の株価をさらに読み込みます（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます。（${stkTotal()}件）`;
 }
 function renderChart() {
   const box = stkEl("stockChartBox"), N = stkTotal(), live = rangeKey === "live";
