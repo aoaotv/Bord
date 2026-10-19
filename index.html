@@ -243,6 +243,9 @@ textarea { min-height:60px; resize: vertical; }
 .stk-detail{background:#f7f9fc;padding:14px;border-radius:12px;margin-bottom:16px}
 .stk-dtitle{font-weight:bold;margin-bottom:8px;color:#2c3e50}
 .stk-hold{background:#fff8ef;border:1px solid #f0d9b5;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px;color:#2c3e50}
+.stk-range{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.stk-range button{margin:0;padding:5px 12px;border-radius:14px;border:1px solid #cfd8dc;background:#fff;color:#2c3e50;font-size:12px;cursor:pointer}
+.stk-range button.on{background:#e67e22;color:#fff;border-color:#e67e22}
 .stk-tipbar{background:#eef6ff;border:1px solid #cfe3f7;border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:13px;color:#2c3e50;min-height:1.3em}
 .stk-chart{position:relative;height:220px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;cursor:crosshair}
 .stk-inner{position:relative;height:220px}
@@ -501,6 +504,7 @@ textarea { min-height:60px; resize: vertical; }
     <div class="stk-detail">
       <div id="stockDetailTitle" class="stk-dtitle"></div>
       <div id="stockHoldInfo" class="stk-hold"></div>
+      <div id="stockRangeBar" class="stk-range"></div>
       <div id="stockTip" class="stk-tipbar"></div>
       <div id="stockChartBox" class="stk-chart"></div>
       <div id="stockHistStatus" class="stk-sub" style="margin-bottom:10px;"></div>
@@ -1792,7 +1796,7 @@ const STOCKS = [
   { id: "kgdk", name: "sinzo電力",         emoji: "💡", risk: "低", color: "#27ae60", desc: "sinzoの電力会社",       base: 100, min: 80,  max: 125,  vol: 0.02, drift: 0.0003, revert: 0.040 },
   { id: "wakt", name: "sinzo高校",         emoji: "🏫", risk: "低", color: "#27ae60", desc: "sinzoの学校",       base: 100, min: 80,  max: 125,  vol: 0.015, drift: 0.0003, revert: 0.040 },
 { id: "kgds", name: "sinzowater",         emoji: "💦", risk: "低", color: "#27ae60", desc: "sinzoの水道会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 },
-  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "最低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.01, drift: 0.03, revert: 0.40 }
+  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "最低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.01, drift: 0.0003, revert: 0.040 }
 ];
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.id, s]));
 const LEGACY_STOCK_ID = "gsho";   // 旧「単一株」の保有分はこの銘柄に引き継ぐ
@@ -1875,7 +1879,7 @@ function scheduleTick() {
 }
 function startMarket() {
   if (marketUnsub) return;
-  resetHist();
+  resetHist(); renderRangeBar();
   stkEl("stockStatus").textContent = "株価を読み込み中...";
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => { if (!marketData) stkEl("stockStatus").textContent = "株価を取得できません。通信状況を確認してください。"; }, 8000);
@@ -1902,10 +1906,10 @@ function holdingsListHtml(acc) {
 // ===== 履歴グラフ =====
 const STK_PX = 5, STK_CH = 220, STK_AXB = 32;
 let mainTs = [], mainP = {}, mainChunks = 0, oldTs = [], oldP = {}, oldestLoaded = 0;
-let histInit = false, loadStep = 1, loadingOlder = false, histEnd = false, histGen = 0, selAbs = null, scrollRaf = false, firstDraw = false;
+let rangeKey = "live", histInit = false, loadStep = 1, loadingOlder = false, histEnd = false, histGen = 0, selAbs = null, scrollRaf = false, firstDraw = false;
 function resetHist() {
   mainTs = []; mainP = {}; mainChunks = 0; oldTs = []; oldP = {}; oldestLoaded = 0;
-  histInit = false; loadStep = 1; loadingOlder = false; histEnd = false; selAbs = null; histGen++;
+  histInit = false; rangeKey = "live"; loadStep = 1; loadingOlder = false; histEnd = false; selAbs = null; histGen++;
   const b = document.getElementById("stockChartBox"); if (b) b.innerHTML = "";
 }
 function applyHistory(data) {
@@ -1932,60 +1936,93 @@ const stkPad = n => String(n).padStart(2, "0");
 const stkDate = t => { const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
 const stkTime = t => { const d = new Date(t); return `${stkPad(d.getHours())}:${stkPad(d.getMinutes())}:${stkPad(d.getSeconds())}`; };
 
+// 表示範囲: 今(ライブ・スクロール)／1時間／1日／1週間／1ヶ月／全期間（画面幅に合わせて表示）
+const STK_RANGES = [["live", "今", 0], ["h1", "1時間", 3600e3], ["d1", "1日", 864e5], ["w1", "1週間", 6048e5], ["m1", "1ヶ月", 2592e6], ["all", "全期間", Infinity]];
+const rangeSpan = () => STK_RANGES.find(r => r[0] === rangeKey)[2];
+function renderRangeBar() { stkEl("stockRangeBar").innerHTML = STK_RANGES.map(r => `<button data-r="${r[0]}" class="${r[0] === rangeKey ? "on" : ""}">${r[1]}</button>`).join(""); }
+function rangeFirst() {
+  const N = stkTotal(), span = rangeSpan();
+  if (rangeKey === "live" || !N || span === Infinity) return 0;
+  const cut = stkTs(N - 1) - span; let a = 0, b = N - 1;
+  while (a < b) { const m = (a + b) >> 1; if (stkTs(m) < cut) a = m + 1; else b = m; }
+  return a;
+}
+function rangeNeedsMore() {
+  if (rangeKey === "live" || oldestLoaded <= 0 || histEnd || oldTs.length >= 300 * ARCH) return false;
+  const span = rangeSpan(); return span === Infinity ? true : stkTs(0) > stkTs(stkTotal() - 1) - span;
+}
 function updateTip() {
-  const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId];
-  if (selAbs == null) { el.textContent = "グラフをタップすると、その時点の株価が表示されます"; return; }
-  const i = selAbs - oldestLoaded * ARCH, v = (i >= 0 && i < stkTotal()) ? stkP(selectedStockId, i) : null;
-  el.textContent = v == null ? "この時点のデータはありません" : `📍 ${stkDate(stkTs(i))} ${stkTime(stkTs(i))} の ${d.name} は ${v} コイン`;
+  const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId], N = stkTotal();
+  if (selAbs != null) {
+    const i = selAbs - oldestLoaded * ARCH, v = (i >= 0 && i < N) ? stkP(selectedStockId, i) : null;
+    el.textContent = v == null ? "この時点のデータはありません" : `📍 ${stkDate(stkTs(i))} ${stkTime(stkTs(i))} の ${d.name} は ${v} コイン`; return;
+  }
+  if (rangeKey !== "live" && N > 1) {
+    const f = rangeFirst(), a = stkP(selectedStockId, f), b = stkP(selectedStockId, N - 1);
+    if (a != null && b != null) { const df = b - a, pc = a ? Math.abs(df / a * 100).toFixed(1) : "0.0"; el.textContent = `${stkDate(stkTs(f))} ${stkTime(stkTs(f))} 〜 現在：${a} → ${b} コイン（${df >= 0 ? "▲+" : "▼-"}${Math.abs(df)} / ${pc}%）`; return; }
+  }
+  el.textContent = "グラフをタップすると、その時点の株価が表示されます";
 }
 function setHistStatus() {
-  stkEl("stockHistStatus").textContent = histEnd ? "これより古いデータは取得できませんでした"
-    : oldestLoaded > 0 ? `◀ 左にスクロールすると過去の株価をさらに読み込みます（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます（${stkTotal()}件）`;
+  const el = stkEl("stockHistStatus");
+  el.textContent = histEnd ? "これより古いデータは取得できませんでした"
+    : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `表示中: ${stkTotal() - rangeFirst()}件の履歴`)
+    : oldestLoaded > 0 ? `◀ 左にスクロールすると過去の株価をさらに読み込みます（表示中: ${stkTotal()}件）` : `◀ ここが保存されている最初のデータです（${stkTotal()}件）`;
 }
 function renderChart() {
-  const box = stkEl("stockChartBox"), N = stkTotal();
+  const box = stkEl("stockChartBox"), N = stkTotal(), live = rangeKey === "live";
   if (!N) { box.innerHTML = '<div style="padding:90px 0;color:#888;font-size:13px;text-align:center;">データを蓄積中...</div>'; return; }
   let inner = box.firstElementChild;
   if (!inner || inner.id !== "stkInner") {
     box.innerHTML = '<div id="stkInner" class="stk-inner"><div class="stk-view"><svg id="stkSvg"></svg></div></div>';
     inner = box.firstElementChild; firstDraw = true;
   }
-  const atRight = box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
-  inner.style.width = (N * STK_PX + 30) + "px";
+  box.style.overflowX = live ? "auto" : "hidden";
+  const atRight = live && box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
+  inner.style.width = (live ? N * STK_PX + 30 : box.clientWidth) + "px";
   inner.firstElementChild.style.width = box.clientWidth + "px";
-  if (atRight || firstDraw) { box.scrollLeft = box.scrollWidth; firstDraw = false; }
+  if (!live) box.scrollLeft = 0; else if (atRight || firstDraw) box.scrollLeft = box.scrollWidth;
+  firstDraw = false;
   drawChartFrame(); setHistStatus();
-  if (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2) loadOlder();   // 画面が埋まるまで過去を足す
+  if (live ? (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2) : rangeNeedsMore()) loadOlder(live ? 0 : 20);
 }
-// 見えている範囲だけを描く（何万点あっても軽い）
+// 見えている範囲だけを描く（何万点あっても軽い）。期間表示は画面幅に合わせて間引く
 function drawChartFrame() {
   const box = stkEl("stockChartBox"), svg = document.getElementById("stkSvg"); if (!svg) return;
-  const W = box.clientWidth, N = stkTotal(), sl = box.scrollLeft, id = selectedStockId, base = oldestLoaded * ARCH;
-  const first = Math.max(0, Math.floor(sl / STK_PX) - 1), last = Math.min(N - 1, Math.ceil((sl + W) / STK_PX) + 1);
+  const W = box.clientWidth, N = stkTotal(), sl = box.scrollLeft, id = selectedStockId, base = oldestLoaded * ARCH, live = rangeKey === "live";
+  let first, last, x;
+  if (live) { first = Math.max(0, Math.floor(sl / STK_PX) - 1); last = Math.min(N - 1, Math.ceil((sl + W) / STK_PX) + 1); x = i => i * STK_PX - sl + STK_PX / 2; }
+  else { first = rangeFirst(); last = N - 1; const sp = Math.max(1, last - first); x = i => 6 + (i - first) / sp * (W - 12); }
+  const cnt = last - first + 1, buckets = Math.max(1, Math.floor((W - 12) / 2)), pts = [];
+  if (live || cnt <= buckets) { for (let i = first; i <= last; i++) pts.push([i, stkP(id, i)]); }
+  else for (let b = 0; b < buckets; b++) {                               // 1列ごとの最安・最高を時系列順に結ぶ
+    const i1 = first + Math.floor(b * cnt / buckets), i2 = first + Math.floor((b + 1) * cnt / buckets) - 1;
+    let mn = -1, mx = -1, vn = Infinity, vx = -Infinity;
+    for (let i = i1; i <= i2; i++) { const v = stkP(id, i); if (v == null) continue; if (v < vn) { vn = v; mn = i; } if (v > vx) { vx = v; mx = i; } }
+    if (mn < 0) { pts.push([i1, null]); continue; }
+    if (mn === mx) pts.push([mn, vn]); else if (mn < mx) pts.push([mn, vn], [mx, vx]); else pts.push([mx, vx], [mn, vn]);
+  }
   let lo = Infinity, hi = -Infinity;
-  for (let i = first; i <= last; i++) { const v = stkP(id, i); if (v == null) continue; if (v < lo) lo = v; if (v > hi) hi = v; }
+  pts.forEach(p => { if (p[1] == null) return; if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
   if (lo === Infinity) { svg.innerHTML = ""; return; }
   if (lo === hi) { lo -= 1; hi += 1; }
   const pv = (hi - lo) * 0.1; lo -= pv; hi += pv;
-  const plotH = STK_CH - STK_AXB, y = v => 6 + (plotH - 12) * (1 - (v - lo) / (hi - lo)), x = i => i * STK_PX - sl + STK_PX / 2;
+  const plotH = STK_CH - STK_AXB, y = v => 6 + (plotH - 12) * (1 - (v - lo) / (hi - lo));
   let g = "";
   const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 5, 10].map(k => k * mag).find(s => s >= raw);
   for (let k = Math.ceil(lo / step); k * step <= hi; k++) {          // 横の目安線＋価格
     const v = k * step, yy = y(v).toFixed(1);
     g += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="#e3e8ee" stroke-dasharray="3 3"/><text x="4" y="${(y(v) - 3).toFixed(1)}" font-size="10" fill="#8795a1">${Math.round(v * 10) / 10}</text>`;
   }
-  const G = [10, 20, 30, 60, 120, 300, 600, 1200, 3600, 7200, 14400, 43200, 86400].find(n => n * STK_PX >= 90) || 86400;
-  for (let i = first; i <= last; i++) {                                // 縦の目安線＋日時
-    if ((base + i) % G !== 0) continue;
-    const xx = x(i).toFixed(1), t = stkTs(i), anc = x(i) < 40 ? "start" : "middle";
+  const vlines = [];                                                   // 縦の目安線＋日時
+  if (live) { const G = [10, 20, 30, 60, 120, 300, 600, 1200, 3600, 7200, 14400, 43200, 86400].find(n => n * STK_PX >= 90) || 86400; for (let i = first; i <= last; i++) if ((base + i) % G === 0) vlines.push(i); }
+  else for (let k = 0; k <= 4; k++) vlines.push(first + Math.round(k * (last - first) / 4));
+  vlines.forEach((i, k) => {
+    const xx = x(i).toFixed(1), t = stkTs(i), anc = (live ? x(i) < 40 : k === 0) ? "start" : (!live && k === vlines.length - 1) ? "end" : "middle";
     g += `<line x1="${xx}" x2="${xx}" y1="0" y2="${plotH}" stroke="#e3e8ee"/><text x="${xx}" y="${plotH + 12}" font-size="10" fill="#555" text-anchor="${anc}">${stkTime(t)}</text><text x="${xx}" y="${plotH + 24}" font-size="9" fill="#8795a1" text-anchor="${anc}">${stkDate(t)}</text>`;
-  }
+  });
   let dstr = "", pen = false, fv = null, lv = null;
-  for (let i = first; i <= last; i++) {
-    const v = stkP(id, i); if (v == null) { pen = false; continue; }
-    if (fv === null) fv = v; lv = v;
-    dstr += (pen ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1) + " "; pen = true;
-  }
+  pts.forEach(p => { if (p[1] == null) { pen = false; return; } if (fv === null) fv = p[1]; lv = p[1]; dstr += (pen ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1) + " "; pen = true; });
   g += `<path d="${dstr}" fill="none" stroke="${lv >= fv ? "#27ae60" : "#c0392b"}" stroke-width="2" stroke-linejoin="round"/>`;
   if (selAbs != null) {                                                // タップした位置
     const i = selAbs - base, v = (i >= first && i <= last) ? stkP(id, i) : null;
@@ -1994,36 +2031,43 @@ function drawChartFrame() {
   svg.setAttribute("width", W); svg.setAttribute("height", STK_CH); svg.setAttribute("viewBox", `0 0 ${W} ${STK_CH}`);
   svg.innerHTML = g;
 }
-async function loadOlder() {   // スクロールするたび 1→2→4→…→16個 と、読み込む量を増やす
+async function loadOlder(n) {   // 今モード: スクロールするたび 1→2→4→…→16個。期間モード: 20個ずつ
   if (loadingOlder || oldestLoaded <= 0 || histEnd) return;
   loadingOlder = true; const gen = histGen;
   stkEl("stockHistStatus").textContent = "過去の株価を読み込み中...";
   try {
-    const count = Math.min(loadStep, oldestLoaded), from = oldestLoaded - count;
+    const count = Math.min(n || loadStep, oldestLoaded), from = oldestLoaded - count;
     const snaps = await Promise.all(Array.from({ length: count }, (_, k) => getDoc(doc(db, "market", "h_" + (from + k)))));
     if (gen !== histGen) return;
     const got = [];
     for (let k = count - 1; k >= 0; k--) { if (!snaps[k].exists()) break; got.unshift(snaps[k].data()); }
     if (!got.length) { histEnd = true; setHistStatus(); return; }
-    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length;
+    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length, live = rangeKey === "live";
     const addTs = [].concat(...got.map(c => c.ts));
     STOCKS.forEach(d => { oldP[d.id] = [].concat(...got.map(c => (c.p && c.p[d.id]) || new Array(c.ts.length).fill(null)), oldP[d.id] || new Array(prevLen).fill(null)); });
-    oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; loadStep = Math.min(loadStep * 2, 16);
+    oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; if (live && !n) loadStep = Math.min(loadStep * 2, 16);
+    loadingOlder = false;
     renderChart();
-    box.scrollLeft = prevSL + addTs.length * STK_PX;                   // 見ている位置を保つ
+    if (live) box.scrollLeft = prevSL + addTs.length * STK_PX;         // 見ている位置を保つ
     drawChartFrame(); updateTip(); setHistStatus();
   } catch (e) { histEnd = true; setHistStatus(); }
   finally { loadingOlder = false; }
 }
 stkEl("stockChartBox").onscroll = () => {
-  if (scrollRaf) return; scrollRaf = true;
+  if (scrollRaf || rangeKey !== "live") return; scrollRaf = true;
   requestAnimationFrame(() => { scrollRaf = false; drawChartFrame(); if (stkEl("stockChartBox").scrollLeft < 400 && oldestLoaded > 0) loadOlder(); });
 };
 stkEl("stockChartBox").onclick = e => {
   const box = e.currentTarget, N = stkTotal(); if (!N) return;
-  let i = Math.round((e.clientX - box.getBoundingClientRect().left + box.scrollLeft - STK_PX / 2) / STK_PX);
+  const px = e.clientX - box.getBoundingClientRect().left; let i;
+  if (rangeKey === "live") i = Math.round((px + box.scrollLeft - STK_PX / 2) / STK_PX);
+  else { const f = rangeFirst(); i = f + Math.round((px - 6) / Math.max(1, box.clientWidth - 12) * (N - 1 - f)); }
   i = Math.max(0, Math.min(N - 1, i));
   selAbs = oldestLoaded * ARCH + i; updateTip(); drawChartFrame();
+};
+stkEl("stockRangeBar").onclick = e => {
+  const b = e.target.closest("button[data-r]"); if (!b || b.dataset.r === rangeKey) return;
+  rangeKey = b.dataset.r; firstDraw = true; renderRangeBar(); renderChart(); updateTip();
 };
 window.addEventListener("resize", () => { if (marketUnsub) renderChart(); });
 
