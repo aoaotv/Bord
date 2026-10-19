@@ -1792,7 +1792,7 @@ const STOCKS = [
   { id: "kgdk", name: "sinzo電力",         emoji: "💡", risk: "低", color: "#27ae60", desc: "sinzoの電力会社",       base: 100, min: 80,  max: 125,  vol: 0.02, drift: 0.0003, revert: 0.040 },
   { id: "wakt", name: "sinzo高校",         emoji: "🏫", risk: "低", color: "#27ae60", desc: "sinzoの学校",       base: 100, min: 80,  max: 125,  vol: 0.015, drift: 0.0003, revert: 0.040 },
 { id: "kgds", name: "sinzowater",         emoji: "💦", risk: "低", color: "#27ae60", desc: "sinzoの水道会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 },
-  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "最低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.001, drift: 0.0003, revert: 0.040 }
+  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "最低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.01, drift: 0.03, revert: 0.40 }
 ];
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.id, s]));
 const LEGACY_STOCK_ID = "gsho";   // 旧「単一株」の保有分はこの銘柄に引き継ぐ
