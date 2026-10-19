@@ -330,6 +330,7 @@ textarea { min-height:60px; resize: vertical; }
     <h3 id="threadTitle"></h3>
     <small id="threadDetail"></small>
     <small id="threadCreator"></small>
+    <div><button id="deleteOwnThreadBtn" class="redBtn" style="display:none; font-size:12px; padding:6px 12px; margin-top:6px;">🗑️ このスレッドを削除</button></div>
     <div style="position: absolute; top: 0; right: 0; display: flex; gap: 6px;">
       <button id="favoriteThreadBtn" class="greenBtn" style="background: #f1c40f; font-size: 12px; padding: 6px 12px; color: #333;">⭐ お気に入り</button>
       <button id="boostThreadBtn" class="greenBtn" style="background: #e67e22; font-size: 12px; padding: 6px 12px;">🚀 10分間 📍固定 (500枚)</button>
@@ -803,6 +804,13 @@ textarea { min-height:60px; resize: vertical; }
     <div style="margin-top:6px;">保有株:</div>
     <div id="modalProfileHoldings" style="margin-top:4px;line-height:1.6;max-height:150px;overflow-y:auto;"></div>
   </div>
+  <div id="modalCoinSendBox" style="margin-bottom:8px; padding:8px; background:#fff8ef; border:1px solid #f0d9b5; border-radius:8px;">
+    <div style="font-size:12px; color:#555; margin-bottom:4px;">🪙 コインを送る（金額を指定）</div>
+    <div style="display:flex; gap:6px;">
+      <input type="number" id="modalCoinAmountInput" min="1" step="1" placeholder="金額" style="flex:1; min-width:0; margin:0; text-align:center; font-weight:bold;">
+      <button id="modalSendCoinBtn" class="greenBtn" style="margin:0; background:#e67e22; white-space:nowrap;">送る</button>
+    </div>
+  </div>
   <button id="modalSendDmBtn" class="greenBtn" style="width:100%; margin-bottom:8px; background-color:#27ae60;">💬 このユーザーにDMを送る</button>
   <button id="closeUserProfileModal" class="greenBtn" style="width:100%; background:#7f8c8d;">閉じる</button>
 </div>
@@ -812,18 +820,6 @@ textarea { min-height:60px; resize: vertical; }
   <h3 style="margin-top:0; color:#e67e22;">🎰 ガチャ結果</h3>
   <div id="gachaResultContent" style="font-size:20px; font-weight:bold; margin: 20px 0;"></div>
   <button id="closeGachaResultBtn" class="greenBtn" style="width:100%;">OK</button>
-</div>
-
-<!-- チップ（投げ銭）ダイアログ -->
-<div id="tipModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:16px; box-shadow:0 0 15px rgba(0,0,0,0.4); z-index:2600; width:280px; text-align:center;">
-  <h3 style="margin-top:0; color:#e67e22;">🎁 チップを送る</h3>
-  <p id="tipTargetText" style="font-size:14px; color:#555;"></p>
-  <label>送信コイン数</label>
-  <input type="number" id="tipAmountInput" value="50" min="10" max="10000" style="text-align:center; font-weight:bold; margin-bottom:15px;">
-  <div style="display:flex; gap:10px;">
-    <button id="confirmTipBtn" class="greenBtn" style="flex:1;">送信</button>
-    <button id="closeTipModalBtn" class="greenBtn" style="flex:1; background:#7f8c8d;">キャンセル</button>
-  </div>
 </div>
 
 <!-- 部屋選択ポップアップ -->
@@ -870,7 +866,7 @@ textarea { min-height:60px; resize: vertical; }
   <h3 id="popupTitle">フォーム</h3>
   <div id="threadFields">
     <label>ニックネーム（アカウント固定）</label>
-    <input id="threadMemberId" placeholder="ニックネーム">
+    <input id="threadMemberId" placeholder="ニックネーム（15文字まで）" maxlength="15">
     <label>アイコン</label>
     <input id="threadIconInput" type="file" accept="image/*">
     <label>タイトル</label>
@@ -888,7 +884,7 @@ textarea { min-height:60px; resize: vertical; }
   </div>
   <div id="postFields" style="display:none;">
     <label>ニックネーム（アカウント固定）</label>
-    <input id="postMemberId" placeholder="ニックネーム">
+    <input id="postMemberId" placeholder="ニックネーム（15文字まで）" maxlength="15">
     <label>アイコン</label>
     <input id="postIconInput" type="file" accept="image/*">
     <label>本文</label>
@@ -930,7 +926,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
   getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
-  serverTimestamp, setDoc, runTransaction, writeBatch, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  serverTimestamp, setDoc, runTransaction, writeBatch, arrayUnion, arrayRemove, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -954,6 +950,18 @@ const db = initializeFirestore(app, {
 // アカウント管理＆リアルタイム同期システム
 let currentAccount = localStorage.getItem("currentAccountName") || null;
 let accountUnsub = null;
+// コイン送金の受信通知（相手が送ると自分のアカウントの pendingTransfers に入る → 表示したら消す）
+const shownTransferIds = new Set();
+function handleIncomingTransfers(list) {
+  if (!currentAccount || !Array.isArray(list) || !list.length) return;
+  const fresh = list.filter(t => t && t.id && !shownTransferIds.has(t.id));
+  if (!fresh.length) return;
+  fresh.forEach(t => shownTransferIds.add(t.id));
+  fresh.sort((a, b) => (a.at || 0) - (b.at || 0));
+  const msg = fresh.map(t => `${t.from} から ${t.amount} コイン送金されました（${formatDate(t.at)}）`).join("\n");
+  setTimeout(() => alert("💰 " + msg), 0);
+  updateDoc(doc(db, "accounts", currentAccount), { pendingTransfers: arrayRemove(...fresh) }).catch(() => {});
+}
 
 function setupAccountListener() {
   if (accountUnsub) accountUnsub();
@@ -1001,6 +1009,7 @@ function setupAccountListener() {
     updateCoinButtonDisplay();
     renderStampMenu();
     if (marketUnsub) renderStockUI();
+    handleIncomingTransfers(acc.pendingTransfers);
   }, (error) => {});
 }
 
@@ -1548,6 +1557,7 @@ document.getElementById("saveBioBtn").onclick = async () => {
   }
 };
 
+let currentProfileTarget = null, isSendingCoin = false;
 async function openUserProfile(accountName) {
   showLoading("プロフィールを読み込み中...");
   try {
@@ -1559,6 +1569,9 @@ async function openUserProfile(accountName) {
     document.getElementById("modalProfileBio").textContent = accData.bio || "(自己紹介はありません)";
     document.getElementById("modalProfileCoins").textContent = `${accData.coins !== undefined ? accData.coins : 1000} コイン`;
     document.getElementById("modalProfileHoldings").innerHTML = holdingsListHtml(accData);
+    currentProfileTarget = accountName;
+    document.getElementById("modalCoinSendBox").style.display = (accountName === currentAccount) ? "none" : "block";
+    document.getElementById("modalCoinAmountInput").value = "";
     
     document.getElementById("userProfileModal").style.display = "block";
     document.getElementById("overlay").style.display = "block";
@@ -1567,6 +1580,38 @@ async function openUserProfile(accountName) {
     alert("情報の取得に失敗しました。");
   }
 }
+
+document.getElementById("modalSendCoinBtn").onclick = async () => {
+  if (isSendingCoin) return;
+  const target = currentProfileTarget;
+  if (!currentAccount) return alert("コインを送るにはアカウントにログインしてください。");
+  if (!target || target === currentAccount) return alert("自分自身にコインを送ることはできません。");
+  const amount = Number(document.getElementById("modalCoinAmountInput").value);
+  if (!Number.isInteger(amount) || amount <= 0) return alert("送る金額は1以上の整数で入力してください。");
+  if (getMyCoins() < amount) return alert(`コインが足りません (所持: ${getMyCoins()}コイン)`);
+  if (!confirm(`「${target}」さんに ${amount} コインを送りますか？`)) return;
+  isSendingCoin = true; showLoading("コインを送金中...");
+  try {
+    const meRef = doc(db, "accounts", currentAccount), toRef = doc(db, "accounts", target);
+    const item = { id: Date.now() + "_" + Math.random().toString(36).slice(2, 8), from: currentAccount, amount, at: Date.now() };
+    await runTransaction(db, async tx => {
+      const [me, to] = await Promise.all([tx.get(meRef), tx.get(toRef)]);
+      if (!to.exists()) throw new Error("NO_TARGET");
+      if (!me.exists()) throw new Error("NO_ME");
+      const mc = me.data().coins !== undefined ? me.data().coins : 1000;
+      if (mc < amount) throw new Error("NO_COINS");
+      tx.update(meRef, { coins: mc - amount, updated_at: Timestamp.now() });
+      tx.update(toRef, { coins: increment(amount), pendingTransfers: arrayUnion(item), updated_at: Timestamp.now() });
+    });
+    saveLog("send_coin", { from: currentAccount, to: target, amount });
+    hideLoading(); isSendingCoin = false;
+    document.getElementById("modalCoinAmountInput").value = "";
+    alert(`「${target}」さんに ${amount} コインを送りました！`);
+  } catch (e) {
+    hideLoading(); isSendingCoin = false;
+    alert(e && e.message === "NO_TARGET" ? "相手のアカウントが存在しないか削除されています。" : e && e.message === "NO_COINS" ? "コインが足りません。" : "コインの送金に失敗しました。");
+  }
+};
 
 document.getElementById("closeUserProfileModal").onclick = () => {
   document.getElementById("userProfileModal").style.display = "none";
@@ -1677,6 +1722,7 @@ document.getElementById("accountRegisterBtn").onclick = async () => {
 
   if (!name || !pass) return alert("ユーザー名とパスワードを入力してください");
   if (pass !== passConfirm) return alert("パスワードが一致しません。もう一度確認してください。");
+  if (nameTooLong(name)) return alert("ユーザー名は15文字までです。");
 
   showLoading("アカウントを作成中...");
   try {
@@ -1909,10 +1955,10 @@ function holdingsListHtml(acc) {
 // ===== 履歴グラフ =====
 const STK_PX = 5, STK_CH = 220, STK_AXB = 32;
 let mainTs = [], mainP = {}, mainChunks = 0, oldTs = [], oldP = {}, oldestLoaded = 0;
-let rangeKey = "live", histInit = false, loadStep = 1, loadingOlder = false, histEnd = false, histGen = 0, selAbs = null, scrollRaf = false, firstDraw = false;
+let rangeKey = "live", histInit = false, loadStep = 1, loadingOlder = false, histEnd = false, histGen = 0, selAbs = null, selGap = null, scrollRaf = false, firstDraw = false;
 function resetHist() {
   mainTs = []; mainP = {}; mainChunks = 0; oldTs = []; oldP = {}; oldestLoaded = 0;
-  histInit = false; rangeKey = "live"; loadStep = 1; loadingOlder = false; histEnd = false; selAbs = null; histGen++;
+  histInit = false; rangeKey = "live"; loadStep = 1; loadingOlder = false; histEnd = false; selAbs = null; selGap = null; histGen++;
   const b = document.getElementById("stockChartBox"); if (b) b.innerHTML = "";
 }
 function applyHistory(data) {
@@ -1933,6 +1979,33 @@ function applyHistory(data) {
   mainTs = ts; mainP = np; mainChunks = chunks;
 }
 const stkTotal = () => oldTs.length + mainTs.length;
+const GAP_MS = 10 * 60 * 1000;   // この時間以上データが途切れたら「データなし」として線を引かない
+function stkFmtDur(ms) { const m = Math.round(ms / 60000); if (m < 60) return `${m}分`; const h = ms / 3600e3; if (h < 48) return `${Math.round(h * 10) / 10}時間`; return `${Math.round(ms / 864e5 * 10) / 10}日`; }
+// データなし区間（斜線の帯＋ラベル）。見えている部分の中央にラベルを置く
+function stkGapSvg(gaps, x, W, plotH) {
+  if (!gaps.length) return "";
+  let s = '<defs><pattern id="stkHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f6f7f9"/><line x1="0" y1="0" x2="0" y2="8" stroke="#e1e5ea" stroke-width="3"/></pattern></defs>';
+  gaps.forEach(([a, b]) => {
+    const x1 = Math.max(0, x(a)), x2 = Math.min(W, x(b)); if (!(x2 > x1)) return;
+    s += `<rect x="${x1.toFixed(1)}" y="0" width="${(x2 - x1).toFixed(1)}" height="${plotH}" fill="url(#stkHatch)"/>`;
+    if (x2 - x1 >= 70) {
+      const cx = ((x1 + x2) / 2).toFixed(1), cy = plotH / 2;
+      s += `<text x="${cx}" y="${cy}" text-anchor="middle" font-size="12" fill="#7b8794">データなし</text>`;
+      if (isFinite(a) && isFinite(b)) s += `<text x="${cx}" y="${cy + 15}" text-anchor="middle" font-size="10" fill="#9aa5b1">（約${stkFmtDur(b - a)}）</text>`;
+    }
+  });
+  return s;
+}
+// その時刻が「データなし区間」の中なら [前の点の時刻, 次の点の時刻] を返す
+function stkGapAt(id, t) {
+  const N = stkTotal(); if (!N) return null;
+  const k = stkLB(t); let a = k - 1, b = k;
+  while (a >= 0 && stkP(id, a) == null) a--;
+  while (b < N && stkP(id, b) == null) b++;
+  if (a < 0 || b >= N) return null;
+  const ta = stkTs(a), tb = stkTs(b);
+  return (t > ta && t < tb && tb - ta >= GAP_MS) ? [ta, tb] : null;
+}
 // 時間軸ベースの座標。欠けた時間帯も実際の時間幅のまま、前後の点を直線でつなぐ
 const stkFit = () => rangeKey === "all";
 function stkLB(t) { let a = 0, b = stkTotal(); while (a < b) { const m = (a + b) >> 1; if (stkTs(m) < t) a = m + 1; else b = m; } return a; }
@@ -1969,7 +2042,8 @@ function rangeNeedsMore() {
 }
 function updateTip() {
   const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId], N = stkTotal();
-  const clr = stkEl("stockClearSelBtn"); if (clr) clr.style.display = selAbs != null ? "" : "none";
+  const clr = stkEl("stockClearSelBtn"); if (clr) clr.style.display = (selAbs != null || selGap) ? "" : "none";
+  if (selGap) { el.textContent = `⚠️ ${stkDate(selGap[0])} ${stkTime(selGap[0])} 〜 ${stkDate(selGap[1])} ${stkTime(selGap[1])} はデータがありません（約${stkFmtDur(selGap[1] - selGap[0])}）`; return; }
   if (selAbs != null) {
     const i = selAbs - oldestLoaded * ARCH, v = (i >= 0 && i < N) ? stkP(selectedStockId, i) : null;
     el.textContent = v == null ? "この時点のデータはありません" : `📍 ${stkDate(stkTs(i))} ${stkTime(stkTs(i))} の ${d.name} は ${v} コイン`; return;
@@ -1987,7 +2061,7 @@ function setHistStatus() {
     : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）`)
     : oldestLoaded > 0 ? `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件） `;
 }
-function renderChart() {
+function renderChart(anchorT) {
   const box = stkEl("stockChartBox"), N = stkTotal(), live = rangeKey === "live";
   if (!N) { box.innerHTML = '<div style="padding:90px 0;color:#888;font-size:13px;text-align:center;">データを蓄積中...</div>'; return; }
   let inner = box.firstElementChild;
@@ -2000,7 +2074,9 @@ function renderChart() {
   const atRight = !fit && box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
   inner.style.width = G.width + "px";
   inner.firstElementChild.style.width = box.clientWidth + "px";
-  if (fit) box.scrollLeft = 0; else if (atRight || firstDraw) box.scrollLeft = box.scrollWidth;
+  if (fit) box.scrollLeft = 0;
+  else if (anchorT != null && isFinite(anchorT)) box.scrollLeft = Math.max(0, 6 + G.shift + (anchorT - G.t0) * G.pxMs);   // 左端に見えていた時刻を保つ
+  else if (atRight || firstDraw) box.scrollLeft = box.scrollWidth;
   firstDraw = false;
   drawChartFrame(); setHistStatus();
   const need = fit ? rangeNeedsMore() : (rangeNeedsMore() || (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2));
@@ -2014,26 +2090,31 @@ function drawChartFrame() {
   const G = stkGeom(W), x = t => 6 + G.shift + (t - G.t0) * G.pxMs - sl, xi = i => x(stkTs(i));
   const tL = G.t0 + (sl - 6 - G.shift) / G.pxMs, tR = G.t0 + (sl + W - 6 - G.shift) / G.pxMs;
   const first = Math.max(0, stkLB(tL) - 1), last = Math.min(N - 1, stkLB(tR) + 1);
-  const cnt = last - first + 1, buckets = Math.max(1, Math.floor((W - 12) / 2)), pts = [];
-  if (cnt <= buckets) { for (let i = first; i <= last; i++) { const v = stkP(id, i); if (v != null) pts.push([i, v]); } }
-  else {
-    let cc = null, mn = -1, mx = -1, vn = Infinity, vx = -Infinity;
-    const flush = () => { if (mn < 0) return; if (mn === mx) pts.push([mn, vn]); else if (mn < mx) pts.push([mn, vn], [mx, vx]); else pts.push([mx, vx], [mn, vn]); };
-    for (let i = first; i <= last; i++) {
-      const v = stkP(id, i); if (v == null) continue;
-      const c = Math.floor(xi(i) / 2);
-      if (c !== cc) { flush(); cc = c; mn = mx = -1; vn = Infinity; vx = -Infinity; }
-      if (v < vn) { vn = v; mn = i; } if (v > vx) { vx = v; mx = i; }
-    }
-    flush();
+  const cnt = last - first + 1, buckets = Math.max(1, Math.floor((W - 12) / 2)), dense = cnt > buckets, pts = [], gaps = [];
+  // 表示範囲の点を順に見て、10分以上空いたら区間(seg)を分ける。間引きの区切りはスクロール位置に依らない絶対座標で決める（ガタつき防止）
+  let seg = 0, prevT = null, cc = null, bseg = 0, mn = -1, mx = -1, vn = Infinity, vx = -Infinity;
+  const flush = () => { if (mn < 0) return; if (mn === mx) pts.push([mn, vn, bseg]); else if (mn < mx) pts.push([mn, vn, bseg], [mx, vx, bseg]); else pts.push([mx, vx, bseg], [mn, vn, bseg]); mn = mx = -1; vn = Infinity; vx = -Infinity; };
+  for (let i = first; i <= last; i++) {
+    const v = stkP(id, i); if (v == null) continue;
+    const t = stkTs(i); if (prevT !== null && t <= prevT) continue;            // 時刻が逆戻りする点は無視
+    if (prevT !== null && t - prevT >= GAP_MS) { gaps.push([prevT, t]); seg++; }
+    prevT = t;
+    if (!dense) { pts.push([i, v, seg]); continue; }
+    const c = Math.floor((6 + G.shift + (t - G.t0) * G.pxMs) / 2);
+    if (c !== cc || seg !== bseg) { flush(); cc = c; bseg = seg; }
+    if (v < vn) { vn = v; mn = i; } if (v > vx) { vx = v; mx = i; }
   }
+  if (dense) flush();
   let lo = Infinity, hi = -Infinity;
   pts.forEach(p => { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
-  if (lo === Infinity) { svg.innerHTML = ""; return; }
+  if (lo === Infinity) {                                                       // 見えている範囲にデータが全くない
+    svg.setAttribute("width", W); svg.setAttribute("height", STK_CH); svg.setAttribute("viewBox", `0 0 ${W} ${STK_CH}`);
+    svg.innerHTML = stkGapSvg([[-Infinity, Infinity]], x, W, STK_CH - STK_AXB); return;
+  }
   if (lo === hi) { lo -= 1; hi += 1; }
   const pv = (hi - lo) * 0.1; lo -= pv; hi += pv;
   const plotH = STK_CH - STK_AXB, y = v => 6 + (plotH - 12) * (1 - (v - lo) / (hi - lo));
-  let g = "";
+  let g = stkGapSvg(gaps, x, W, plotH);
   const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 5, 10].map(k => k * mag).find(s => s >= raw);
   for (let k = Math.ceil(lo / step); k * step <= hi; k++) {          // 横の目安線＋価格
     const v = k * step, yy = y(v).toFixed(1);
@@ -2047,9 +2128,17 @@ function drawChartFrame() {
     const lab = stepSec >= 60 ? `${stkPad(new Date(t).getHours())}:${stkPad(new Date(t).getMinutes())}` : stkTime(t);
     g += `<line x1="${xx}" x2="${xx}" y1="0" y2="${plotH}" stroke="#e3e8ee"/><text x="${xx}" y="${plotH + 12}" font-size="10" fill="#555" text-anchor="${anc}">${lab}</text><text x="${xx}" y="${plotH + 24}" font-size="9" fill="#8795a1" text-anchor="${anc}">${stkDate(t)}</text>`;
   }
-  let dstr = "", pen = false, fv = null, lv = null;
-  pts.forEach(p => { if (fv === null) fv = p[1]; lv = p[1]; dstr += (pen ? "L" : "M") + xi(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1) + " "; pen = true; });
-  g += `<path d="${dstr}" fill="none" stroke="${lv >= fv ? "#27ae60" : "#c0392b"}" stroke-width="2" stroke-linejoin="round"/>`;
+  let dstr = "", fv = null, lv = null, prevSeg = -1; const dots = [];
+  pts.forEach((p, k) => {
+    if (fv === null) fv = p[1]; lv = p[1];
+    const px = xi(p[0]), py = y(p[1]), nw = p[2] !== prevSeg;
+    dstr += (nw ? "M" : "L") + px.toFixed(1) + " " + py.toFixed(1) + " ";
+    if (nw && (k === pts.length - 1 || pts[k + 1][2] !== p[2])) dots.push([px, py]);   // 1点だけの区間は点で表示
+    prevSeg = p[2];
+  });
+  const lineCol = lv >= fv ? "#27ae60" : "#c0392b";
+  g += `<path d="${dstr}" fill="none" stroke="${lineCol}" stroke-width="2" stroke-linejoin="round"/>`;
+  dots.forEach(d => { g += `<circle cx="${d[0].toFixed(1)}" cy="${d[1].toFixed(1)}" r="2.2" fill="${lineCol}"/>`; });
   if (selAbs != null) {                                                // タップした位置
     const i = selAbs - base, v = (i >= first && i <= last) ? stkP(id, i) : null;
     if (v != null) { const sx = xi(i).toFixed(1); g += `<line x1="${sx}" x2="${sx}" y1="0" y2="${plotH}" stroke="#e67e22" stroke-width="1.5"/><circle cx="${sx}" cy="${y(v).toFixed(1)}" r="4" fill="#fff" stroke="#e67e22" stroke-width="1.5"/>`.replace('fill="#fff" stroke="#e67e22"', 'fill="#e67e22" stroke="#fff"'); }
@@ -2068,15 +2157,17 @@ async function loadOlder(n) {   // 今モード: スクロールするたび 1�
     const got = [];
     for (let k = count - 1; k >= 0; k--) { if (!snaps[k].exists()) break; got.unshift(snaps[k].data()); }
     if (!got.length) { histEnd = true; setHistStatus(); return; }
-    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length, live = rangeKey === "live", fitMode = stkFit();
+    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length, fitMode = stkFit();
     const g0 = stkGeom(box.clientWidth);
-    const addTs = [].concat(...got.map(c => c.ts));
-    STOCKS.forEach(d => { oldP[d.id] = [].concat(...got.map(c => (c.p && c.p[d.id]) || new Array(c.ts.length).fill(null)), oldP[d.id] || new Array(prevLen).fill(null)); });
+    const tA = g0.t0 + (prevSL - 6 - g0.shift) / g0.pxMs;                       // 今、左端に見えている時刻
+    const gts = got.map(c => Array.isArray(c.ts) ? c.ts : []);
+    const alignTo = (arr, len) => { const a = Array.isArray(arr) ? arr : []; return a.length === len ? a : a.length < len ? new Array(len - a.length).fill(null).concat(a) : a.slice(a.length - len); };   // 時刻と株価の本数がずれていても列がずれないように
+    const addTs = [].concat(...gts);
+    STOCKS.forEach(d => { oldP[d.id] = [].concat(...got.map((c, k) => alignTo(c.p && c.p[d.id], gts[k].length)), alignTo(oldP[d.id], prevLen)); });
     oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; if (!n) loadStep = Math.min(loadStep * 2, 16);
     loadingOlder = false;
-    renderChart();
-    if (!fitMode) { const g1 = stkGeom(box.clientWidth); box.scrollLeft = prevSL + (g1.shift - g0.shift) + (g0.t0 - g1.t0) * g1.pxMs; }   // 見ている位置を保つ
-    drawChartFrame(); updateTip(); setHistStatus();
+    renderChart(fitMode ? null : tA);                                            // 見ている位置を保ったまま描き直す
+    updateTip(); setHistStatus();
   } catch (e) { histEnd = true; setHistStatus(); }
   finally { loadingOlder = false; }
 }
@@ -2088,10 +2179,13 @@ stkEl("stockChartBox").onclick = e => {
   const box = e.currentTarget, N = stkTotal(); if (!N) return;
   const px = e.clientX - box.getBoundingClientRect().left, G = stkGeom(box.clientWidth);
   const t = G.t0 + (px + box.scrollLeft - 6 - G.shift) / G.pxMs;
+  const gp = stkGapAt(selectedStockId, t);
+  if (gp) { selAbs = null; selGap = gp; updateTip(); drawChartFrame(); return; }
+  selGap = null;
   let i = stkLB(t); if (i >= N) i = N - 1; else if (i > 0 && t - stkTs(i - 1) < stkTs(i) - t) i = i - 1;
   selAbs = oldestLoaded * ARCH + i; updateTip(); drawChartFrame();
 };
-stkEl("stockClearSelBtn").onclick = () => { selAbs = null; updateTip(); drawChartFrame(); };
+stkEl("stockClearSelBtn").onclick = () => { selAbs = null; selGap = null; updateTip(); drawChartFrame(); };
 stkEl("stockRangeBar").onclick = e => {
   const b = e.target.closest("button[data-r]"); if (!b || b.dataset.r === rangeKey) return;
   rangeKey = b.dataset.r; firstDraw = true; renderRangeBar(); renderChart(); updateTip();
@@ -2746,58 +2840,6 @@ function renderEffectShop() {
   });
 }
 
-// --- チップ（投げ銭）機能 ---
-let currentTipTargetAccount = null;
-
-function openTipModal(targetName) {
-  if (!currentAccount) return alert("チップを送るにはアカウントにログインしてください。");
-  if (targetName === currentAccount) return alert("自分自身にチップを送ることはできません。");
-
-  currentTipTargetAccount = targetName;
-  document.getElementById("tipTargetText").textContent = `「${targetName}」さんへチップを送ります`;
-  document.getElementById("tipModal").style.display = "block";
-  document.getElementById("overlay").style.display = "block";
-}
-
-document.getElementById("closeTipModalBtn").onclick = () => {
-  document.getElementById("tipModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-};
-
-document.getElementById("confirmTipBtn").onclick = async () => {
-  const amount = parseInt(document.getElementById("tipAmountInput").value, 10);
-  if (isNaN(amount) || amount <= 0) return alert("有効なコイン数を入力してください");
-  const myCoins = getMyCoins();
-  if (myCoins < amount) return alert(`コインが足りません (所持: ${myCoins}枚)`);
-
-  showLoading("チップを送信中...");
-  try {
-    const targetData = await getAccountData(currentTipTargetAccount);
-    if (!targetData) {
-      hideLoading();
-      return alert("相手のアカウントが存在しないか削除されています。");
-    }
-
-    setMyCoins(myCoins - amount);
-
-    const targetRef = doc(db, "accounts", currentTipTargetAccount);
-    await updateDoc(targetRef, {
-      coins: increment(amount),
-      updated_at: Timestamp.now()
-    });
-
-    await saveLog("send_tip", { from: currentAccount, to: currentTipTargetAccount, amount });
-
-    hideLoading();
-    alert(`「${currentTipTargetAccount}」さんに ${amount} コインのチップを送りました！`);
-    document.getElementById("tipModal").style.display = "none";
-    document.getElementById("overlay").style.display = "none";
-  } catch(e) {
-    hideLoading();
-    alert("チップの送信に失敗しました。");
-  }
-};
-
 // --- スレッド注目ブースト機能 ---
 function isThreadBoostedValid(data) {
   if (!data.boosted || !data.boostedAt) return false;
@@ -2991,7 +3033,7 @@ function saveLog(action, detail = {}) {
 
 let currentThreadHasPassword = false;
 let currentThreadTitle = "";
-let currentThreadCreatorName = "";
+let currentThreadCreatorName = "", currentThreadCreatorDup = false;
 let currentThreadLocked = false;
 
 function showInfoDialog(infoText) {
@@ -3219,6 +3261,9 @@ function closePopup(){
   document.getElementById('submitBtn').textContent='送信'; 
 }
 
+const NAME_MAX = 15;
+const nameTooLong = n => [...String(n || "")].length > NAME_MAX;
+const DUP_MARK_HTML = `<span style="font-size:12px; margin-right:2px;" title="未ログインのユーザーが、登録済みアカウントと同じ名前を使っています">⚠️</span>`;
 function validateNickname(input){ if(!input) return generateRandomAnonymousName(); if(input==="しんぞ2059") return "しんぞ公式"; if(input.includes("しんぞ公式")) return null; return input; }
 
 async function fileToBase64(file,maxWidth=800,maxHeight=800,quality=0.7){
@@ -3256,6 +3301,11 @@ function renderThreadsPage(){
   pageThreads.forEach(docItem=>{
     const data=docItem.data(), postCount = data.postCount || 0;
     const li=document.createElement("li"); li.style.backgroundColor = data.color || "#3498db";
+    if (data.deleted) {   // 作成者が削除したスレッドは、その場所に「削除されました」と表示（開けない）
+      li.style.backgroundColor = "#95a5a6"; li.style.cursor = "default";
+      li.innerHTML = `<strong style="font-weight: 800; font-size: 1.05em; font-style: italic;">このスレッドは削除されました</strong>${deletedByHtml(data, "削除")}`;
+      threadList.appendChild(li); return;
+    }
 
     const isBoostedActive = isThreadBoostedValid(data);
 
@@ -3428,10 +3478,23 @@ function updateLockUIState(isLocked) {
 
 function openThread(threadId, data){
   history.pushState({}, "", `${location.pathname}?room=${currentRoom}&thread=${threadId}`);
+  if (data.deleted) {   // お気に入り・URL直リンクなどで開かれた場合も「削除されました」を表示
+    if (postsUnsub) { postsUnsub(); postsUnsub = null; }
+    currentThreadId = threadId; currentThreadLocked = true; currentThreadCreatorName = ""; currentThreadCreatorDup = false;
+    threadTitleElem.textContent = "このスレッドは削除されました"; threadDetailElem.textContent = ""; threadCreatorElem.innerHTML = deletedByHtml(data, "削除").replace(/<\/?div[^>]*>/g, "");
+    document.getElementById("postList").innerHTML = "";
+    const tocD = document.getElementById("threadToc"); if (tocD) { tocD.innerHTML = ""; tocD.style.display = "none"; }
+    const delD = document.getElementById("deleteOwnThreadBtn"); if (delD) delD.style.display = "none";
+    updateLockUIState(true);
+    document.getElementById('quickPostInput').placeholder = "このスレッドは削除されました"; document.getElementById('createPostBtn').textContent = "🗑️削除済み";
+    threadListSection.style.display = 'none'; threadDetailSection.style.display = 'block';
+    return;
+  }
   currentThreadId = threadId; 
   currentThreadTitle = data.title; 
   currentThreadHasPassword = !!data.password; 
   currentThreadCreatorName = data.memberId || "";
+  currentThreadCreatorDup = !!data.nameDup;
   currentThreadLocked = !!data.locked;
 
   const isBoostedActive = isThreadBoostedValid(data);
@@ -3442,14 +3505,16 @@ function openThread(threadId, data){
   threadDetailElem.textContent = data.detail || ""; 
   
   const creatorUserMark = renderAccountUserMark(data.isAccountUser);
-  threadCreatorElem.innerHTML = `作成者: <span class="creatorProfileLink" data-user="${data.memberId || ""}" style="cursor:pointer; text-decoration:underline;">${data.memberId || "名称未設定"}</span>${creatorUserMark} ${formatDate(data.created_at)}`;
+  threadCreatorElem.innerHTML = `作成者: ${data.nameDup ? DUP_MARK_HTML : ""}<span class="creatorProfileLink" data-user="${data.memberId || ""}" style="${data.nameDup ? "" : "cursor:pointer; text-decoration:underline;"}">${data.memberId || "名称未設定"}</span>${creatorUserMark} ${formatDate(data.created_at)}`;
   
   const creatorLink = threadCreatorElem.querySelector('.creatorProfileLink');
-  if (creatorLink && data.memberId) {
+  if (creatorLink && data.memberId && !data.nameDup) {
     creatorLink.onclick = () => openUserProfile(data.memberId);
   }
 
   updateLockUIState(currentThreadLocked);
+  const delT = document.getElementById("deleteOwnThreadBtn");   // ログイン中の作成者本人だけに表示
+  if (delT) delT.style.display = (currentAccount && data.isAccountUser && data.memberId === currentAccount) ? "" : "none";
 
   threadListSection.style.display='none'; 
   threadDetailSection.style.display='block';
@@ -3463,6 +3528,16 @@ function fillPostIcons() {
     img.style.cssText = "width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:0;object-fit:cover;background:#fff;";
     sp.replaceWith(img);
   });
+}
+const escHtmlD = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function deletedByHtml(data, verb) {
+  const who = data.deleted_by ? escHtmlD(data.deleted_by) : (data.memberId ? escHtmlD(data.memberId) : "");
+  const when = data.deleted_at ? formatDate(data.deleted_at) : "";
+  return (who || when) ? `<div style="font-size:12px; opacity:.9; margin-top:2px;">${who ? `${who} が${verb}` : verb}${when ? `　${when}` : ""}</div>` : "";
+}
+function renderDeletedPost(li, data) {
+  li.className = ""; li.style.backgroundColor = "#95a5a6"; li.style.opacity = "0.9";
+  li.innerHTML = `<span style="font-style:italic; display:inline-block;">この投稿は削除されました</span>${deletedByHtml(data, "取り消し")}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;"><strong>#${data.index ?? "?"}</strong></small>`;
 }
 async function loadPosts(threadId) {
   const postList = document.getElementById("postList");
@@ -3493,6 +3568,7 @@ async function loadPosts(threadId) {
               const existingLi = document.getElementById("post-" + docId);
               if(existingLi && !existingLi.classList.contains('temp-post')) continue; 
               if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
+              if (data.deleted) { const dl = document.createElement("li"); dl.id = "post-" + docId; renderDeletedPost(dl, data); postList.appendChild(dl); continue; }
 
               let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : (data.icon ? `<span class="pIcon" data-icon-id="${data.icon}" style="display:inline-block;width:24px;height:24px;"></span>` : "");
 
@@ -3512,27 +3588,27 @@ async function loadPosts(threadId) {
               const bodyHtml = data.body ? `<div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>` : "";
               const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: rgba(0,0,0,0.25); cursor: pointer;";
               
-              const tipBtnHtml = data.isAccountUser && data.memberId !== currentAccount ? 
-                `<button class="tip-btn" data-user="${data.memberId}" style="background: #e67e22; border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px; cursor: pointer;">🎁 チップ</button>` : '';
-
+              const isMine = !!currentAccount && !!data.isAccountUser && data.memberId === currentAccount;   // アカウント持ち本人の投稿のみ
+              const delBtnHtml = isMine ? `<button class="del-btn" style="background: #c0392b; border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px; cursor: pointer;">🗑️ 取り消し</button>` : '';
               const actionBox = `<div style="position: absolute; right: 10px; top: 10px; display: flex; gap: 4px; align-items: center; z-index: 10;">
-                ${tipBtnHtml}
+                ${delBtnHtml}
                 <button class="reply-btn" data-index="${data.index}" style="${replyBtnStyle} border: none; color: white; border-radius: 10px; padding: 2px 8px; font-size: 11px;" ${currentThreadLocked ? 'disabled' : ''}>→</button>
-                <button class="info-btn" data-info="【投稿情報】\n\n・番号: ${data.index ?? "?"}\n・投稿者: ${data.memberId || "名称未設定"}\n・日時: ${formatDate(data.created_at)}\n・IP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
+                <button class="info-btn" data-info="【投稿情報】\n\n・番号: ${data.index ?? "?"}\n・投稿者: ${data.memberId || "名称未設定"}${data.nameDup ? "（⚠️未ログインの同名ユーザー）" : ""}\n・日時: ${formatDate(data.created_at)}\n・IP: ${data.ip || "未取得"}" style="background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; padding: 0; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center;">i</button>
               </div>`;
 
               const userMark = renderAccountUserMark(data.isAccountUser);
+              const dupMark = data.nameDup ? DUP_MARK_HTML : "";
               const formattedName = formatNameWithEffect(data.memberId || "名称未設定", data.nameEffect);
 
               li.innerHTML = `
                 ${actionBox}
                 ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && !data.nameDup && !currentThreadCreatorDup && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}${dupMark}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
               const userLinkSpan = li.querySelector('.postUserLink');
-              if (userLinkSpan && data.memberId) {
+              if (userLinkSpan && data.memberId && !data.nameDup) {
                 userLinkSpan.style.cursor = "pointer";
                 userLinkSpan.style.textDecoration = "underline";
                 userLinkSpan.onclick = (e) => {
@@ -3549,18 +3625,19 @@ async function loadPosts(threadId) {
                   input.focus();
                 };
               }
-              const tipBtn = li.querySelector('.tip-btn');
-              if (tipBtn) {
-                tipBtn.onclick = (e) => {
-                  e.stopPropagation();
-                  openTipModal(e.target.dataset.user);
-                };
-              }
+              const delBtn = li.querySelector('.del-btn');
+              if (delBtn) delBtn.onclick = (e) => { e.stopPropagation(); deleteOwnPost(change.doc.id); };
               li.querySelector('.info-btn').onclick = (e) => {
                 e.stopPropagation();
                 showInfoDialog(e.target.dataset.info);
               };
               postList.appendChild(li);
+            } else if (change.type === "modified") {
+              if (data.deleted) {
+                let el = document.getElementById("post-" + docId);
+                if (!el) { el = document.createElement("li"); el.id = "post-" + docId; postList.appendChild(el); }
+                renderDeletedPost(el, data);
+              }
             } else if (change.type === "removed") {
               const el = document.getElementById("post-" + docId);
               if (el) el.remove();
@@ -3618,12 +3695,10 @@ document.getElementById('createThreadBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
     const clientIP = await getClientIP(); 
     let inputNickname = currentAccount || document.getElementById('threadMemberId').value.trim();
-    if (!currentAccount) {
-      const existingAcc = await isRegisteredName(inputNickname);
-      if (existingAcc) return showAlert("この名前は既に登録されているアカウント名です。匿名では使用できません。ログインしてください。");
-    }
+    if (!currentAccount && nameTooLong(inputNickname)) return showAlert("名前は15文字までです");
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
     if(valid && !currentAccount) { nickName=valid; setCookie("nickName", nickName); } else if (currentAccount) { nickName = currentAccount; }
+    const isDupName = !currentAccount && !!(await isRegisteredName(nickName));   // 未ログインで登録済みアカウントと同じ名前
 
     const iconFile=document.getElementById('threadIconInput').files[0]; let iconId = getCookie('iconId');
     if(iconFile){ const iconBase64 = await fileToBase64(iconFile,200,200,0.7); iconId = Math.random().toString(36).slice(2); try{ await setDoc(doc(db, 'icons', iconId), { base64: iconBase64, created_at: Timestamp.now() }); setCookie('iconId', iconId); }catch(e){ return showAlert('エラーが発生しました'); } }
@@ -3642,8 +3717,8 @@ document.getElementById('createThreadBtn').onclick=async()=>{
 
     try{
       const isAccountUser = !!currentAccount;
-      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, boosted: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
-      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, isAccountUser: isAccountUser, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
+      const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, isAccountUser: isAccountUser, nameDup: isDupName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, boosted: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
+      await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, isAccountUser: isAccountUser, nameDup: isDupName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
     }catch(e){
       showAlert("作成に失敗しました"); tempLi.remove();
@@ -3658,12 +3733,10 @@ document.getElementById('createPostBtn').onclick=async()=>{
     if(await stopIfBanned()) return;
     const clientIP = await getClientIP(); 
     let inputNickname = currentAccount || document.getElementById('postMemberId').value.trim();
-    if (!currentAccount) {
-      const existingAcc = await isRegisteredName(inputNickname);
-      if (existingAcc) return showAlert("この名前は既に登録されているアカウント名です。匿名では使用できません。ログインしてください。");
-    }
+    if (!currentAccount && nameTooLong(inputNickname)) return showAlert("名前は15文字までです");
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
     if(valid && !currentAccount) { nickName=valid; setCookie("nickName", nickName); } else if (currentAccount) { nickName = currentAccount; }
+    const isDupName = !currentAccount && !!(await isRegisteredName(nickName));   // 未ログインで登録済みアカウントと同じ名前
 
     const isHighlight = document.getElementById('postHighlightChk').checked;
     if (isHighlight) {
@@ -3685,12 +3758,12 @@ document.getElementById('createPostBtn').onclick=async()=>{
     
     const postList = document.getElementById("postList"); let index = postList.children.length + 1;
     const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; 
-    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${nickName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
+    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${isDupName ? DUP_MARK_HTML : ""}${nickName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
     postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
     try{
       const isAccountUser = !!currentAccount;
-      const postId = await commitPost({ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, body, image:imageBase64, color, highlighted: isHighlight, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
+      const postId = await commitPost({ memberId:nickName, isAccountUser: isAccountUser, nameDup: isDupName, icon:iconId||null, body, image:imageBase64, color, highlighted: isHighlight, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId, index: index, text: body, hasImage: !!imageBase64, highlighted: isHighlight });
     }catch(e){
       showAlert("投稿に失敗しました"); tempLi.remove();
@@ -4241,6 +4314,38 @@ stampMenuBtn.onclick = (e) => {
 document.addEventListener("click", () => { quickMenuContent.style.display = "none"; stampMenuContent.style.display = "none"; });
 
 let isQuickSending = false;
+// 自分の投稿の取り消し（ログイン中のアカウント本人のみ）。内容を消して「削除されました」表示にする
+async function deleteOwnPost(pid) {
+  if (!currentAccount) return showAlert("投稿の取り消しにはログインが必要です");
+  if (!confirm("この投稿を取り消しますか？")) return;
+  if (await stopIfBanned()) return;
+  try {
+    const ref = doc(db, currentRoom, currentThreadId, "posts", pid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const d = snap.data();
+    if (!d.isAccountUser || d.memberId !== currentAccount) return showAlert("自分の投稿のみ取り消せます");
+    await updateDoc(ref, { deleted: true, deleted_at: Timestamp.now(), deleted_by: currentAccount, body: "", image: null, highlighted: false, ...getBoardWriteMeta() });
+    saveLog("delete_own_post", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
+  } catch (e) { showAlert("取り消しに失敗しました"); }
+}
+// 自分のスレッドの削除（ログイン中の作成者本人のみ）
+document.getElementById("deleteOwnThreadBtn").onclick = async () => {
+  if (!currentAccount) return showAlert("スレッドの削除にはログインが必要です");
+  if (!confirm("このスレッドを削除しますか？")) return;
+  if (await stopIfBanned()) return;
+  const tid = currentThreadId;
+  try {
+    const ref = doc(db, currentRoom, tid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+    const d = snap.data();
+    if (!d.isAccountUser || d.memberId !== currentAccount) return showAlert("自分のスレッドのみ削除できます");
+    await updateDoc(ref, { deleted: true, deleted_at: Timestamp.now(), deleted_by: currentAccount, title: "(削除済み)", detail: "", image: null, password: null, pinned: false, boosted: false, ...getBoardWriteMeta() });
+    saveLog("delete_own_thread", { threadId: tid, title: d.title || "" });
+    document.getElementById("closeThreadBtn").click();
+  } catch (e) { showAlert("削除に失敗しました"); }
+};
 // 投稿＋スレッド更新を1回の通信(バッチ)で送る
 async function commitPost(postData) {
   const postRef = doc(collection(db, currentRoom, currentThreadId, "posts"));
@@ -4264,7 +4369,8 @@ async function quickPost(body, inner, logAction, logDetail, onBanned) {
   try {
     if (await stopIfBanned()) { tempLi.remove(); if (onBanned) onBanned(); return; }
     const clientIP = await getClientIP();
-    const postId = await commitPost({ memberId: name, isAccountUser: !!currentAccount, body, color: "#3498db", icon: getCookie("iconId") || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
+    const isDupName = !currentAccount && !!(await isRegisteredName(name));
+    const postId = await commitPost({ memberId: name, isAccountUser: !!currentAccount, nameDup: isDupName, body, color: "#3498db", icon: getCookie("iconId") || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
     saveLog(logAction, { threadId: currentThreadId, threadTitle: currentThreadTitle, postId, index, ...logDetail });
   } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); }
   finally { isQuickSending = false; }
