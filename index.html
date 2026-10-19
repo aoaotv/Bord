@@ -910,7 +910,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
   getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
-  serverTimestamp, setDoc, runTransaction, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  serverTimestamp, setDoc, runTransaction, writeBatch, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -1816,7 +1816,7 @@ function getHoldings() {
 
 // 価格更新: トランザクションで「前回更新から一定時間たっていれば1人だけ更新」。全員が毎回書き込む必要はない
 async function tickMarket() {
-  if (document.hidden) return;
+  if (document.hidden || stkEl("stockSection").style.display !== "block") return;
   try {
     await runTransaction(db, async tx => {
       const snap = await tx.get(marketRef);
@@ -1844,7 +1844,7 @@ async function tickMarket() {
 }
 function scheduleTick() {
   clearTimeout(tickTimer);
-  tickTimer = setTimeout(async () => { await tickMarket(); if (marketUnsub) scheduleTick(); }, TICK_MS + Math.random() * 1000);
+  tickTimer = setTimeout(async () => { if (stkEl("stockSection").style.display !== "block") { stopMarket(); return; } await tickMarket(); if (marketUnsub) scheduleTick(); }, TICK_MS + Math.random() * 1000);
 }
 function startMarket() {
   if (marketUnsub) return;
@@ -1854,6 +1854,7 @@ function startMarket() {
   marketUnsub = onSnapshot(marketRef, snap => {
     const st = snap.exists() && snap.data().stocks;
     if (!st) return;
+    if (stkEl("stockSection").style.display !== "block") { stopMarket(); return; }
     marketData = st; stkEl("stockStatus").textContent = ""; renderStockUI();
   }, () => { stkEl("stockStatus").textContent = "株価の取得に失敗しました。"; });
   tickMarket(); scheduleTick();
@@ -2644,6 +2645,9 @@ function getStampCategory(st) {
 function renderStampMenu() {
   const menuContent = document.getElementById("stampMenuContent");
   if (!menuContent) return;
+  const stampKey = JSON.stringify(getPurchasedEmojis());
+  if (renderStampMenu._k === stampKey && menuContent.childElementCount) return;
+  renderStampMenu._k = stampKey;
   const allStamps = [...new Set([...DEFAULT_STAMPS, ...getPurchasedEmojis()])];
 
   menuContent.innerHTML = "";
@@ -2753,11 +2757,11 @@ function formatNameWithEffect(name, effectId) {
   return name;
 }
 
-async function saveLog(action, detail = {}) {
+function saveLog(action, detail = {}) {
   try {
-    const clientIP = await getClientIP();
-    await addDoc(collection(db, "logs"), { action, detail, user: currentAccount || nickName || "名称未設定", room: currentRoom || "threads", ip: clientIP, created_at: Timestamp.now() });
+    addDoc(collection(db, "logs"), { action, detail, user: currentAccount || nickName || "名称未設定", room: currentRoom || "threads", ip: cachedIP || "unknown", created_at: Timestamp.now() }).catch(() => {});
   } catch (e) {}
+  return Promise.resolve();
 }
 
 let currentThreadHasPassword = false;
@@ -2798,28 +2802,48 @@ const SINZO_BOARD_APP_ID = "sinzo-board";
 const SINZO_BOARD_WRITE_VERSION = 20260720;
 function getBoardWriteMeta() { return { appId: SINZO_BOARD_APP_ID, writeVersion: SINZO_BOARD_WRITE_VERSION, secretKey: "04" }; }
 
-let cachedIP = null;
-async function getClientIP(){
-  if (cachedIP) return cachedIP;
-  try{ const res = await fetch("https://api.ipify.org?format=json"); const data = await res.json(); cachedIP = data.ip || "unknown"; return cachedIP; }
-  catch(e){ return "unknown"; }
+let cachedIP = null, ipPromise = null, ipFailAt = 0;
+function getClientIP() {
+  if (cachedIP) return Promise.resolve(cachedIP);
+  if (Date.now() - ipFailAt < 60000) return Promise.resolve("unknown");
+  if (!ipPromise) {
+    ipPromise = (async () => {
+      const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 2500);
+      try { const res = await fetch("https://api.ipify.org?format=json", { signal: ctl.signal }); cachedIP = (await res.json()).ip || "unknown"; }
+      catch (e) { ipFailAt = Date.now(); }
+      clearTimeout(t); ipPromise = null; return cachedIP || "unknown";
+    })();
+  }
+  return ipPromise;
 }
+getClientIP();   // 起動時に先読み（投稿時に待たせない）
 async function isIPBanned(ip){
   if(!ip || ip === "unknown") return false;
   try{ const banDoc = await getDoc(doc(db, "ipBans", ip)); return banDoc.exists(); }catch(e){ return false; }
 }
-async function stopIfBanned(){
+let banCache = { t: 0, k: "", v: false, msg: "" };
+async function stopIfBanned() {
+  const key = currentAccount || "";
+  if (Date.now() - banCache.t < 60000 && banCache.k === key) { if (banCache.v) showAlert(banCache.msg); return banCache.v; }
   const ip = await getClientIP();
-  if(await isIPBanned(ip)){ showAlert("このIPは利用規約違反のため制限されています"); return true; }
-  if(currentAccount) {
-    const banDoc = await getDoc(doc(db, "accountBans", currentAccount));
-    if(banDoc.exists()) {
-      const reason = banDoc.data().reason || "理由の記載はありません";
-      showAlert(`このアカウントは停止されています。\n【理由】: ${reason}`);
-      return true;
-    }
-  }
-  return false;
+  const [ipBanned, accBan] = await Promise.all([
+    isIPBanned(ip),
+    currentAccount ? getDoc(doc(db, "accountBans", currentAccount)).catch(() => null) : null
+  ]);
+  let msg = "";
+  if (ipBanned) msg = "このIPは利用規約違反のため制限されています";
+  else if (accBan && accBan.exists()) msg = `このアカウントは停止されています。\n【理由】: ${accBan.data().reason || "理由の記載はありません"}`;
+  banCache = { t: Date.now(), k: key, v: !!msg, msg };
+  if (msg) showAlert(msg);
+  return !!msg;
+}
+const nameCache = new Map();
+async function isRegisteredName(n) {
+  const c = nameCache.get(n);
+  if (c && Date.now() - c.t < 60000) return c.v;
+  const v = await getAccountData(n);
+  nameCache.set(n, { t: Date.now(), v });
+  return v;
 }
 
 const ADMIN_PASSWORD = "2026";
@@ -3207,6 +3231,14 @@ function openThread(threadId, data){
   loadPosts(threadId);
 }
 
+function fillPostIcons() {
+  document.querySelectorAll("#postList .pIcon").forEach(sp => {
+    const s = iconCache[sp.dataset.iconId]; if (!s) return;
+    const img = document.createElement("img"); img.src = s;
+    img.style.cssText = "width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:0;object-fit:cover;background:#fff;";
+    sp.replaceWith(img);
+  });
+}
 async function loadPosts(threadId) {
   const postList = document.getElementById("postList");
   postList.innerHTML = ""; knownPostIds.clear(); 
@@ -3217,7 +3249,8 @@ async function loadPosts(threadId) {
   postsUnsub = onSnapshot(q, async (snapshot) => {
     try {
       const iconIds = [...new Set(snapshot.docs.map(d => d.data().icon).filter(Boolean))];
-      await Promise.all(iconIds.map(id => getIconSrc(id)));
+      const missingIcons = iconIds.filter(id => !iconCache[id]);
+      if (missingIcons.length) Promise.all(missingIcons.map(id => getIconSrc(id))).then(fillPostIcons);
 
       const changes = snapshot.docChanges();
       const chunkSize = 20; 
@@ -3236,7 +3269,7 @@ async function loadPosts(threadId) {
               if(existingLi && !existingLi.classList.contains('temp-post')) continue; 
               if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
 
-              let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : "";
+              let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : (data.icon ? `<span class="pIcon" data-icon-id="${data.icon}" style="display:inline-block;width:24px;height:24px;"></span>` : "");
 
               const li = document.createElement("li");
               li.id = "post-" + docId;
@@ -3361,7 +3394,7 @@ document.getElementById('createThreadBtn').onclick=async()=>{
     const clientIP = await getClientIP(); 
     let inputNickname = currentAccount || document.getElementById('threadMemberId').value.trim();
     if (!currentAccount) {
-      const existingAcc = await getAccountData(inputNickname);
+      const existingAcc = await isRegisteredName(inputNickname);
       if (existingAcc) return showAlert("この名前は既に登録されているアカウント名です。匿名では使用できません。ログインしてください。");
     }
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
@@ -3401,7 +3434,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
     const clientIP = await getClientIP(); 
     let inputNickname = currentAccount || document.getElementById('postMemberId').value.trim();
     if (!currentAccount) {
-      const existingAcc = await getAccountData(inputNickname);
+      const existingAcc = await isRegisteredName(inputNickname);
       if (existingAcc) return showAlert("この名前は既に登録されているアカウント名です。匿名では使用できません。ログインしてください。");
     }
     const valid=validateNickname(inputNickname); if(valid===null) return showAlert("使えない言葉が入っています");
@@ -3432,9 +3465,8 @@ document.getElementById('createPostBtn').onclick=async()=>{
 
     try{
       const isAccountUser = !!currentAccount;
-      const newPost = await addDoc(collection(db,currentRoom,currentThreadId,"posts"),{ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, body, image:imageBase64, color, highlighted: isHighlight, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
-      await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
-      await saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index: index, text: body, hasImage: !!imageBase64, highlighted: isHighlight });
+      const postId = await commitPost({ memberId:nickName, isAccountUser: isAccountUser, icon:iconId||null, body, image:imageBase64, color, highlighted: isHighlight, created_at:Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
+      saveLog("create_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId, index: index, text: body, hasImage: !!imageBase64, highlighted: isHighlight });
     }catch(e){
       showAlert("投稿に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; }
@@ -3986,43 +4018,44 @@ stampMenuBtn.onclick = (e) => {
 document.addEventListener("click", () => { quickMenuContent.style.display = "none"; stampMenuContent.style.display = "none"; });
 
 let isQuickSending = false;
-async function sendStamp(stampText) {
-  if (currentThreadLocked) return;
-  if (isQuickSending) return; if(await stopIfBanned()) return;
-  const clientIP = await getClientIP();
-  isQuickSending = true;
-  const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
-  const activeName = currentAccount || nickName, body = `[STAMP:${stampText}]`;
-  const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${activeName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
-  postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
-
-  try {
-    const isAccountUser = !!currentAccount;
-    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: activeName, isAccountUser: isAccountUser, body, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
-    await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
-    await saveLog("quick_send_stamp", { threadId: currentThreadId, postId: newPost.id, index, stamp: stampText });
-  } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); } finally { isQuickSending = false; }
+// 投稿＋スレッド更新を1回の通信(バッチ)で送る
+async function commitPost(postData) {
+  const postRef = doc(collection(db, currentRoom, currentThreadId, "posts"));
+  const batch = writeBatch(db);
+  batch.set(postRef, postData);
+  batch.update(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
+  await batch.commit();
+  return postRef.id;
 }
-
-document.getElementById("quickSendBtn").onclick = async () => {
-  if (currentThreadLocked) return;
-  if (isQuickSending) return; if(await stopIfBanned()) return;
-  const clientIP = await getClientIP(), input = document.getElementById("quickPostInput"), text = input.value.trim();
-  if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
-  const activeName = currentAccount || nickName;
-  isQuickSending = true; input.value = "";
-  const postList = document.getElementById("postList"); let index = postList.children.length + 1; let iconId = getCookie("iconId");
-  const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = "#3498db"; tempLi.style.opacity = "0.6";
-  tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span><small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${activeName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
-  postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
-
+function addTempPost(inner, index, name) {
+  const postList = document.getElementById("postList"), li = document.createElement("li");
+  li.id = "post-" + index; li.className = "temp-post"; li.style.backgroundColor = "#3498db"; li.style.opacity = "0.6";
+  li.innerHTML = `${inner}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${name}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
+  postList.appendChild(li); li.scrollIntoView({ behavior: "smooth", block: "center" });
+  return li;
+}
+async function quickPost(body, inner, logAction, logDetail, onBanned) {
+  isQuickSending = true;
+  const index = document.getElementById("postList").children.length + 1, name = currentAccount || nickName;
+  const tempLi = addTempPost(inner, index, name);      // 先に画面へ表示
   try {
-    const isAccountUser = !!currentAccount;
-    const newPost = await addDoc(collection(db, currentRoom, currentThreadId, "posts"), { memberId: activeName, isAccountUser: isAccountUser, body: text, color: "#3498db", icon: iconId || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
-    await updateDoc(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
-    await saveLog("quick_send_post", { threadId: currentThreadId, threadTitle: currentThreadTitle, postId: newPost.id, index, text });
-  } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); } finally { isQuickSending = false; }
+    if (await stopIfBanned()) { tempLi.remove(); if (onBanned) onBanned(); return; }
+    const clientIP = await getClientIP();
+    const postId = await commitPost({ memberId: name, isAccountUser: !!currentAccount, body, color: "#3498db", icon: getCookie("iconId") || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
+    saveLog(logAction, { threadId: currentThreadId, threadTitle: currentThreadTitle, postId, index, ...logDetail });
+  } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); }
+  finally { isQuickSending = false; }
+}
+async function sendStamp(stampText) {
+  if (currentThreadLocked || isQuickSending) return;
+  await quickPost(`[STAMP:${stampText}]`, `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span>`, "quick_send_stamp", { stamp: stampText });
+}
+document.getElementById("quickSendBtn").onclick = async () => {
+  if (currentThreadLocked || isQuickSending) return;
+  const input = document.getElementById("quickPostInput"), text = input.value.trim();
+  if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
+  input.value = "";
+  await quickPost(text, `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span>`, "quick_send_post", { text }, () => { input.value = text; });
 };
 
 document.getElementById('boardLogoBtn').onclick = () => {
