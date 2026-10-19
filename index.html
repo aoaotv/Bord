@@ -247,6 +247,9 @@ textarea { min-height:60px; resize: vertical; }
 .stk-range button{margin:0;padding:5px 12px;border-radius:14px;border:1px solid #cfd8dc;background:#fff;color:#2c3e50;font-size:12px;cursor:pointer}
 .stk-range button.on{background:#e67e22;color:#fff;border-color:#e67e22}
 .stk-tipbar{background:#eef6ff;border:1px solid #cfe3f7;border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:13px;color:#2c3e50;min-height:1.3em}
+.stk-tiprow{display:flex;gap:6px;align-items:stretch;margin-bottom:8px}
+.stk-tiprow .stk-tipbar{flex:1;margin-bottom:0}
+#stockClearSelBtn{margin:0;padding:4px 12px;border-radius:8px;background:#e67e22;color:#fff;font-size:12px;white-space:nowrap}
 .stk-chart{position:relative;height:220px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;cursor:crosshair}
 .stk-inner{position:relative;height:220px}
 .stk-view{position:sticky;left:0;height:220px;overflow:hidden}
@@ -505,7 +508,7 @@ textarea { min-height:60px; resize: vertical; }
       <div id="stockDetailTitle" class="stk-dtitle"></div>
       <div id="stockHoldInfo" class="stk-hold"></div>
       <div id="stockRangeBar" class="stk-range"></div>
-      <div id="stockTip" class="stk-tipbar"></div>
+      <div class="stk-tiprow"><div id="stockTip" class="stk-tipbar"></div><button id="stockClearSelBtn" type="button" style="display:none;">✖ 線を消す</button></div>
       <div id="stockChartBox" class="stk-chart"></div>
       <div id="stockHistStatus" class="stk-sub" style="margin-bottom:10px;"></div>
       <div class="stk-trade">
@@ -1930,6 +1933,19 @@ function applyHistory(data) {
   mainTs = ts; mainP = np; mainChunks = chunks;
 }
 const stkTotal = () => oldTs.length + mainTs.length;
+// 時間軸ベースの座標。欠けた時間帯も実際の時間幅のまま、前後の点を直線でつなぐ
+const stkFit = () => rangeKey === "all";
+function stkLB(t) { let a = 0, b = stkTotal(); while (a < b) { const m = (a + b) >> 1; if (stkTs(m) < t) a = m + 1; else b = m; } return a; }
+function stkGeom(W) {
+  const N = stkTotal(), live = rangeKey === "live", fit = stkFit();
+  if (!N) return { t0: 0, tEnd: 0, pxMs: 1, width: W, shift: 0, fit };
+  const t0 = stkTs(0), tEnd = stkTs(N - 1), dur = Math.max(1, tEnd - t0);
+  let pxMs = live ? STK_PX / TICK_MS : fit ? (W - 12) / dur : (W - 12) / rangeSpan();
+  if (!fit && dur * pxMs > 1.5e7) pxMs = 1.5e7 / dur;          // ブラウザの幅上限対策
+  if (fit) return { t0, tEnd, pxMs, width: W, shift: 0, fit };
+  const content = 6 + dur * pxMs + (live ? 30 : 6), width = Math.max(W, content);
+  return { t0, tEnd, pxMs, width, shift: content < W ? W - content : 0, fit };   // データが期間より短い時は右寄せ
+}
 const stkTs = i => i < oldTs.length ? oldTs[i] : mainTs[i - oldTs.length];
 function stkP(id, i) { if (i < oldTs.length) { const a = oldP[id]; return a ? a[i] : null; } const a = mainP[id]; return a ? a[i - oldTs.length] : null; }
 const stkPad = n => String(n).padStart(2, "0");
@@ -1937,7 +1953,7 @@ const stkDate = t => { const d = new Date(t); return `${d.getFullYear()}/${d.get
 const stkTime = t => { const d = new Date(t); return `${stkPad(d.getHours())}:${stkPad(d.getMinutes())}:${stkPad(d.getSeconds())}`; };
 
 // 表示範囲: 今(ライブ・スクロール)／1時間／1日／1週間／1ヶ月／全期間（画面幅に合わせて表示）
-const STK_RANGES = [["live", "今", 0], ["h1", "1時間", 3600e3], ["d1", "1日", 864e5], ["w1", "1週間", 6048e5], ["m1", "1ヶ月", 2592e6], ["all", "全期間", Infinity]];
+const STK_RANGES = [["live", "今", 0], ["m15", "15分", 900e3], ["h1", "1時間", 3600e3], ["d1", "1日", 864e5], ["w1", "1週間", 6048e5], ["m1", "1ヶ月", 2592e6], ["all", "全期間", Infinity]];
 const rangeSpan = () => STK_RANGES.find(r => r[0] === rangeKey)[2];
 function renderRangeBar() { stkEl("stockRangeBar").innerHTML = STK_RANGES.map(r => `<button data-r="${r[0]}" class="${r[0] === rangeKey ? "on" : ""}">${r[1]}</button>`).join(""); }
 function rangeFirst() {
@@ -1953,6 +1969,7 @@ function rangeNeedsMore() {
 }
 function updateTip() {
   const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId], N = stkTotal();
+  const clr = stkEl("stockClearSelBtn"); if (clr) clr.style.display = selAbs != null ? "" : "none";
   if (selAbs != null) {
     const i = selAbs - oldestLoaded * ARCH, v = (i >= 0 && i < N) ? stkP(selectedStockId, i) : null;
     el.textContent = v == null ? "この時点のデータはありません" : `📍 ${stkDate(stkTs(i))} ${stkTime(stkTs(i))} の ${d.name} は ${v} コイン`; return;
@@ -1966,7 +1983,8 @@ function updateTip() {
 function setHistStatus() {
   const el = stkEl("stockHistStatus");
   el.textContent = histEnd ? "これより古いデータは取得できませんでした"
-    : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `表示中: ${stkTotal() - rangeFirst()}件の履歴`)
+    : stkFit() ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `表示中: ${stkTotal() - rangeFirst()}件の履歴`)
+    : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）`)
     : oldestLoaded > 0 ? `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件） `;
 }
 function renderChart() {
@@ -1977,33 +1995,40 @@ function renderChart() {
     box.innerHTML = '<div id="stkInner" class="stk-inner"><div class="stk-view"><svg id="stkSvg"></svg></div></div>';
     inner = box.firstElementChild; firstDraw = true;
   }
-  box.style.overflowX = live ? "auto" : "hidden";
-  const atRight = live && box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
-  inner.style.width = (live ? N * STK_PX + 30 : box.clientWidth) + "px";
+  const G = stkGeom(box.clientWidth), fit = G.fit;
+  box.style.overflowX = fit ? "hidden" : "auto";
+  const atRight = !fit && box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
+  inner.style.width = G.width + "px";
   inner.firstElementChild.style.width = box.clientWidth + "px";
-  if (!live) box.scrollLeft = 0; else if (atRight || firstDraw) box.scrollLeft = box.scrollWidth;
+  if (fit) box.scrollLeft = 0; else if (atRight || firstDraw) box.scrollLeft = box.scrollWidth;
   firstDraw = false;
   drawChartFrame(); setHistStatus();
-  if (live ? (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2) : rangeNeedsMore()) loadOlder(live ? 0 : 20);
+  const need = fit ? rangeNeedsMore() : (rangeNeedsMore() || (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2));
+  if (need) loadOlder(live ? 0 : 20);
 }
-// 見えている範囲だけを描く（何万点あっても軽い）。期間表示は画面幅に合わせて間引く
+// 見えている範囲だけを描く（何万点あっても軽い）。密な部分は1〜2px列ごとの最安・最高に間引く
 function drawChartFrame() {
   const box = stkEl("stockChartBox"), svg = document.getElementById("stkSvg"); if (!svg) return;
-  const W = box.clientWidth, N = stkTotal(), sl = box.scrollLeft, id = selectedStockId, base = oldestLoaded * ARCH, live = rangeKey === "live";
-  let first, last, x;
-  if (live) { first = Math.max(0, Math.floor(sl / STK_PX) - 1); last = Math.min(N - 1, Math.ceil((sl + W) / STK_PX) + 1); x = i => i * STK_PX - sl + STK_PX / 2; }
-  else { first = rangeFirst(); last = N - 1; const sp = Math.max(1, last - first); x = i => 6 + (i - first) / sp * (W - 12); }
+  const W = box.clientWidth, N = stkTotal(), sl = box.scrollLeft, id = selectedStockId, base = oldestLoaded * ARCH;
+  if (!N) return;
+  const G = stkGeom(W), x = t => 6 + G.shift + (t - G.t0) * G.pxMs - sl, xi = i => x(stkTs(i));
+  const tL = G.t0 + (sl - 6 - G.shift) / G.pxMs, tR = G.t0 + (sl + W - 6 - G.shift) / G.pxMs;
+  const first = Math.max(0, stkLB(tL) - 1), last = Math.min(N - 1, stkLB(tR) + 1);
   const cnt = last - first + 1, buckets = Math.max(1, Math.floor((W - 12) / 2)), pts = [];
-  if (live || cnt <= buckets) { for (let i = first; i <= last; i++) pts.push([i, stkP(id, i)]); }
-  else for (let b = 0; b < buckets; b++) {                               // 1列ごとの最安・最高を時系列順に結ぶ
-    const i1 = first + Math.floor(b * cnt / buckets), i2 = first + Math.floor((b + 1) * cnt / buckets) - 1;
-    let mn = -1, mx = -1, vn = Infinity, vx = -Infinity;
-    for (let i = i1; i <= i2; i++) { const v = stkP(id, i); if (v == null) continue; if (v < vn) { vn = v; mn = i; } if (v > vx) { vx = v; mx = i; } }
-    if (mn < 0) { pts.push([i1, null]); continue; }
-    if (mn === mx) pts.push([mn, vn]); else if (mn < mx) pts.push([mn, vn], [mx, vx]); else pts.push([mx, vx], [mn, vn]);
+  if (cnt <= buckets) { for (let i = first; i <= last; i++) { const v = stkP(id, i); if (v != null) pts.push([i, v]); } }
+  else {
+    let cc = null, mn = -1, mx = -1, vn = Infinity, vx = -Infinity;
+    const flush = () => { if (mn < 0) return; if (mn === mx) pts.push([mn, vn]); else if (mn < mx) pts.push([mn, vn], [mx, vx]); else pts.push([mx, vx], [mn, vn]); };
+    for (let i = first; i <= last; i++) {
+      const v = stkP(id, i); if (v == null) continue;
+      const c = Math.floor(xi(i) / 2);
+      if (c !== cc) { flush(); cc = c; mn = mx = -1; vn = Infinity; vx = -Infinity; }
+      if (v < vn) { vn = v; mn = i; } if (v > vx) { vx = v; mx = i; }
+    }
+    flush();
   }
   let lo = Infinity, hi = -Infinity;
-  pts.forEach(p => { if (p[1] == null) return; if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
+  pts.forEach(p => { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
   if (lo === Infinity) { svg.innerHTML = ""; return; }
   if (lo === hi) { lo -= 1; hi += 1; }
   const pv = (hi - lo) * 0.1; lo -= pv; hi += pv;
@@ -2014,19 +2039,20 @@ function drawChartFrame() {
     const v = k * step, yy = y(v).toFixed(1);
     g += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="#e3e8ee" stroke-dasharray="3 3"/><text x="4" y="${(y(v) - 3).toFixed(1)}" font-size="10" fill="#8795a1">${Math.round(v * 10) / 10}</text>`;
   }
-  const vlines = [];                                                   // 縦の目安線＋日時
-  if (live) { const G = [10, 20, 30, 60, 120, 300, 600, 1200, 3600, 7200, 14400, 43200, 86400].find(n => n * STK_PX >= 90) || 86400; for (let i = first; i <= last; i++) if ((base + i) % G === 0) vlines.push(i); }
-  else for (let k = 0; k <= 4; k++) vlines.push(first + Math.round(k * (last - first) / 4));
-  vlines.forEach((i, k) => {
-    const xx = x(i).toFixed(1), t = stkTs(i), anc = (live ? x(i) < 40 : k === 0) ? "start" : (!live && k === vlines.length - 1) ? "end" : "middle";
-    g += `<line x1="${xx}" x2="${xx}" y1="0" y2="${plotH}" stroke="#e3e8ee"/><text x="${xx}" y="${plotH + 12}" font-size="10" fill="#555" text-anchor="${anc}">${stkTime(t)}</text><text x="${xx}" y="${plotH + 24}" font-size="9" fill="#8795a1" text-anchor="${anc}">${stkDate(t)}</text>`;
-  });
+  // 縦の目安線＋日時（実際の時刻で等間隔）
+  const stepSec = [10, 20, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400, 43200, 86400, 259200, 604800, 2592000].find(n => n * 1000 * G.pxMs >= 80) || 2592000;
+  const stepMs = stepSec * 1000, tz = -new Date(tR).getTimezoneOffset() * 60000;
+  for (let t = Math.ceil((tL + tz) / stepMs) * stepMs - tz; t <= tR; t += stepMs) {
+    const xv = x(t), xx = xv.toFixed(1), anc = xv < 40 ? "start" : xv > W - 40 ? "end" : "middle";
+    const lab = stepSec >= 60 ? `${stkPad(new Date(t).getHours())}:${stkPad(new Date(t).getMinutes())}` : stkTime(t);
+    g += `<line x1="${xx}" x2="${xx}" y1="0" y2="${plotH}" stroke="#e3e8ee"/><text x="${xx}" y="${plotH + 12}" font-size="10" fill="#555" text-anchor="${anc}">${lab}</text><text x="${xx}" y="${plotH + 24}" font-size="9" fill="#8795a1" text-anchor="${anc}">${stkDate(t)}</text>`;
+  }
   let dstr = "", pen = false, fv = null, lv = null;
-  pts.forEach(p => { if (p[1] == null) { pen = false; return; } if (fv === null) fv = p[1]; lv = p[1]; dstr += (pen ? "L" : "M") + x(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1) + " "; pen = true; });
+  pts.forEach(p => { if (fv === null) fv = p[1]; lv = p[1]; dstr += (pen ? "L" : "M") + xi(p[0]).toFixed(1) + " " + y(p[1]).toFixed(1) + " "; pen = true; });
   g += `<path d="${dstr}" fill="none" stroke="${lv >= fv ? "#27ae60" : "#c0392b"}" stroke-width="2" stroke-linejoin="round"/>`;
   if (selAbs != null) {                                                // タップした位置
     const i = selAbs - base, v = (i >= first && i <= last) ? stkP(id, i) : null;
-    if (v != null) g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="0" y2="${plotH}" stroke="#e67e22" stroke-width="1.5"/><circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" fill="#e67e22" stroke="#fff" stroke-width="1.5"/>`;
+    if (v != null) { const sx = xi(i).toFixed(1); g += `<line x1="${sx}" x2="${sx}" y1="0" y2="${plotH}" stroke="#e67e22" stroke-width="1.5"/><circle cx="${sx}" cy="${y(v).toFixed(1)}" r="4" fill="#fff" stroke="#e67e22" stroke-width="1.5"/>`.replace('fill="#fff" stroke="#e67e22"', 'fill="#e67e22" stroke="#fff"'); }
   }
   svg.setAttribute("width", W); svg.setAttribute("height", STK_CH); svg.setAttribute("viewBox", `0 0 ${W} ${STK_CH}`);
   svg.innerHTML = g;
@@ -2042,29 +2068,30 @@ async function loadOlder(n) {   // 今モード: スクロールするたび 1�
     const got = [];
     for (let k = count - 1; k >= 0; k--) { if (!snaps[k].exists()) break; got.unshift(snaps[k].data()); }
     if (!got.length) { histEnd = true; setHistStatus(); return; }
-    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length, live = rangeKey === "live";
+    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length, live = rangeKey === "live", fitMode = stkFit();
+    const g0 = stkGeom(box.clientWidth);
     const addTs = [].concat(...got.map(c => c.ts));
     STOCKS.forEach(d => { oldP[d.id] = [].concat(...got.map(c => (c.p && c.p[d.id]) || new Array(c.ts.length).fill(null)), oldP[d.id] || new Array(prevLen).fill(null)); });
-    oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; if (live && !n) loadStep = Math.min(loadStep * 2, 16);
+    oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; if (!n) loadStep = Math.min(loadStep * 2, 16);
     loadingOlder = false;
     renderChart();
-    if (live) box.scrollLeft = prevSL + addTs.length * STK_PX;         // 見ている位置を保つ
+    if (!fitMode) { const g1 = stkGeom(box.clientWidth); box.scrollLeft = prevSL + (g1.shift - g0.shift) + (g0.t0 - g1.t0) * g1.pxMs; }   // 見ている位置を保つ
     drawChartFrame(); updateTip(); setHistStatus();
   } catch (e) { histEnd = true; setHistStatus(); }
   finally { loadingOlder = false; }
 }
 stkEl("stockChartBox").onscroll = () => {
-  if (scrollRaf || rangeKey !== "live") return; scrollRaf = true;
-  requestAnimationFrame(() => { scrollRaf = false; drawChartFrame(); if (stkEl("stockChartBox").scrollLeft < 400 && oldestLoaded > 0) loadOlder(); });
+  if (scrollRaf || stkFit()) return; scrollRaf = true;
+  requestAnimationFrame(() => { scrollRaf = false; drawChartFrame(); const bx = stkEl("stockChartBox"); if (bx.scrollLeft < Math.max(400, bx.clientWidth * 2) && oldestLoaded > 0 && !histEnd) loadOlder(rangeKey === "live" ? 0 : 20); });
 };
 stkEl("stockChartBox").onclick = e => {
   const box = e.currentTarget, N = stkTotal(); if (!N) return;
-  const px = e.clientX - box.getBoundingClientRect().left; let i;
-  if (rangeKey === "live") i = Math.round((px + box.scrollLeft - STK_PX / 2) / STK_PX);
-  else { const f = rangeFirst(); i = f + Math.round((px - 6) / Math.max(1, box.clientWidth - 12) * (N - 1 - f)); }
-  i = Math.max(0, Math.min(N - 1, i));
+  const px = e.clientX - box.getBoundingClientRect().left, G = stkGeom(box.clientWidth);
+  const t = G.t0 + (px + box.scrollLeft - 6 - G.shift) / G.pxMs;
+  let i = stkLB(t); if (i >= N) i = N - 1; else if (i > 0 && t - stkTs(i - 1) < stkTs(i) - t) i = i - 1;
   selAbs = oldestLoaded * ARCH + i; updateTip(); drawChartFrame();
 };
+stkEl("stockClearSelBtn").onclick = () => { selAbs = null; updateTip(); drawChartFrame(); };
 stkEl("stockRangeBar").onclick = e => {
   const b = e.target.closest("button[data-r]"); if (!b || b.dataset.r === rangeKey) return;
   rangeKey = b.dataset.r; firstDraw = true; renderRangeBar(); renderChart(); updateTip();
