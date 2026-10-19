@@ -1774,12 +1774,14 @@ const STOCKS = [
   { id: "nbio", name: "sinzobord",     emoji: "📱", risk: "高", color: "#c0392b", desc: "sinzo株式会社の子会社",     base: 250, min: 20,  max: 1500, vol: 0.09,  drift: 0.0015, revert: 0.012, jump: { p: 0.04, size: 0.35 } },
   { id: "gsho", name: "firebase株式会社",   emoji: "💻", risk: "中", color: "#e67e22", desc: "sinzobordのデータ会社",   base: 200, min: 70,  max: 500,  vol: 0.05,  drift: 0.001,  revert: 0.020 },
   { id: "nfod", name: "sinzomart",       emoji: "🍙", risk: "低", color: "#27ae60", desc: "国際スーパーマーケット",             base: 150, min: 90,  max: 260,  vol: 0.025, drift: 0.0008, revert: 0.030 },
-  { id: "kgdk", name: "sinzo電力",         emoji: "💡", risk: "低", color: "#27ae60", desc: "sinzoの電力会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 },
-  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 }
+  { id: "kgdk", name: "sinzo電力",         emoji: "💡", risk: "低", color: "#27ae60", desc: "sinzoの電力会社",       base: 100, min: 80,  max: 125,  vol: 0.02, drift: 0.0003, revert: 0.040 },
+  { id: "wakt", name: "sinzo高校",         emoji: "🏫", risk: "低", color: "#27ae60", desc: "sinzoの学校",       base: 100, min: 80,  max: 125,  vol: 0.015, drift: 0.0003, revert: 0.040 },
+{ id: "kgds", name: "sinzowater",         emoji: "💦", risk: "低", color: "#27ae60", desc: "sinzoの水道会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 },
+  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "最低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.001, drift: 0.0003, revert: 0.040 }
 ];
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.id, s]));
 const LEGACY_STOCK_ID = "gsho";   // 旧「単一株」の保有分はこの銘柄に引き継ぐ
-const TICK_MS = 5000, HISTORY_MAX = 120, MAX_CATCHUP = 30;
+const TICK_MS = 1000, HISTORY_MAX = 120, MAX_CATCHUP = 30;
 const marketRef = doc(db, "market", "global");
 let marketData = null, selectedStockId = STOCKS[0].id, tradeBusy = false, statusTimer = null;
 const stkEl = id => document.getElementById(id);
