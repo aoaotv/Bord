@@ -297,7 +297,7 @@ textarea { min-height:60px; resize: vertical; }
     <div id="menuAccountBtn" class="menu-grid-item">👤<br>アカウント管理</div>
     <div id="menuProfileBtn" class="menu-grid-item">📖<br>マイプロフィール</div>
     <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
-    <div id="menuStockBtn" class="menu-grid-item">📈<br>株画面</div>
+    <div id="menuStockBtn" class="menu-grid-item">📈<br>株式投資</div>
     <div id="menuDiceBtn" class="menu-grid-item">🎲<br>サイコロ勝負</div>
     <div id="menuGachaBtn" class="menu-grid-item">🎰<br>コインガチャ</div>
     <div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
@@ -492,7 +492,7 @@ textarea { min-height:60px; resize: vertical; }
 <div id="stockSection" class="full-screen-section">
   <div class="store-container">
     <div class="stk-head">
-      <h3>📈 株画面（株式投資）</h3>
+      <h3>📈 株式投資</h3>
       <div class="stk-coin">所持コイン: <span class="sharedCoinCount">0</span>枚</div>
     </div>
     <div class="stk-sum">
@@ -1129,7 +1129,7 @@ function hideAllSections() {
 }
 
 document.getElementById("menuStockBtn").onclick = () => {
-  if (!currentAccount) return alert("株画面を利用するにはアカウントが必要です。");
+  if (!currentAccount) return alert("株式投資を利用するにはアカウントが必要です。");
   hideAllSections();
   document.getElementById("stockSection").style.display = "block";
   renderStockUI();
@@ -1967,7 +1967,7 @@ function setHistStatus() {
   const el = stkEl("stockHistStatus");
   el.textContent = histEnd ? "これより古いデータは取得できませんでした"
     : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `表示中: ${stkTotal() - rangeFirst()}件の履歴`)
-    : oldestLoaded > 0 ? `◀ 左にスクロールすると過去の株価をさらに読み込みます（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます。（${stkTotal()}件）`;
+    : oldestLoaded > 0 ? `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件） `;
 }
 function renderChart() {
   const box = stkEl("stockChartBox"), N = stkTotal(), live = rangeKey === "live";
