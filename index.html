@@ -17,8 +17,9 @@
 <meta property="og:url" content="https://sinzo.site/">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<!-- グラフ描画用 Chart.js の読み込み -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js">
 
 <style>
 .blueBtn { background-color: #3498db; color: #ffffff; }
@@ -221,6 +222,32 @@ textarea { min-height:60px; resize: vertical; }
   color: #666;
   margin: 2px 4px;
 }
+
+/* 株画面 */
+.stk-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #eee;padding-bottom:15px;margin-bottom:16px;gap:8px;flex-wrap:wrap}
+.stk-head h3{margin:0;font-size:24px;color:#2c3e50}
+.stk-coin{background:#e67e22;color:#fff;padding:8px 16px;border-radius:20px;font-weight:bold}
+.stk-sum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stk-sum div{background:#f7f9fc;border:1px solid #dfe6e9;border-radius:10px;padding:10px;text-align:center}
+.stk-sum span{display:block;font-size:12px;color:#555}
+.stk-sum strong{font-size:17px;color:#2c3e50}
+.stk-status{font-size:13px;color:#c0392b;margin-bottom:8px}
+.stk-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.stk-card{background:#f7f9fc;border:2px solid #dfe6e9;border-radius:12px;padding:12px;cursor:pointer;text-align:left}
+.stk-card.sel{border-color:#e67e22;background:#fff8ef}
+.stk-name{font-weight:bold;font-size:14px;color:#2c3e50}
+.stk-badge{display:inline-block;font-size:11px;color:#fff;border-radius:8px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.stk-price{font-size:20px;font-weight:bold;margin-top:6px}
+.stk-up{color:#27ae60}.stk-down{color:#c0392b}
+.stk-sub{font-size:11px;color:#666;margin-top:3px}
+.stk-detail{background:#f7f9fc;padding:14px;border-radius:12px;margin-bottom:16px}
+.stk-dtitle{font-weight:bold;margin-bottom:8px;color:#2c3e50}
+.stk-chart{position:relative;height:180px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:12px;overflow:hidden}
+.stk-chart svg{width:100%;height:100%;display:block}
+.stk-chart .lbl{position:absolute;left:6px;font-size:11px;color:#666;background:rgba(255,255,255,.8)}
+.stk-trade{display:flex;align-items:center;gap:10px;background:#fff;padding:10px;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:8px}
+.stk-est{font-size:13px;color:#555;margin-bottom:10px;min-height:1.2em}
+.stk-msg{font-size:13px;margin-top:10px;min-height:1.2em;color:#2c3e50}
 </style>
 </head>
 <body>
@@ -453,51 +480,31 @@ textarea { min-height:60px; resize: vertical; }
 <!-- 株式画面 -->
 <div id="stockSection" class="full-screen-section">
   <div class="store-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
-      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">📈 株画面（株式投資）</h3>
-      <div style="background:#e67e22; color:#fff; padding:8px 16px; border-radius:20px; font-weight:bold; font-size: 16px;">
-        所持コイン: <span class="sharedCoinCount">0</span>枚
-      </div>
+    <div class="stk-head">
+      <h3>📈 株画面（株式投資）</h3>
+      <div class="stk-coin">所持コイン: <span class="sharedCoinCount">0</span>枚</div>
     </div>
-    
-    <div style="background:#f7f9fc; padding:16px; border-radius:12px; margin-bottom:25px;">
-      <div style="background:#fff; padding:12px; border-radius:8px; border:1px solid #dfe6e9; margin-bottom:12px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; text-align:center;">
-        <div>
-          <span style="font-size: 12px; color:#555;">現在の株価</span><br>
-          <strong id="stockPriceDisplay" style="font-size: 16px; color:#e67e22;">--- コイン</strong>
-        </div>
-        <div>
-          <span style="font-size: 12px; color:#555;">最高値</span><br>
-          <strong id="stockMaxDisplay" style="font-size: 16px; color:#27ae60;">--- コイン</strong>
-        </div>
-        <div>
-          <span style="font-size: 12px; color:#555;">最安値</span><br>
-          <strong id="stockMinDisplay" style="font-size: 16px; color:#c0392b;">--- コイン</strong>
-        </div>
-      </div>
-      <div style="background:#fff; padding:10px 12px; border-radius:8px; border:1px solid #dfe6e9; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size: 14px; color:#555;">あなたの保有株:</span>
-        <strong id="mySharesDisplay" style="font-size: 18px; color:#2c3e50;">0 株</strong>
-      </div>
-
-      <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #dfe6e9; margin-bottom:12px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-        <div id="chartWrapper" style="width: 7500px; height: 180px; position: relative;">
-          <canvas id="stockChart" style="width:100%; height:100%;"></canvas>
-        </div>
-      </div>
-
-      <div style="background:#fff; padding:12px; border-radius:8px; border:1px solid #dfe6e9; margin-bottom:12px; display:flex; align-items:center; gap:10px;">
-        <label for="tradeShareInput" style="margin:0; font-weight:bold; font-size:14px; white-space:nowrap;">取引数量:</label>
+    <div class="stk-sum">
+      <div><span>保有株（合計）</span><strong id="mySharesDisplay">0 株</strong></div>
+      <div><span>株の評価額</span><strong id="stockEvalDisplay">0 コイン</strong></div>
+    </div>
+    <div id="stockStatus" class="stk-status">株価を読み込み中...</div>
+    <div id="stockList" class="stk-list"></div>
+    <div class="stk-detail">
+      <div id="stockDetailTitle" class="stk-dtitle"></div>
+      <div id="stockChartBox" class="stk-chart"></div>
+      <div class="stk-trade">
+        <label for="tradeShareInput" style="font-weight:bold;font-size:14px;white-space:nowrap;">取引数量:</label>
         <input type="number" id="tradeShareInput" value="1" min="1" max="10000" style="margin:0; height:38px; text-align:center; font-weight:bold; font-size:16px;">
-        <span style="font-size:14px; color:#555;">株</span>
+        <span style="font-size:14px;color:#555;">株</span>
       </div>
-
-      <div style="display: flex; gap: 10px;">
-        <button id="buyStockBtn" class="greenBtn" style="flex:1; margin-top:0; padding:12px; font-weight:bold;">指定株数を買う</button>
-        <button id="sellStockBtn" class="redBtn" style="flex:1; margin-top:0; padding:12px; background-color:#c0392b; font-weight:bold;">指定株数を売る</button>
+      <div id="tradeEstimate" class="stk-est"></div>
+      <div style="display:flex; gap:10px;">
+        <button id="buyStockBtn" class="greenBtn" style="flex:1; margin:0; padding:12px; font-weight:bold;">選択中の株を買う</button>
+        <button id="sellStockBtn" class="redBtn" style="flex:1; margin:0; padding:12px; font-weight:bold;">選択中の株を売る</button>
       </div>
+      <div id="stockMsg" class="stk-msg" role="status"></div>
     </div>
-
     <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
   </div>
 </div>
@@ -674,6 +681,8 @@ textarea { min-height:60px; resize: vertical; }
 
         <div class="adminPanel">
           <h4>📈 株価強制編集</h4>
+          <label>対象の銘柄</label>
+          <select id="adminStockSelect" style="margin-bottom:8px;"></select>
           <label>変更後の株価 (コイン)</label>
           <input id="adminStockPriceInput" type="number" placeholder="例: 150" style="margin-bottom:8px;">
           <button id="adminUpdateStockBtn" type="button" class="greenBtn" style="width:100%;">株価を強制変更</button>
@@ -709,6 +718,7 @@ textarea { min-height:60px; resize: vertical; }
           <select id="adminAccountSelect" style="margin-bottom:8px;"><option value="">アカウント選択</option></select>
           <input id="adminBanReasonInput" placeholder="BANの理由（例: 規約違反のため）" style="margin-bottom:8px;">
           <input id="adminCoinEditInput" type="number" placeholder="変更後のコイン数 (例: 5000)" style="margin-bottom:8px;">
+          <select id="adminShareStockSelect" style="margin-bottom:8px;"></select>
           <input id="adminShareEditInput" type="number" placeholder="変更後の保有株数 (例: 50)" style="margin-bottom:8px;">
           
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
@@ -900,7 +910,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
   getDocs, doc, deleteDoc, updateDoc, getDoc, increment, limit, where,
-  serverTimestamp, setDoc, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  serverTimestamp, setDoc, runTransaction, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -917,8 +927,7 @@ const app = initializeApp(firebaseConfig);
 
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager(),
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED 
+    tabManager: persistentMultipleTabManager()
   })
 });
 
@@ -936,7 +945,7 @@ function setupAccountListener() {
       currentAccount = null;
       localStorage.removeItem("currentAccountName");
       localStorage.setItem("myCoins", 0);
-      localStorage.removeItem("myShares");
+      localStorage.removeItem("myShares"); localStorage.removeItem("myHoldings");
       localStorage.removeItem("purchasedEmojis");
       localStorage.removeItem("purchasedTags");
       localStorage.removeItem("purchasedEffects");
@@ -959,6 +968,7 @@ function setupAccountListener() {
     const acc = snap.data();
     localStorage.setItem("myCoins", acc.coins !== undefined ? acc.coins : 1000);
     localStorage.setItem("myShares", acc.shares || 0);
+    localStorage.setItem("myHoldings", JSON.stringify(acc.holdings || {}));
     localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
     localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
     localStorage.setItem("purchasedEffects", JSON.stringify(acc.purchasedEffects || []));
@@ -970,6 +980,7 @@ function setupAccountListener() {
 
     updateCoinButtonDisplay();
     renderStampMenu();
+    if (marketUnsub) renderStockUI();
   }, (error) => {});
 }
 
@@ -1092,39 +1103,20 @@ document.getElementById("menuAccountBtn").onclick = () => {
 };
 
 // --- 各専用画面の開閉制御 ---
+let marketUnsub = null, tickTimer = null;
 function hideAllSections() {
   headerMenuContent.style.display = "none";
-  document.getElementById("threadListSection").style.display = "none";
-  document.getElementById("threadDetailSection").style.display = "none";
-  document.getElementById("stockSection").style.display = "none";
-  document.getElementById("gachaSection").style.display = "none";
-  document.getElementById("effectShopSection").style.display = "none";
-  document.getElementById("redeemSection").style.display = "none";
-  document.getElementById("tagShopSection").style.display = "none";
-  document.getElementById("emojiShopSection").style.display = "none";
-  document.getElementById("adminSection").style.display = "none";
-  document.getElementById("profileSection").style.display = "none";
-  document.getElementById("favoritesSection").style.display = "none";
-  document.getElementById("diceSection").style.display = "none";
-  document.getElementById("dmSection").style.display = "none";
+  ["threadListSection","threadDetailSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection"]
+    .forEach(id => { document.getElementById(id).style.display = "none"; });
+  stopMarket();
 }
-
-let stockChart = null;
-let currentStockPrice = 100;
 
 document.getElementById("menuStockBtn").onclick = () => {
   if (!currentAccount) return alert("株画面を利用するにはアカウントが必要です。");
   hideAllSections();
   document.getElementById("stockSection").style.display = "block";
-  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
-  const sharesEl = document.getElementById("mySharesDisplay");
-  if (sharesEl) sharesEl.textContent = `${getMyShares()} 株`;
-  if (stockChart) stockChart.resize();
-
-  setTimeout(() => {
-    const container = document.getElementById('chartWrapper')?.parentElement;
-    if (container) container.scrollLeft = container.scrollWidth;
-  }, 50);
+  renderStockUI();
+  startMarket();
 };
 
 document.getElementById("menuGachaBtn").onclick = () => {
@@ -1728,6 +1720,7 @@ document.getElementById("accountLoginBtn").onclick = async () => {
 
     localStorage.setItem("myCoins", acc.coins !== undefined ? acc.coins : 1000);
     localStorage.setItem("myShares", acc.shares || 0);
+    localStorage.setItem("myHoldings", JSON.stringify(acc.holdings || {}));
     localStorage.setItem("myBio", acc.bio || "");
     localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
     localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
@@ -1755,7 +1748,7 @@ document.getElementById("accountLogoutBtn").onclick = () => {
   if (accountUnsub) { accountUnsub(); accountUnsub = null; }
   
   localStorage.setItem("myCoins", 0);
-  localStorage.removeItem("myShares");
+  localStorage.removeItem("myShares"); localStorage.removeItem("myHoldings");
   localStorage.removeItem("myBio");
   localStorage.removeItem("purchasedEmojis");
   localStorage.removeItem("purchasedTags");
@@ -1775,175 +1768,178 @@ document.getElementById("accountLogoutBtn").onclick = () => {
   document.getElementById("overlay").style.display = "none";
 };
 
-// --- 株価・市場・グラフシステム ---
-function initStockChart(historyData = [], minVal, maxVal) {
-  const canvasElem = document.getElementById('stockChart');
-  if (!canvasElem) return;
-  const ctx = canvasElem.getContext('2d');
-  if (stockChart) stockChart.destroy();
+// --- 株価・市場システム（5銘柄） ---
+const STOCKS = [
+  { id: "rtec", name: "sinzo株式会社", emoji: "🏢", risk: "最高", color: "#c0392b", desc: "最高リスク", base: 300, min: 15,  max: 2500, vol: 0.11,  drift: 0.002,  revert: 0.010, jump: { p: 0.05, size: 0.40 } },
+  { id: "nbio", name: "sinzobord",     emoji: "📱", risk: "高", color: "#c0392b", desc: "sinzo株式会社の子会社",     base: 250, min: 20,  max: 1500, vol: 0.09,  drift: 0.0015, revert: 0.012, jump: { p: 0.04, size: 0.35 } },
+  { id: "gsho", name: "firebase株式会社",   emoji: "💻", risk: "中", color: "#e67e22", desc: "sinzobordのデータ会社",   base: 200, min: 70,  max: 500,  vol: 0.05,  drift: 0.001,  revert: 0.020 },
+  { id: "nfod", name: "sinzomart",       emoji: "🍙", risk: "低", color: "#27ae60", desc: "国際スーパーマーケット",             base: 150, min: 90,  max: 260,  vol: 0.025, drift: 0.0008, revert: 0.030 },
+  { id: "kgdk", name: "sinzo電力",         emoji: "💡", risk: "低", color: "#27ae60", desc: "sinzoの電力会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 },
+  { id: "kgas", name: "sinzoガス",         emoji: "🔥", risk: "低", color: "#27ae60", desc: "sinzoのガス会社",       base: 100, min: 80,  max: 125,  vol: 0.012, drift: 0.0003, revert: 0.040 }
+];
+const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.id, s]));
+const LEGACY_STOCK_ID = "gsho";   // 旧「単一株」の保有分はこの銘柄に引き継ぐ
+const TICK_MS = 5000, HISTORY_MAX = 120, MAX_CATCHUP = 30;
+const marketRef = doc(db, "market", "global");
+let marketData = null, selectedStockId = STOCKS[0].id, tradeBusy = false, statusTimer = null;
+const stkEl = id => document.getElementById(id);
 
-  const yMin = minVal !== undefined ? Math.max(0, minVal - 25) : undefined;
-  const yMax = maxVal !== undefined ? maxVal + 25 : undefined;
+["adminStockSelect", "adminShareStockSelect"].forEach(id => {
+  const sel = stkEl(id);
+  if (sel) sel.innerHTML = STOCKS.map(s => `<option value="${s.id}">${s.emoji} ${s.name}</option>`).join("");
+});
 
-  stockChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: historyData.map((_, i) => `#${i + 1}`),
-      datasets: [{
-        label: '1株あたりの株価 (コイン)',
-        data: historyData,
-        borderColor: '#e67e22',
-        backgroundColor: 'rgba(230, 126, 34, 0.1)',
-        borderWidth: 2,
-        tension: 0.2,
-        fill: true,
-        pointRadius: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: false, min: yMin, max: yMax }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
+function randn() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function nextPrice(d, price) {
+  let lp = Math.log(Math.max(1, price));
+  let shock = d.vol * randn();
+  if (d.jump && Math.random() < d.jump.p) shock += (Math.random() < 0.5 ? -1 : 1) * d.jump.size * (0.5 + Math.random() * 0.5);
+  lp += d.drift + d.revert * (Math.log(d.base) - lp) + shock;
+  return Math.min(d.max, Math.max(d.min, Math.round(Math.exp(lp))));
+}
+function freshStock(d) { return { p: d.base, h: [d.base], lo: d.base, hi: d.base }; }
+
+function normalizeHoldings(acc) {
+  const h = acc && acc.holdings;
+  if (h && typeof h === "object" && Object.keys(h).length) return h;
+  const legacy = (acc && acc.shares) || 0;
+  return legacy > 0 ? { [LEGACY_STOCK_ID]: legacy } : {};
+}
+function sumHoldings(h) { return Object.values(h).reduce((a, b) => a + b, 0); }
+function getHoldings() {
+  let h = {};
+  try { h = JSON.parse(localStorage.getItem("myHoldings") || "{}") || {}; } catch (e) {}
+  return normalizeHoldings({ holdings: h, shares: getMyShares() });
 }
 
-function updateStockChart(historyData = [], minVal, maxVal) {
-  const wrapper = document.getElementById('chartWrapper');
-  const container = wrapper?.parentElement;
-  
-  let wasAtRight = false;
-  if (container) {
-    wasAtRight = (container.scrollLeft + container.clientWidth >= container.scrollWidth - 20);
-  }
-
-  if (wrapper) {
-    const newWidth = Math.max(600, historyData.length * 25);
-    if (wrapper.style.width !== newWidth + 'px') {
-      wrapper.style.width = newWidth + 'px';
-    }
-  }
-
-  const yMin = minVal !== undefined ? Math.max(0, minVal - 25) : undefined;
-  const yMax = maxVal !== undefined ? maxVal + 25 : undefined;
-
-  if (!stockChart) {
-    initStockChart(historyData, minVal, maxVal);
-    if (container) container.scrollLeft = container.scrollWidth;
-    return;
-  }
-  
-  stockChart.data.labels = historyData.map((_, i) => `#${i + 1}`);
-  stockChart.data.datasets[0].data = historyData;
-  if (yMin !== undefined) stockChart.options.scales.y.min = yMin;
-  if (yMax !== undefined) stockChart.options.scales.y.max = yMax;
-  stockChart.update('none');
-
-  if (container && wasAtRight) {
-    container.scrollLeft = container.scrollWidth;
-  }
-}
-
-async function initMarketSystem() {
-  const marketRef = doc(db, "market", "global");
+// 価格更新: トランザクションで「前回更新から一定時間たっていれば1人だけ更新」。全員が毎回書き込む必要はない
+async function tickMarket() {
+  if (document.hidden) return;
   try {
-    const snap = await getDoc(marketRef);
-    if (!snap.exists()) {
-      const randomPrice = Math.floor(Math.random() * 100) + 100;
-      await setDoc(marketRef, {
-        currentPrice: randomPrice,
-        priceHistory: [randomPrice],
-        minPrice: randomPrice,
-        maxPrice: randomPrice,
-        updated_at: Timestamp.now()
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(marketRef);
+      const data = snap.exists() ? snap.data() : {};
+      const now = Date.now();
+      const stocks = data.stocks || {};
+      let last = typeof data.tickAt === "number" ? data.tickAt : 0;
+      if (last > now + 60000) last = now - TICK_MS;           // 端末時計のずれ対策
+      const needInit = STOCKS.some(d => !stocks[d.id]);
+      if (!needInit && now - last < TICK_MS - 300) return;     // 他の人が更新済み
+      const steps = needInit ? 0 : Math.min(MAX_CATCHUP, Math.max(1, Math.floor((now - last) / TICK_MS)));
+      STOCKS.forEach(d => {
+        const s = stocks[d.id] || freshStock(d);
+        for (let i = 0; i < steps; i++) {
+          s.p = nextPrice(d, s.p); s.h.push(s.p);
+          if (s.h.length > HISTORY_MAX) s.h.shift();
+          if (s.p < s.lo) s.lo = s.p;
+          if (s.p > s.hi) s.hi = s.p;
+        }
+        stocks[d.id] = s;
       });
-    }
-  } catch(e) {}
-
-  onSnapshot(marketRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      currentStockPrice = data.currentPrice || 100;
-      
-      const priceEl = document.getElementById("stockPriceDisplay");
-      if (priceEl) priceEl.textContent = `${currentStockPrice} コイン`;
-
-      const minEl = document.getElementById("stockMinDisplay");
-      if (minEl) minEl.textContent = `${data.minPrice || currentStockPrice} コイン`;
-
-      const maxEl = document.getElementById("stockMaxDisplay");
-      if (maxEl) maxEl.textContent = `${data.maxPrice || currentStockPrice} コイン`;
-
-      const history = data.priceHistory || [currentStockPrice];
-      updateStockChart(history, data.minPrice, data.maxPrice);
-    }
-  });
-
-  setInterval(async () => {
-    try {
-      const marketSnap = await getDoc(marketRef);
-      if (!marketSnap.exists()) return;
-
-      const data = marketSnap.data();
-      const price = data.currentPrice || 100;
-      const delta = Math.floor(Math.random() * 101) - 50;
-      let nextPrice = price + delta;
-
-      const MIN_PRICE = 50;
-      const MAX_PRICE = 500;
-      if (nextPrice < MIN_PRICE) nextPrice = MIN_PRICE;
-      if (nextPrice > MAX_PRICE) nextPrice = MAX_PRICE;
-
-      const history = data.priceHistory || [];
-      history.push(nextPrice);
-      if (history.length > 300) history.shift();
-
-      let currentMin = data.minPrice !== undefined ? data.minPrice : price;
-      let currentMax = data.maxPrice !== undefined ? data.maxPrice : price;
-      if (nextPrice < currentMin) currentMin = nextPrice;
-      if (nextPrice > currentMax) currentMax = nextPrice;
-
-      await updateDoc(marketRef, {
-        currentPrice: nextPrice,
-        priceHistory: history,
-        minPrice: currentMin,
-        maxPrice: currentMax,
-        updated_at: Timestamp.now()
-      });
-    } catch(e) {}
-  }, 5000);
+      tx.set(marketRef, { stocks, tickAt: now, updated_at: Timestamp.now() }, { merge: true });
+    });
+  } catch (e) {}
 }
-initMarketSystem();
+function scheduleTick() {
+  clearTimeout(tickTimer);
+  tickTimer = setTimeout(async () => { await tickMarket(); if (marketUnsub) scheduleTick(); }, TICK_MS + Math.random() * 1000);
+}
+function startMarket() {
+  if (marketUnsub) return;
+  stkEl("stockStatus").textContent = "株価を読み込み中...";
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => { if (!marketData) stkEl("stockStatus").textContent = "株価を取得できません。通信状況を確認してください。"; }, 8000);
+  marketUnsub = onSnapshot(marketRef, snap => {
+    const st = snap.exists() && snap.data().stocks;
+    if (!st) return;
+    marketData = st; stkEl("stockStatus").textContent = ""; renderStockUI();
+  }, () => { stkEl("stockStatus").textContent = "株価の取得に失敗しました。"; });
+  tickMarket(); scheduleTick();
+}
+function stopMarket() {
+  if (marketUnsub) { marketUnsub(); marketUnsub = null; }
+  clearTimeout(tickTimer); clearTimeout(statusTimer); tickTimer = null;
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && marketUnsub) tickMarket(); });
 
-document.getElementById("buyStockBtn").onclick = async () => {
-  if (!currentAccount) return alert("株の取引を行うにはアカウントにログインしてください。");
-  const qtyInput = document.getElementById("tradeShareInput");
-  const qty = parseInt(qtyInput.value, 10);
-  if (isNaN(qty) || qty <= 0) return alert("有効な購入数を入力してください。");
-  const myCoins = getMyCoins(), totalCost = currentStockPrice * qty;
-  if (myCoins < totalCost) return alert(`コインが足りません(必要: ${totalCost} コイン)`);
-  const newCoins = myCoins - totalCost, newShares = getMyShares() + qty;
-  setMyCoins(newCoins); setMyShares(newShares);
-  alert(`株を ${qty} 株購入しました。`);
-  try { await updateDoc(doc(db, "accounts", currentAccount), { coins: newCoins, shares: newShares }); } catch (e) {}
-};
+function drawChart(d, s) {
+  const box = stkEl("stockChartBox"), h = s.h;
+  if (h.length < 2) { box.innerHTML = '<div style="padding:70px 0;color:#888;font-size:13px;">データを蓄積中...</div>'; return; }
+  const W = 600, H = 180, P = 14;
+  let lo = Math.min(...h), hi = Math.max(...h); if (lo === hi) { lo -= 1; hi += 1; }
+  const pts = h.map((v, i) => `${(P + (W - 2 * P) * i / (h.length - 1)).toFixed(1)},${(P + (H - 2 * P) * (1 - (v - lo) / (hi - lo))).toFixed(1)}`);
+  const col = h[h.length - 1] >= h[0] ? "#27ae60" : "#c0392b";
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polygon points="${P},${H - P} ${pts.join(" ")} ${W - P},${H - P}" fill="${col}" opacity="0.1"/><polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><span class="lbl" style="top:4px">高 ${hi}</span><span class="lbl" style="bottom:4px">安 ${lo}</span>`;
+}
 
-document.getElementById("sellStockBtn").onclick = async () => {
+function renderStockUI() {
+  const coins = getMyCoins(), hold = getHoldings();
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = coins);
+  let evalSum = 0;
+  stkEl("stockList").innerHTML = STOCKS.map(d => {
+    const s = marketData && marketData[d.id], qty = hold[d.id] || 0;
+    let price = "---", chg = "", range = "";
+    if (s) {
+      const prev = s.h.length > 1 ? s.h[s.h.length - 2] : s.p, diff = s.p - prev;
+      evalSum += qty * s.p;
+      price = s.p + " コイン";
+      chg = `<span class="${diff > 0 ? "stk-up" : diff < 0 ? "stk-down" : ""}" style="font-size:12px;"> ${diff > 0 ? "▲" : diff < 0 ? "▼" : "−"}${prev ? Math.abs(diff / prev * 100).toFixed(1) : 0}%</span>`;
+      range = `最安 ${s.lo} / 最高 ${s.hi}`;
+    }
+    return `<div class="stk-card${d.id === selectedStockId ? " sel" : ""}" data-id="${d.id}"><div class="stk-name">${d.emoji} ${d.name}<span class="stk-badge" style="background:${d.color}">リスク${d.risk}</span></div><div class="stk-price">${price}${chg}</div><div class="stk-sub">${range}</div><div class="stk-sub">保有: ${qty} 株</div></div>`;
+  }).join("");
+  stkEl("mySharesDisplay").textContent = `${sumHoldings(hold)} 株`;
+  stkEl("stockEvalDisplay").textContent = `${evalSum} コイン`;
+  const d = STOCK_MAP[selectedStockId], s = marketData && marketData[selectedStockId];
+  stkEl("stockDetailTitle").textContent = `${d.emoji} ${d.name}（${d.desc}）`;
+  if (s) drawChart(d, s);
+  updateEstimate();
+}
+function updateEstimate() {
+  const s = marketData && marketData[selectedStockId], q = parseInt(stkEl("tradeShareInput").value, 10);
+  stkEl("tradeEstimate").textContent = (s && q > 0) ? `${q}株 × ${s.p}コイン = ${q * s.p}コイン` : "";
+}
+stkEl("stockList").onclick = e => { const c = e.target.closest(".stk-card"); if (c) { selectedStockId = c.dataset.id; renderStockUI(); } };
+stkEl("tradeShareInput").oninput = updateEstimate;
+
+async function tradeStock(kind) {
   if (!currentAccount) return alert("株の取引を行うにはアカウントにログインしてください。");
-  const qtyInput = document.getElementById("tradeShareInput");
-  const qty = parseInt(qtyInput.value, 10);
-  if (isNaN(qty) || qty <= 0) return alert("有効な売却数を入力してください。");
-  const myShares = getMyShares();
-  if (myShares < qty) return alert(`保有している株が足りません。 (現在保有: ${myShares} 株)`);
-  const myCoins = getMyCoins(), totalRevenue = currentStockPrice * qty;
-  const newCoins = myCoins + totalRevenue, newShares = myShares - qty;
-  setMyCoins(newCoins); setMyShares(newShares);
-  alert(`株を ${qty} 株売却しました。`);
-  try { await updateDoc(doc(db, "accounts", currentAccount), { coins: newCoins, shares: newShares }); } catch (e) {}
-};
+  const qty = parseInt(stkEl("tradeShareInput").value, 10), d = STOCK_MAP[selectedStockId], msg = stkEl("stockMsg");
+  if (isNaN(qty) || qty <= 0) { msg.textContent = "有効な数量を入力してください。"; return; }
+  if (tradeBusy) return;
+  tradeBusy = true; stkEl("buyStockBtn").disabled = stkEl("sellStockBtn").disabled = true; msg.textContent = "取引中...";
+  try {
+    const accRef = doc(db, "accounts", currentAccount);
+    const r = await runTransaction(db, async tx => {
+      const [aSnap, mSnap] = [await tx.get(accRef), await tx.get(marketRef)];
+      if (!aSnap.exists()) throw new Error("アカウントが見つかりません。");
+      const st = mSnap.exists() && mSnap.data().stocks && mSnap.data().stocks[d.id];
+      if (!st) throw new Error("株価を取得できませんでした。");
+      const acc = aSnap.data(), hold = { ...normalizeHoldings(acc) }, have = hold[d.id] || 0;
+      let coins = acc.coins !== undefined ? acc.coins : 1000;
+      const total = st.p * qty;
+      if (kind === "buy") {
+        if (coins < total) throw new Error(`コインが足りません（必要: ${total} コイン）`);
+        coins -= total; hold[d.id] = have + qty;
+      } else {
+        if (have < qty) throw new Error(`保有している株が足りません（現在: ${have} 株）`);
+        coins += total; hold[d.id] = have - qty; if (!hold[d.id]) delete hold[d.id];
+      }
+      tx.update(accRef, { coins, holdings: hold, shares: sumHoldings(hold), updated_at: Timestamp.now() });
+      return { coins, hold, price: st.p, total };
+    });
+    localStorage.setItem("myCoins", r.coins);
+    localStorage.setItem("myHoldings", JSON.stringify(r.hold));
+    localStorage.setItem("myShares", sumHoldings(r.hold));
+    updateCoinButtonDisplay(); renderStockUI();
+    msg.textContent = `${d.name}を ${qty} 株${kind === "buy" ? "購入" : "売却"}しました（${r.price}コイン × ${qty} = ${r.total}コイン）。`;
+  } catch (e) {
+    msg.textContent = (e && e.message) || "取引に失敗しました。";
+  }
+  tradeBusy = false; stkEl("buyStockBtn").disabled = stkEl("sellStockBtn").disabled = false;
+}
+stkEl("buyStockBtn").onclick = () => tradeStock("buy");
+stkEl("sellStockBtn").onclick = () => tradeStock("sell");
 
 // --- ガチャシステム（コインのみ） ---
 const GACHA_COST = 500; // ★1回の値段
@@ -3663,33 +3659,20 @@ document.getElementById('adminUpdateStockBtn').onclick = async () => {
   const priceStr = document.getElementById('adminStockPriceInput').value.trim();
   if (priceStr === "") return alert("変更後の株価を入力してください");
   const newPrice = parseInt(priceStr, 10);
-  if (isNaN(newPrice) || newPrice < 0) return alert("有効な株価を入力してください");
-  
+  if (isNaN(newPrice) || newPrice < 1) return alert("有効な株価を入力してください");
+  const sid = document.getElementById('adminStockSelect').value, d = STOCK_MAP[sid];
   try {
-    const marketRef = doc(db, "market", "global");
-    const snap = await getDoc(marketRef);
-    let history = [];
-    let minPrice = newPrice;
-    let maxPrice = newPrice;
-    if (snap.exists()) {
-      const data = snap.data();
-      history = data.priceHistory || [];
-      history.push(newPrice);
-      if (history.length > 300) history.shift();
-      minPrice = Math.min(data.minPrice || newPrice, newPrice);
-      maxPrice = Math.max(data.maxPrice || newPrice, newPrice);
-    } else {
-      history = [newPrice];
-    }
-    await setDoc(marketRef, {
-      currentPrice: newPrice,
-      priceHistory: history,
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-      updated_at: Timestamp.now()
-    }, { merge: true });
-    await saveLog("admin_edit_stock_price", { newPrice });
-    alert(`株価を ${newPrice} コインに変更しました。`);
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(marketRef);
+      const stocks = (snap.exists() && snap.data().stocks) || {};
+      const s = stocks[sid] || freshStock(d);
+      s.p = newPrice; s.h.push(newPrice); if (s.h.length > HISTORY_MAX) s.h.shift();
+      s.lo = Math.min(s.lo, newPrice); s.hi = Math.max(s.hi, newPrice);
+      stocks[sid] = s;
+      tx.set(marketRef, { stocks, updated_at: Timestamp.now() }, { merge: true });
+    });
+    await saveLog("admin_edit_stock_price", { stock: sid, newPrice });
+    alert(`${d.name}の株価を ${newPrice} コインに変更しました。`);
     document.getElementById('adminStockPriceInput').value = "";
   } catch(e) {
     alert("株価の変更に失敗しました。");
@@ -3746,8 +3729,9 @@ document.getElementById('accInfoBtn').onclick = async () => {
   const accData = await getAccountData(accName);
   if (!accData) return alert("アカウントは削除されました");
   const coins = accData.coins !== undefined ? accData.coins : 1000;
-  const shares = accData.shares || 0;
-  showInfoDialog(`【アカウント情報】\n\n・ユーザー名：${accName}\n・所持コイン：${coins} 枚\n・保有株数：${shares} 株`);
+  const hold = normalizeHoldings(accData);
+  const lines = STOCKS.map(s => `  ${s.name}：${hold[s.id] || 0} 株`).join("\n");
+  showInfoDialog(`【アカウント情報】\n\n・ユーザー名：${accName}\n・所持コイン：${coins} 枚\n・保有株数：${sumHoldings(hold)} 株\n${lines}`);
 };
 
 document.getElementById('accCoinBtn').onclick = async () => {
@@ -3788,10 +3772,15 @@ document.getElementById('accShareBtn').onclick = async () => {
       hideLoading();
       return alert("アカウントは削除されました");
     }
-    await updateDoc(accRef, { shares: newShares, updated_at: Timestamp.now() });
+    const sid = document.getElementById('adminShareStockSelect').value;
+    await runTransaction(db, async tx => {
+      const s = await tx.get(accRef), h = { ...normalizeHoldings(s.data()) };
+      if (newShares > 0) h[sid] = newShares; else delete h[sid];
+      tx.update(accRef, { holdings: h, shares: sumHoldings(h), updated_at: Timestamp.now() });
+    });
     await saveLog("admin_edit_account_shares", { targetAccount: accName, newShares });
     hideLoading();
-    alert(`アカウント「${accName}」の保有株数を ${newShares} 株に変更しました。`);
+    alert(`アカウント「${accName}」の「${STOCK_MAP[sid].name}」の保有株数を ${newShares} 株に変更しました。`);
     document.getElementById('adminShareEditInput').value = "";
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
