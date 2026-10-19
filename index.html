@@ -2213,7 +2213,11 @@ function renderStockUI() {
   const d = STOCK_MAP[selectedStockId], s = marketData && marketData[selectedStockId];
   stkEl("stockDetailTitle").textContent = `${d.emoji} ${d.name}（${d.desc}）`;
   const q = hold[selectedStockId] || 0;
-  stkEl("stockHoldInfo").innerHTML = `📦 ${d.name}の保有: <strong>${q} 株</strong>　💰 評価額: <strong>${s ? q * s.p : "---"} コイン</strong>`;
+  const prevP = s ? (s.h.length > 1 ? s.h[s.h.length - 2] : s.p) : 0, df = s ? s.p - prevP : 0;
+  const priceHtml = s
+    ? `<span style="white-space:nowrap;">💹 現在の株価: <strong style="font-size:17px;">${s.p} コイン</strong><span class="${df > 0 ? "stk-up" : df < 0 ? "stk-down" : ""}" style="font-size:12px;"> ${df > 0 ? "▲" : df < 0 ? "▼" : "−"}${prevP ? Math.abs(df / prevP * 100).toFixed(1) : 0}%</span></span>`
+    : `<span style="white-space:nowrap;">💹 現在の株価: <strong>---</strong></span>`;
+  stkEl("stockHoldInfo").innerHTML = `${priceHtml}<span style="margin:0 8px;color:#d9c29a;">｜</span><span style="white-space:nowrap;">📦 ${d.name}の保有: <strong>${q} 株</strong></span>　<span style="white-space:nowrap;">💰 評価額: <strong>${s ? q * s.p : "---"} コイン</strong></span>`;
   renderChart(); updateTip();
   updateEstimate();
 }
