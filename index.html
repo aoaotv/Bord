@@ -1861,6 +1861,16 @@ const stkEl = id => document.getElementById(id);
 });
 
 function randn() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+// 管理者が株価を強制変更した銘柄は、その価格を新しい「基準価格」とし、上下限もそれに合わせて拡張する
+function stockParams(d, ov) {
+  if (!ov || !(ov.base > 0)) return d;
+  const k = ov.base / d.base;
+  return Object.assign({}, d, {
+    base: ov.base,
+    min: Math.max(1, Math.min(d.min, Math.round(d.min * k), ov.base)),
+    max: Math.max(d.max, Math.round(d.max * k), ov.base)
+  });
+}
 function nextPrice(d, price) {
   let lp = Math.log(Math.max(1, price));
   let shock = d.vol * randn();
@@ -1892,7 +1902,7 @@ function alignMarket(data, now) {
   STOCKS.forEach(d => { H = Math.max(H, stocks[d.id].h.length); });
   if (ts.length !== H) { const end = typeof data.tickAt === "number" ? data.tickAt : now; ts = Array.from({ length: H }, (_, i) => end - (H - 1 - i) * TICK_MS); }
   STOCKS.forEach(d => { const h = stocks[d.id].h; while (h.length < H) h.unshift(h[0]); });
-  return { stocks, ts, chunks: data.chunks || 0 };
+  return { stocks, ts, chunks: data.chunks || 0, overrides: Object.assign({}, data.overrides || {}) };
 }
 // 古い点は market/h_番号 ドキュメントに退避して保存し続ける（本体ドキュメントは軽いまま）
 function writeMarket(tx, m, now) {
@@ -1901,7 +1911,7 @@ function writeMarket(tx, m, now) {
     tx.set(doc(db, "market", "h_" + m.chunks), { n: m.chunks, ts: m.ts.splice(0, ARCH), p });
     m.chunks++;
   }
-  tx.set(marketRef, { stocks: m.stocks, ts: m.ts, chunks: m.chunks, tickAt: now, updated_at: Timestamp.now() }, { merge: true });
+  tx.set(marketRef, { stocks: m.stocks, ts: m.ts, chunks: m.chunks, overrides: m.overrides || {}, tickAt: now, updated_at: Timestamp.now() }, { merge: true });
 }
 async function tickMarket() {
   if (document.hidden || stkEl("stockSection").style.display !== "block") return;
@@ -1917,7 +1927,7 @@ async function tickMarket() {
       const steps = data.stocks ? Math.min(MAX_CATCHUP, Math.max(1, Math.floor((now - last) / TICK_MS))) : 0;
       for (let i = 0; i < steps; i++) {
         m.ts.push(now - (steps - 1 - i) * TICK_MS);
-        STOCKS.forEach(d => { const s = m.stocks[d.id]; s.p = nextPrice(d, s.p); s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
+        STOCKS.forEach(d => { const s = m.stocks[d.id]; s.p = nextPrice(stockParams(d, m.overrides[d.id]), s.p); s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
       }
       writeMarket(tx, m, now);
     });
@@ -4003,6 +4013,7 @@ document.getElementById('adminUpdateStockBtn').onclick = async () => {
       const snap = await tx.get(marketRef), data = snap.exists() ? snap.data() : {}, now = Date.now();
       const m = alignMarket(data, now);
       m.ts.push(now);
+      m.overrides[sid] = { base: newPrice, at: now };
       STOCKS.forEach(x => { const s = m.stocks[x.id]; if (x.id === sid) s.p = newPrice; s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
       writeMarket(tx, m, typeof data.tickAt === "number" ? data.tickAt : now);
     });
