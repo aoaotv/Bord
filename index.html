@@ -224,6 +224,71 @@ textarea { min-height:60px; resize: vertical; }
   margin: 2px 4px;
 }
 
+/* ▼ 株画面の現在時刻（秒） */
+.stk-clock{font-variant-numeric:tabular-nums;font-weight:bold;font-size:18px;color:#2c3e50;background:#eef6ff;border:1px solid #cfe3f7;border-radius:20px;padding:6px 14px;letter-spacing:.5px}
+
+/* ▼ 預金画面 */
+.dep-hero{background:#f7f9fc;border:1px solid #dfe6e9;border-radius:14px;padding:22px 16px;text-align:center;margin-bottom:16px}
+.dep-label{font-size:13px;color:#555;margin-bottom:4px}
+.dep-balance{font-variant-numeric:tabular-nums;font-size:40px;font-weight:bold;color:#2c3e50;line-height:1.2;word-break:break-all}
+.dep-balance small{font-size:15px;margin-left:6px;color:#e67e22}
+.dep-sub{font-size:13px;color:#555;margin-top:6px}
+.dep-sub b{color:#27ae60}
+.dep-ops{background:#f7f9fc;border-radius:12px;padding:14px;margin-bottom:10px}
+.dep-ops input{width:100%;box-sizing:border-box;margin:0 0 10px;height:42px;text-align:center;font-weight:bold;font-size:17px}
+.dep-btns{display:flex;gap:8px;flex-wrap:wrap}
+.dep-btns button{flex:1;margin:0;padding:12px 8px;font-weight:bold;min-width:100px}
+.dep-note{font-size:12px;color:#666;line-height:1.7;margin:12px 2px 16px}
+
+/* ▼ プレミアム画面 */
+.prem-status{border-radius:14px;padding:18px;margin-bottom:16px;background:#f7f9fc;border:1px solid #dfe6e9;text-align:center}
+.prem-status.on{background:#2f1b4a;border-color:#2f1b4a;color:#f5d36b}
+.prem-status .big{font-size:22px;font-weight:bold}
+.prem-status .sub{font-size:13px;margin-top:6px;opacity:.9;font-variant-numeric:tabular-nums}
+.prem-card{background:#f7f9fc;border:1px solid #dfe6e9;border-radius:14px;padding:16px;margin-bottom:16px;text-align:left}
+.prem-card h4{margin:0 0 10px;font-size:17px;color:#2c3e50}
+.prem-card p{margin:0 0 10px;font-size:13px;color:#555;line-height:1.6}
+.prem-perks{margin:0;padding:0;list-style:none}
+.prem-perks li{background:none;color:#2c3e50;border-radius:0;margin:0;padding:5px 0;cursor:default;font-size:14px;border-bottom:1px dashed #dfe6e9}
+.prem-perks li:last-child{border-bottom:none}
+.prem-buy{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.prem-buy input{width:90px;margin:0;height:40px;text-align:center;font-weight:bold;font-size:16px}
+.prem-buy button.quick{margin:0;padding:8px 12px;border-radius:14px;background:#ecf0f1;color:#2c3e50;font-size:13px}
+.prem-cost{font-size:14px;color:#2c3e50;margin-bottom:10px}
+.prem-lock{opacity:.5;pointer-events:none}
+.prem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.prem-item{background:#fff;border:2px solid #dfe6e9;border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;font-size:12px;color:#2c3e50}
+.prem-item.sel{border-color:#8e44ad;background:#f6eefb}
+.prem-item .pv{height:46px;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.prem-stamps{display:flex;flex-wrap:wrap;gap:8px;font-size:28px}
+.prem-tagchip{display:inline-block;color:#fff;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:bold;white-space:nowrap}
+
+/* ▼ ルーレット */
+.rl-wrap{position:relative;width:272px;height:272px;margin:6px auto 14px}
+.rl-pointer{position:absolute;left:50%;top:-4px;transform:translateX(-50%);font-size:26px;color:#c0392b;z-index:5;line-height:1}
+.rl-wheel{position:absolute;inset:8px;border-radius:50%;border:5px solid #2f1b4a;box-sizing:border-box;transition:transform 4.2s cubic-bezier(.12,.62,.08,1)}
+.rl-label{position:absolute;left:50%;top:50%;width:60px;height:20px;margin:-10px 0 0 -30px;text-align:center;line-height:20px;font-weight:bold;font-size:12px;color:#222;text-shadow:0 0 3px rgba(255,255,255,.9)}
+.rl-hub{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#2f1b4a;color:#f5d36b;display:flex;align-items:center;justify-content:center;font-size:20px;z-index:4}
+.rl-rates{width:100%;border-collapse:collapse;font-size:12px;color:#2c3e50;margin-top:6px}
+.rl-rates td{border-bottom:1px solid #e5e8ea;padding:4px 6px}
+.rl-rates td:last-child{text-align:right}
+
+/* ▼ アイコンの枠（プレミアム） */
+.pfr{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:3px;vertical-align:middle;box-sizing:content-box;line-height:0}
+.pfr img,.pfr .pfr-ph{border-radius:50%;display:block}
+.pfr-gold{background:linear-gradient(135deg,#fbe38e,#c9a227 50%,#fbe38e)}
+.pfr-silver{background:linear-gradient(135deg,#f4f6f7,#9aa5ad 50%,#f4f6f7)}
+.pfr-rainbow{background:conic-gradient(#e74c3c,#f39c12,#f1c40f,#2ecc71,#1abc9c,#3498db,#9b59b6,#e74c3c)}
+.pfr-neon{background:#00e5ff;box-shadow:0 0 5px #00e5ff,0 0 11px #0080ff}
+.pfr-flame{background:linear-gradient(0deg,#e74c3c,#f39c12 60%,#f9e79f);box-shadow:0 0 7px rgba(231,76,60,.8)}
+.pfr-sakura{background:#ffc2d1;box-shadow:0 0 0 1px #ff8fab}
+.pfr-emerald{background:linear-gradient(135deg,#a8f0c6,#1e8449);box-shadow:0 0 5px rgba(30,132,73,.7)}
+.pfr-royal{background:linear-gradient(135deg,#d2a8ff,#5b2a86);box-shadow:0 0 6px rgba(142,68,173,.8)}
+.pfr-dash{background:transparent;border:2px dashed #3498db;padding:2px}
+.pfr-aurora{background:linear-gradient(135deg,#7efff5,#a29bfe,#fd79a8);animation:pfrGlow 2.2s ease-in-out infinite}
+@keyframes pfrGlow{0%,100%{box-shadow:0 0 3px #7efff5}50%{box-shadow:0 0 12px #fd79a8}}
+@media (prefers-reduced-motion: reduce){.pfr-aurora{animation:none}.rl-wheel{transition-duration:.01s}}
+
 /* 株画面 */
 .stk-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #eee;padding-bottom:15px;margin-bottom:16px;gap:8px;flex-wrap:wrap}
 .stk-head h3{margin:0;font-size:24px;color:#2c3e50}
@@ -314,6 +379,8 @@ li img, li video { max-width: 100%; height: auto; }
     <div id="menuProfileBtn" class="menu-grid-item">📖<br>マイプロフィール</div>
     <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
     <div id="menuStockBtn" class="menu-grid-item">📈<br>株式投資</div>
+    <div id="menuDepositBtn" class="menu-grid-item">🏦<br>預金</div>
+    <div id="menuPremiumBtn" class="menu-grid-item">👑<br>プレミアム</div>
     <div id="menuDiceBtn" class="menu-grid-item">🎲<br>サイコロ勝負</div>
     <div id="menuGachaBtn" class="menu-grid-item">🎰<br>コインガチャ</div>
     <div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
@@ -346,7 +413,7 @@ li img, li video { max-width: 100%; height: auto; }
     <div><button id="deleteOwnThreadBtn" class="redBtn" style="display:none; font-size:12px; padding:6px 12px; margin-top:6px;">🗑️ このスレッドを削除</button></div>
     <div style="position: absolute; top: 0; right: 0; display: flex; gap: 6px;">
       <button id="favoriteThreadBtn" class="greenBtn" style="background: #f1c40f; font-size: 12px; padding: 6px 12px; color: #333;">⭐ お気に入り</button>
-      <button id="boostThreadBtn" class="greenBtn" style="background: #e67e22; font-size: 12px; padding: 6px 12px;">🚀 10分間 📍固定 (500枚)</button>
+      <button id="boostThreadBtn" class="greenBtn" style="background: #e67e22; font-size: 12px; padding: 6px 12px;">🚀 10分間 📍固定 (<span id="boostCostText">500</span>枚)</button>
     </div>
   </div>
   <div id="threadToc" style="display:none; flex-wrap: wrap; gap: 5px; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.5); border-radius: 8px;"></div>
@@ -510,6 +577,7 @@ li img, li video { max-width: 100%; height: auto; }
   <div class="store-container">
     <div class="stk-head">
       <h3>📈 株式投資</h3>
+      <div id="stockClock" class="stk-clock">🕒 --:--:--</div>
       <div class="stk-coin">所持コイン: <span class="sharedCoinCount">0</span>枚</div>
     </div>
     <div class="stk-sum">
@@ -554,7 +622,7 @@ li img, li video { max-width: 100%; height: auto; }
     <div style="background:#f7f9fc; padding:30px; border-radius:16px; margin-bottom:25px;">
       <div style="font-size: 72px; margin-bottom: 10px;">🎰</div>
       <h4 style="margin: 0 0 10px; font-size: 20px;">大量コインが当たる！</h4>
-      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">1回 500コインで挑戦可能！運が良ければ最大10000コイン獲得！</p>
+      <p id="gachaDesc" style="color: #666; font-size: 14px; margin-bottom: 20px;">1回 500コインで挑戦可能！運が良ければ最大10000コイン獲得！</p>
       
       <button id="playGachaBtn" class="greenBtn" style="padding: 14px 40px; font-size: 18px; font-weight: bold; background: #8e44ad;">ガチャを回す (500🪙)</button>
     </div>
@@ -597,6 +665,106 @@ li img, li video { max-width: 100%; height: auto; }
         <input id="fullStoreCoinCodeInput" placeholder="例: COIN-ABC123" style="flex: 1; margin-top:0;">
         <button id="fullStoreRedeemBtn" class="greenBtn" style="margin-top:0; padding: 0 24px;">コードを適用する</button>
       </div>
+    </div>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- 預金画面 -->
+<div id="depositSection" class="full-screen-section">
+  <div class="store-container">
+    <div class="stk-head">
+      <h3>🏦 預金</h3>
+      <div class="stk-coin">所持コイン: <span class="sharedCoinCount">0</span>枚</div>
+    </div>
+
+    <div class="dep-hero">
+      <div class="dep-label">現在の預金残高（利子込み）</div>
+      <div class="dep-balance"><span id="depBalance">0.0000</span><small>コイン</small></div>
+      <div id="depRateInfo" class="dep-sub"></div>
+      <div id="depGrowInfo" class="dep-sub"></div>
+    </div>
+
+    <div class="dep-ops">
+      <input type="number" id="depAmountInput" min="1" step="1" placeholder="金額（コイン）">
+      <div class="dep-btns">
+        <button id="depInBtn" class="greenBtn" type="button">預ける</button>
+        <button id="depOutBtn" class="greenBtn" type="button" style="background:#2980b9;">引き出す</button>
+        <button id="depOutAllBtn" class="greenBtn" type="button" style="background:#8e44ad;">全額引き出す</button>
+      </div>
+    </div>
+    <div id="depMsg" class="stk-msg" role="status"></div>
+
+    <div class="dep-note">
+      ・預金は元本割れしません。利子は預けている間、1秒ごとに少しずつ増え続けます（複利）。<br>
+      ・ページを閉じていても、アプリを使っていない間も利子は増えます。<br>
+      ・引き出せるのは整数のコインです。端数（小数点以下）は預金に残り、利子を生み続けます。<br>
+      ・👑プレミアム会員は日利がアップします。
+    </div>
+
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
+  </div>
+</div>
+
+<!-- プレミアム画面 -->
+<div id="premiumSection" class="full-screen-section">
+  <div class="store-container">
+    <div class="stk-head">
+      <h3>👑 Bord プレミアム</h3>
+      <div class="stk-coin">所持コイン: <span class="sharedCoinCount">0</span>枚</div>
+    </div>
+
+    <div id="premStatus" class="prem-status"></div>
+
+    <div class="prem-card">
+      <h4>プレミアムに入る・延長する（1日 <span id="premPriceDay">500</span> コイン）</h4>
+      <div class="prem-buy">
+        <input type="number" id="premDaysInput" min="1" max="365" step="1" value="1">
+        <span style="font-size:14px;">日分</span>
+        <button class="quick" type="button" data-d="1">1日</button>
+        <button class="quick" type="button" data-d="7">7日</button>
+        <button class="quick" type="button" data-d="30">30日</button>
+      </div>
+      <div id="premCostText" class="prem-cost"></div>
+      <button id="premBuyBtn" class="greenBtn" type="button" style="width:100%; padding:12px; font-weight:bold; background:#8e44ad;">購入する</button>
+      <div id="premMsg" class="stk-msg" role="status"></div>
+    </div>
+
+    <div class="prem-card">
+      <h4>プレミアム特典</h4>
+      <ul class="prem-perks" id="premPerks"></ul>
+    </div>
+
+    <div class="prem-card">
+      <h4>🎡 プレミアムルーレット（1日1回）</h4>
+      <p>プレミアム会員は1日1回、無料で回せます。ハズレが出ることもありますが、当たればコインがもらえます。</p>
+      <div class="rl-wrap">
+        <div class="rl-pointer">▼</div>
+        <div id="rlWheel" class="rl-wheel"></div>
+        <div class="rl-hub">👑</div>
+      </div>
+      <button id="rlSpinBtn" class="greenBtn" type="button" style="width:100%; padding:12px; font-weight:bold; background:#c0392b;">ルーレットを回す</button>
+      <div id="rlMsg" class="stk-msg" role="status" style="text-align:center;"></div>
+      <table class="rl-rates" id="rlRates"></table>
+    </div>
+
+    <div class="prem-card">
+      <h4>🖼️ アイコンの枠</h4>
+      <p>投稿のアイコンに枠が付きます（アイコン画像を設定した投稿に表示）。</p>
+      <div id="premFrames" class="prem-grid"></div>
+    </div>
+
+    <div class="prem-card">
+      <h4>🏷️ プレミアム限定タグ（使い放題）</h4>
+      <div id="premTags" class="prem-grid"></div>
+      <button id="premTagOffBtn" class="greenBtn" type="button" style="margin:10px 0 0; background:#7f8c8d; font-size:13px; padding:6px 14px;">タグを外す</button>
+    </div>
+
+    <div class="prem-card">
+      <h4>😀 プレミアム限定スタンプ（使い放題）</h4>
+      <p>プレミアム中は、通常のスタンプメニューからも使えます。</p>
+      <div id="premStamps" class="prem-stamps"></div>
     </div>
 
     <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
@@ -909,7 +1077,7 @@ li img, li video { max-width: 100%; height: auto; }
       <option value="#3498db">青</option><option value="#2ecc71">緑</option><option value="#e74c3c">赤</option><option value="#9b59b6">紫</option><option value="#f39c12">オレンジ</option><option value="#1abc9c">エメラルド</option><option value="#34495e">ダーク</option><option value="#d35400">茶</option><option value="#7f8c8d">グレー</option><option value="#16a085">深緑</option>
     </select>
     <div style="margin-top:8px;">
-      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="postHighlightChk" style="width:auto; height:auto;"> 🌟 投稿をハイライト表示する (100コイン)</label>
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="postHighlightChk" style="width:auto; height:auto;"> 🌟 投稿をハイライト表示する (<span id="hlCostText">100コイン</span>)</label>
     </div>
   </div>
   <div id="passwordFields" style="display:none;">
@@ -960,6 +1128,83 @@ const db = initializeFirestore(app, {
   })
 });
 
+// ==========================================
+// 👑 プレミアム / 🏦 預金 の共通定義（アカウント監視より前に必要）
+// ==========================================
+const DAY_MS = 86400000;
+const PREMIUM_PRICE_PER_DAY = 500;                 // プレミアム 1日あたりの価格（コイン）
+const DEPOSIT_RATE_NORMAL  = 0.002;                // 預金の日利（複利）通常 0.20%
+const DEPOSIT_RATE_PREMIUM = 0.003;                // 預金の日利（複利）プレミアム 0.30%
+const GACHA_COST_BASE = 500;                       // コインガチャの通常価格
+const PREMIUM_GACHA_DISCOUNT = 0.8;                // ガチャ価格の倍率（0.8 = 2割引）
+const PREMIUM_BOOST_RATE = 0.5;                    // 注目固定の価格の倍率（0.5 = 半額）
+
+const PREMIUM_STAMPS = ["👑", "💎", "🌟", "🦄", "🪄", "🎆", "🚀", "🏆", "🐉", "🍀", "💖", "🌈"];
+const PREMIUM_TAGS = [
+  { name: "👑 プレミアム会員", color: "#8e44ad" },
+  { name: "💎 ダイヤモンド",   color: "#00acc1" },
+  { name: "🌟 VIPスター",      color: "#f39c12" },
+  { name: "🔥 プレミアムフレイム", color: "#d35400" },
+  { name: "🌈 レインボーVIP",  color: "#e84393" },
+  { name: "🏆 殿堂入り",       color: "#b7950b" },
+  { name: "🪄 マジシャン",     color: "#6c5ce7" },
+  { name: "🦄 ユニコーン",     color: "#fd79a8" }
+];
+const ICON_FRAMES = [
+  { id: "gold",    name: "ゴールド" },
+  { id: "silver",  name: "シルバー" },
+  { id: "rainbow", name: "レインボー" },
+  { id: "neon",    name: "ネオン" },
+  { id: "flame",   name: "フレイム" },
+  { id: "sakura",  name: "サクラ" },
+  { id: "emerald", name: "エメラルド" },
+  { id: "royal",   name: "ロイヤル" },
+  { id: "dash",    name: "ドット枠" },
+  { id: "aurora",  name: "オーロラ（光る）" }
+];
+let pendingTrades = 0;        // 保存待ちの株取引の数（0 になるまでサーバーの値で上書きしない）
+let stockClockTimer = null;   // 株画面の時計
+
+function getPremiumUntil() { return parseInt(localStorage.getItem("premiumUntil") || "0", 10) || 0; }
+function isPremium() { return !!currentAccount && getPremiumUntil() > Date.now(); }
+function getUsableEmojis() {   // 購入済み + （プレミアム中だけ）限定スタンプ。保存はしない
+  const base = getPurchasedEmojis();
+  return isPremium() ? [...new Set([...base, ...PREMIUM_STAMPS])] : base;
+}
+function depositRateNow() { return isPremium() ? DEPOSIT_RATE_PREMIUM : DEPOSIT_RATE_NORMAL; }
+
+// 預金の利子計算。プレミアムの期間（premiumUntil まで）だけプレミアム日利、それ以外は通常日利
+function calcDeposit(principal, since, now, premiumUntil) {
+  if (!principal || principal <= 0) return 0;
+  since = since || now;
+  const total = Math.max(0, now - since);
+  const premMs = Math.min(total, Math.max(0, (premiumUntil || 0) - since));
+  const normMs = total - premMs;
+  return principal * Math.pow(1 + DEPOSIT_RATE_PREMIUM, premMs / DAY_MS) * Math.pow(1 + DEPOSIT_RATE_NORMAL, normMs / DAY_MS);
+}
+function currentDepositBalance(now = Date.now()) {
+  const p = parseFloat(localStorage.getItem("myDeposit") || "0") || 0;
+  const s = parseInt(localStorage.getItem("myDepositAt") || "0", 10) || 0;
+  return calcDeposit(p, s, now, getPremiumUntil());
+}
+
+function applyPremiumLocal(acc) {   // アカウントのデータをローカルに反映
+  localStorage.setItem("premiumUntil", String(acc.premiumUntil || 0));
+  localStorage.setItem("myDeposit", String(acc.deposit || 0));
+  localStorage.setItem("myDepositAt", String(acc.depositAt || 0));
+  localStorage.setItem("rouletteDate", acc.rouletteDate || "");
+  localStorage.setItem("iconFrame", acc.iconFrame || "");
+}
+function clearPremiumLocal() {
+  ["premiumUntil", "myDeposit", "myDepositAt", "rouletteDate", "iconFrame"].forEach(k => localStorage.removeItem(k));
+}
+
+// アイコンの枠（HTML）
+function frameCls(id) { return ICON_FRAMES.some(f => f.id === id) ? "pfr pfr-" + id : ""; }
+function wrapFrameHtml(inner, id) { const c = frameCls(id); return c ? `<span class="${c}">${inner}</span>` : inner; }
+function todayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function fmtClock(ms) { const d = new Date(ms); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`; }
+
 // アカウント管理＆リアルタイム同期システム
 let currentAccount = localStorage.getItem("currentAccountName") || null;
 let accountUnsub = null;
@@ -994,7 +1239,7 @@ function setupAccountListener() {
       localStorage.removeItem("customTagName");
       localStorage.removeItem("customTagColor");
       localStorage.removeItem("activeNameEffect");
-      localStorage.removeItem("myBio");
+      localStorage.removeItem("myBio"); clearPremiumLocal();
       
       nickName = generateRandomAnonymousName();
       setCookie("nickName", nickName);
@@ -1007,21 +1252,24 @@ function setupAccountListener() {
     }
 
     const acc = snap.data();
-    localStorage.setItem("myCoins", acc.coins !== undefined ? acc.coins : 1000);
-    localStorage.setItem("myShares", acc.shares || 0);
-    localStorage.setItem("myHoldings", JSON.stringify(acc.holdings || {}));
+    if (!pendingTrades) {   // 株取引の保存待ち中は、画面の値を古いサーバー値で上書きしない
+      localStorage.setItem("myCoins", acc.coins !== undefined ? acc.coins : 1000);
+      localStorage.setItem("myShares", acc.shares || 0);
+      localStorage.setItem("myHoldings", JSON.stringify(acc.holdings || {}));
+    }
     localStorage.setItem("purchasedEmojis", JSON.stringify(acc.purchasedEmojis || []));
     localStorage.setItem("purchasedTags", JSON.stringify(acc.purchasedTags || []));
     localStorage.setItem("purchasedEffects", JSON.stringify(acc.purchasedEffects || []));
     localStorage.setItem("customTagEnabled", acc.customTagEnabled ? "true" : "false");
     localStorage.setItem("customTagName", acc.customTagName || "");
     localStorage.setItem("customTagColor", acc.customTagColor || "");
-    localStorage.setItem("activeNameEffect", acc.activeNameEffect || "");
+    localStorage.setItem("activeNameEffect", acc.activeNameEffect || ""); applyPremiumLocal(acc);
     localStorage.setItem("myBio", acc.bio || "");
 
     updateCoinButtonDisplay();
     renderStampMenu();
     if (marketUnsub) renderStockUI();
+    try { onPremiumStateChanged(); } catch (e) {}
     handleIncomingTransfers(acc.pendingTransfers);
   }, (error) => {});
 }
@@ -1148,9 +1396,11 @@ document.getElementById("menuAccountBtn").onclick = () => {
 let marketUnsub = null, tickTimer = null;
 function hideAllSections() {
   headerMenuContent.style.display = "none";
-  ["threadListSection","threadDetailSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection"]
+  ["threadListSection","threadDetailSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection"]
     .forEach(id => { document.getElementById(id).style.display = "none"; });
   stopMarket();
+  stopDepositUI();
+  stopPremiumUI();
 }
 
 document.getElementById("menuStockBtn").onclick = () => {
@@ -1334,7 +1584,7 @@ function renderDmStampMenu() {
   const menuContent = document.getElementById("dmStampMenuContent");
   if (!menuContent) return;
   const defaultStamps = ["😀", "😊", "😭", "🎉", "👍", "👀", "🔥", "❤️"];
-  const purchased = getPurchasedEmojis();
+  const purchased = getUsableEmojis();
   const allStamps = [...new Set([...defaultStamps, ...purchased])];
   
   menuContent.innerHTML = "";
@@ -1578,7 +1828,7 @@ async function openUserProfile(accountName) {
     hideLoading();
     if (!accData) return alert("アカウント情報が見つかりません。");
     
-    document.getElementById("modalProfileName").textContent = `${accountName} のプロフィール`;
+    document.getElementById("modalProfileName").textContent = `${accountName} のプロフィール${(accData.premiumUntil || 0) > Date.now() ? " 👑" : ""}`;
     document.getElementById("modalProfileBio").textContent = accData.bio || "(自己紹介はありません)";
     document.getElementById("modalProfileCoins").textContent = `${accData.coins !== undefined ? accData.coins : 1000} コイン`;
     document.getElementById("modalProfileHoldings").innerHTML = holdingsListHtml(accData);
@@ -1809,7 +2059,7 @@ document.getElementById("accountLoginBtn").onclick = async () => {
     localStorage.setItem("customTagEnabled", acc.customTagEnabled ? "true" : "false");
     localStorage.setItem("customTagName", acc.customTagName || "");
     localStorage.setItem("customTagColor", acc.customTagColor || "");
-    localStorage.setItem("activeNameEffect", acc.activeNameEffect || "");
+    localStorage.setItem("activeNameEffect", acc.activeNameEffect || ""); applyPremiumLocal(acc);
 
     setupAccountListener();
     updateAccountStatusUI();
@@ -1830,7 +2080,7 @@ document.getElementById("accountLogoutBtn").onclick = () => {
   
   localStorage.setItem("myCoins", 0);
   localStorage.removeItem("myShares"); localStorage.removeItem("myHoldings");
-  localStorage.removeItem("myBio");
+  localStorage.removeItem("myBio"); clearPremiumLocal();
   localStorage.removeItem("purchasedEmojis");
   localStorage.removeItem("purchasedTags");
   localStorage.removeItem("purchasedEffects");
@@ -1953,6 +2203,7 @@ function scheduleTick() {
 }
 function startMarket() {
   if (marketUnsub) return;
+  clearInterval(stockClockTimer); updateStockClock(); stockClockTimer = setInterval(updateStockClock, 200);
   resetHist(); renderRangeBar();
   stkEl("stockStatus").textContent = "株価を読み込み中...";
   clearTimeout(statusTimer);
@@ -1967,6 +2218,7 @@ function startMarket() {
 }
 function stopMarket() {
   if (marketUnsub) { marketUnsub(); marketUnsub = null; }
+  clearInterval(stockClockTimer); stockClockTimer = null;
   clearTimeout(tickTimer); clearTimeout(statusTimer); tickTimer = null;
   resetHist();
 }
@@ -2253,47 +2505,410 @@ function updateEstimate() {
 stkEl("stockList").onclick = e => { const c = e.target.closest(".stk-card"); if (c) { selectedStockId = c.dataset.id; renderStockUI(); } };
 stkEl("tradeShareInput").oninput = updateEstimate;
 
-async function tradeStock(kind) {
+// ★取引は「画面の株価で即時に約定」させ、保存（Firestore）は裏で順番に行う。
+//   「取引中...」で待たされない。保存に失敗した場合だけ、サーバーの最新値に戻してお知らせする。
+let tradeChain = Promise.resolve();
+function setLocalAccountState(coins, hold) {
+  localStorage.setItem("myCoins", coins);
+  localStorage.setItem("myHoldings", JSON.stringify(hold));
+  localStorage.setItem("myShares", sumHoldings(hold));
+}
+async function resyncFromServer() {   // 保存待ちが無くなったら、サーバーの値に合わせ直す
+  try {
+    const acc = await getAccountData(currentAccount);
+    if (acc && !pendingTrades) {
+      setLocalAccountState(acc.coins !== undefined ? acc.coins : 1000, normalizeHoldings(acc));
+      syncCoinViews(); renderStockUI();
+    }
+  } catch (e) {}
+}
+function tradeStock(kind) {
   if (!currentAccount) return alert("株の取引を行うにはアカウントにログインしてください。");
   const qty = parseInt(stkEl("tradeShareInput").value, 10), d = STOCK_MAP[selectedStockId], msg = stkEl("stockMsg");
   if (isNaN(qty) || qty <= 0) { msg.textContent = "有効な数量を入力してください。"; return; }
-  if (tradeBusy) return;
-  tradeBusy = true; stkEl("buyStockBtn").disabled = stkEl("sellStockBtn").disabled = true; msg.textContent = "取引中...";
-  try {
-    const accRef = doc(db, "accounts", currentAccount);
-    const r = await runTransaction(db, async tx => {
-      const [aSnap, mSnap] = [await tx.get(accRef), await tx.get(marketRef)];
-      if (!aSnap.exists()) throw new Error("アカウントが見つかりません。");
-      const st = mSnap.exists() && mSnap.data().stocks && mSnap.data().stocks[d.id];
-      if (!st) throw new Error("株価を取得できませんでした。");
-      const acc = aSnap.data(), hold = { ...normalizeHoldings(acc) }, have = hold[d.id] || 0;
-      let coins = acc.coins !== undefined ? acc.coins : 1000;
-      const total = st.p * qty;
-      if (kind === "buy") {
-        if (coins < total) throw new Error(`コインが足りません（必要: ${total} コイン）`);
-        coins -= total; hold[d.id] = have + qty;
-      } else {
-        if (have < qty) throw new Error(`保有している株が足りません（現在: ${have} 株）`);
-        coins += total; hold[d.id] = have - qty; if (!hold[d.id]) delete hold[d.id];
-      }
-      tx.update(accRef, { coins, holdings: hold, shares: sumHoldings(hold), updated_at: Timestamp.now() });
-      return { coins, hold, price: st.p, total };
-    });
-    localStorage.setItem("myCoins", r.coins);
-    localStorage.setItem("myHoldings", JSON.stringify(r.hold));
-    localStorage.setItem("myShares", sumHoldings(r.hold));
-    updateCoinButtonDisplay(); renderStockUI();
-    msg.textContent = `${d.name}を ${qty} 株${kind === "buy" ? "購入" : "売却"}しました（${r.price}コイン × ${qty} = ${r.total}コイン）。`;
-  } catch (e) {
-    msg.textContent = (e && e.message) || "取引に失敗しました。";
+  const s = marketData && marketData[d.id];
+  if (!s) { msg.textContent = "株価を取得できませんでした。"; return; }
+
+  const price = s.p, total = price * qty;
+  const coins0 = getMyCoins(), hold = { ...getHoldings() }, have = hold[d.id] || 0;
+  if (kind === "buy") {
+    if (coins0 < total) { msg.textContent = `コインが足りません（必要: ${total} コイン）`; return; }
+  } else if (have < qty) {
+    msg.textContent = `保有している株が足りません（現在: ${have} 株）`; return;
   }
-  tradeBusy = false; stkEl("buyStockBtn").disabled = stkEl("sellStockBtn").disabled = false;
+
+  // ① その場で反映（待ち時間なし）
+  const coins1 = kind === "buy" ? coins0 - total : coins0 + total;
+  hold[d.id] = kind === "buy" ? have + qty : have - qty;
+  if (!hold[d.id]) delete hold[d.id];
+  setLocalAccountState(coins1, hold);
+  syncCoinViews(); renderStockUI();
+  msg.textContent = `✅ ${d.name}を ${qty} 株${kind === "buy" ? "購入" : "売却"}しました（${price}コイン × ${qty} = ${total}コイン）　${fmtClock(Date.now())}`;
+
+  // ② 保存は裏で順番に実行
+  pendingTrades++;
+  const account = currentAccount;
+  tradeChain = tradeChain.then(async () => {
+    try {
+      const accRef = doc(db, "accounts", account);
+      await runTransaction(db, async tx => {
+        const aSnap = await tx.get(accRef);
+        if (!aSnap.exists()) throw new Error("アカウントが見つかりません。");
+        const acc = aSnap.data(), h = { ...normalizeHoldings(acc) }, cur = h[d.id] || 0;
+        let coins = acc.coins !== undefined ? acc.coins : 1000;
+        if (kind === "buy") {
+          if (coins < total) throw new Error(`コインが足りません（必要: ${total} コイン）`);
+          coins -= total; h[d.id] = cur + qty;
+        } else {
+          if (cur < qty) throw new Error(`保有している株が足りません（現在: ${cur} 株）`);
+          coins += total; h[d.id] = cur - qty; if (!h[d.id]) delete h[d.id];
+        }
+        tx.update(accRef, { coins, holdings: h, shares: sumHoldings(h), updated_at: Timestamp.now() });
+      });
+      pendingTrades--;
+      if (!pendingTrades) await resyncFromServer();
+    } catch (e) {
+      pendingTrades--;
+      await resyncFromServer();   // 失敗した取引を取り消して、正しい値に戻す
+      stkEl("stockMsg").textContent = "⚠️ " + ((e && e.message) || "取引を保存できませんでした。") + "（この取引は取り消されました）";
+    }
+  });
 }
 stkEl("buyStockBtn").onclick = () => tradeStock("buy");
 stkEl("sellStockBtn").onclick = () => tradeStock("sell");
 
+// ==========================================
+// 共通ヘルパー
+// ==========================================
+const $id = id => document.getElementById(id);
+function syncCoinViews() {
+  updateCoinButtonDisplay();
+  document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
+}
+function gachaCost() { return isPremium() ? Math.floor(GACHA_COST_BASE * PREMIUM_GACHA_DISCOUNT) : GACHA_COST_BASE; }
+function boostCost() { return isPremium() ? Math.floor(500 * PREMIUM_BOOST_RATE) : 500; }
+function highlightCost() { return isPremium() ? 0 : 100; }
+
+// プレミアムの状態に応じて、ボタンやラベルの表示を更新
+function updatePremiumLabels() {
+  const gc = gachaCost();
+  const gb = $id("playGachaBtn"); if (gb) gb.textContent = `ガチャを回す (${gc}🪙${isPremium() ? " 👑割引" : ""})`;
+  const gd = $id("gachaDesc"); if (gd) gd.textContent = `1回 ${gc}コインで挑戦可能！運が良ければ最大10000コイン獲得！${isPremium() ? "（プレミアム割引中）" : ""}`;
+  const bc = $id("boostCostText"); if (bc) bc.textContent = boostCost();
+  const hc = $id("hlCostText"); if (hc) hc.textContent = isPremium() ? "👑プレミアムは無料" : "100コイン";
+}
+function onPremiumStateChanged() {
+  try { renderStampMenu(); } catch (e) {}
+  updatePremiumLabels();
+  const vis = id => { const el = $id(id); return el && el.style.display === "block"; };
+  if (vis("premiumSection")) renderPremiumAll();
+  if (vis("depositSection")) renderDeposit();
+}
+let lastPremState = null;
+setInterval(() => {   // 期限切れ・加入の切り替わりを検知
+  const st = isPremium();
+  if (st !== lastPremState) { lastPremState = st; onPremiumStateChanged(); }
+}, 1000);
+
+// ==========================================
+// 🕒 株画面の現在時刻（秒つき）
+// ==========================================
+function updateStockClock() {
+  const el = $id("stockClock"); if (!el) return;
+  el.textContent = "🕒 " + fmtClock(Date.now());
+}
+
+// ==========================================
+// 🏦 預金
+// ==========================================
+let depTimer = null, depBusy = false;
+function renderDeposit() {
+  const bal = currentDepositBalance(), rate = depositRateNow();
+  $id("depBalance").textContent = bal.toLocaleString("ja-JP", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  $id("depRateInfo").innerHTML = `日利 <b>${(rate * 100).toFixed(2)}%</b>（複利）` +
+    (isPremium() ? "　👑プレミアム特典中" : `　（プレミアムなら ${(DEPOSIT_RATE_PREMIUM * 100).toFixed(2)}%）`);
+  const perSec = bal * (Math.pow(1 + rate, 1 / 86400) - 1);
+  $id("depGrowInfo").innerHTML = bal > 0
+    ? `1秒あたり <b>+${perSec.toFixed(5)}</b> コイン ／ 1日で約 <b>+${(bal * rate).toFixed(2)}</b> コイン`
+    : "コインを預けると、ここから利子が増えていきます。";
+}
+function startDepositUI() { stopDepositUI(); renderDeposit(); depTimer = setInterval(renderDeposit, 250); }
+function stopDepositUI() { if (depTimer) { clearInterval(depTimer); depTimer = null; } }
+
+async function depositOp(kind) {
+  const msg = $id("depMsg");
+  if (!currentAccount) return alert("預金を利用するにはアカウントにログインしてください。");
+  if (depBusy) return;
+  const amt = parseInt($id("depAmountInput").value, 10);
+  if (kind !== "all" && (isNaN(amt) || amt <= 0)) { msg.textContent = "有効な金額を入力してください。"; return; }
+  depBusy = true; msg.textContent = "処理中...";
+  try {
+    const ref = doc(db, "accounts", currentAccount);
+    const r = await runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("アカウントが見つかりません。");
+      const acc = snap.data(), now = Date.now();
+      let coins = acc.coins !== undefined ? acc.coins : 1000;
+      let bal = calcDeposit(acc.deposit || 0, acc.depositAt, now, acc.premiumUntil || 0);
+      let moved = amt;
+      if (kind === "in") {
+        if (moved > coins) throw new Error(`コインが足りません（所持: ${coins} コイン）`);
+        coins -= moved; bal += moved;
+      } else {
+        if (kind === "all") moved = Math.floor(bal);
+        if (moved <= 0) throw new Error("引き出せる預金がありません。");
+        if (moved > Math.floor(bal)) throw new Error(`預金が足りません（引き出せる額: ${Math.floor(bal)} コイン）`);
+        coins += moved; bal -= moved;
+      }
+      tx.update(ref, { coins, deposit: bal, depositAt: now, updated_at: Timestamp.now() });
+      return { coins, bal, now, moved };
+    });
+    localStorage.setItem("myCoins", r.coins);
+    localStorage.setItem("myDeposit", String(r.bal));
+    localStorage.setItem("myDepositAt", String(r.now));
+    syncCoinViews(); renderDeposit();
+    $id("depAmountInput").value = "";
+    msg.textContent = `${kind === "in" ? "預けました" : "引き出しました"}：${r.moved.toLocaleString()} コイン（${fmtClock(r.now)}）`;
+  } catch (e) {
+    msg.textContent = (e && e.message) || "処理に失敗しました。";
+  }
+  depBusy = false;
+}
+$id("depInBtn").onclick = () => depositOp("in");
+$id("depOutBtn").onclick = () => depositOp("out");
+$id("depOutAllBtn").onclick = () => depositOp("all");
+
+$id("menuDepositBtn").onclick = () => {
+  if (!currentAccount) return alert("預金を利用するにはアカウントが必要です。");
+  hideAllSections();
+  $id("depositSection").style.display = "block";
+  syncCoinViews();
+  $id("depMsg").textContent = "";
+  startDepositUI();
+};
+
+// ==========================================
+// 👑 プレミアム
+// ==========================================
+let premTimer = null, premPreviewIcon = null, premBusy = false, rlSpinning = false, rlRot = 0;
+
+// ルーレット：盤面は12マス。当選確率は下の RL_RATES が実際の確率（盤面の面積とは一致しません）
+const RL_SEGMENTS = [0, 50, 100, 200, 0, 500, 50, 1000, 0, 100, 3000, 10000];
+const RL_RATES = [
+  { v: 0, w: 30 }, { v: 50, w: 25 }, { v: 100, w: 20 }, { v: 200, w: 12 },
+  { v: 500, w: 8 }, { v: 1000, w: 3.5 }, { v: 3000, w: 1 }, { v: 10000, w: 0.5 }
+];
+const RL_COLORS = { 0: "#b2bec3", 50: "#74b9ff", 100: "#55efc4", 200: "#ffeaa7", 500: "#fab1a0", 1000: "#ff7675", 3000: "#a29bfe", 10000: "#fdcb6e" };
+
+function buildRouletteOnce() {
+  const wheel = $id("rlWheel");
+  if (!wheel || wheel.dataset.built) return;
+  wheel.dataset.built = "1";
+  wheel.style.background = "conic-gradient(" + RL_SEGMENTS.map((v, i) => `${RL_COLORS[v]} ${i * 30}deg ${(i + 1) * 30}deg`).join(",") + ")";
+  RL_SEGMENTS.forEach((v, i) => {
+    const l = document.createElement("div");
+    l.className = "rl-label";
+    l.textContent = v === 0 ? "ハズレ" : v.toLocaleString();
+    l.style.transform = `rotate(${i * 30 + 15}deg) translateY(-88px)`;
+    wheel.appendChild(l);
+  });
+  $id("rlRates").innerHTML = RL_RATES.map(p => `<tr><td>${p.v === 0 ? "ハズレ" : p.v.toLocaleString() + " コイン"}</td><td>${p.w}%</td></tr>`).join("");
+}
+function rouletteState() {
+  if (!isPremium()) return "nopremium";
+  return localStorage.getItem("rouletteDate") === todayKey() ? "done" : "ready";
+}
+function updateRouletteUI() {
+  const b = $id("rlSpinBtn"); if (!b) return;
+  const st = rouletteState();
+  b.disabled = rlSpinning || st !== "ready";
+  b.style.opacity = b.disabled ? ".6" : "1";
+  b.textContent = rlSpinning ? "回転中..." : st === "nopremium" ? "👑 プレミアム会員限定" : st === "done" ? "今日はもう回しました（明日 0:00 以降にまた回せます）" : "ルーレットを回す（今日1回）";
+}
+async function spinRoulette() {
+  if (rlSpinning || rouletteState() !== "ready") return;
+  const today = todayKey(), msg = $id("rlMsg");
+  rlSpinning = true; updateRouletteUI(); msg.textContent = "";
+  // 抽選
+  let r = Math.random() * 100, prize = RL_RATES[RL_RATES.length - 1].v;
+  for (const p of RL_RATES) { if (r < p.w) { prize = p.v; break; } r -= p.w; }
+  try {
+    const ref = doc(db, "accounts", currentAccount);
+    const res = await runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("アカウントが見つかりません。");
+      const acc = snap.data();
+      if (!((acc.premiumUntil || 0) > Date.now())) throw new Error("プレミアム会員ではありません。");
+      if (acc.rouletteDate === today) throw new Error("今日はもう回しました。");
+      const coins = (acc.coins !== undefined ? acc.coins : 1000) + prize;
+      tx.update(ref, { coins, rouletteDate: today, updated_at: Timestamp.now() });
+      return { coins };
+    });
+    localStorage.setItem("rouletteDate", today);
+    // 当選したマスに止まるように回す
+    const idxs = RL_SEGMENTS.map((v, i) => v === prize ? i : -1).filter(i => i >= 0);
+    const idx = idxs[Math.floor(Math.random() * idxs.length)];
+    const center = idx * 30 + 15, jitter = (Math.random() - 0.5) * 16;
+    rlRot = Math.ceil(rlRot / 360) * 360 + 360 * 6 + (360 - center) + jitter;
+    $id("rlWheel").style.transform = `rotate(${rlRot}deg)`;
+    setTimeout(() => {
+      localStorage.setItem("myCoins", res.coins);
+      syncCoinViews();
+      msg.textContent = prize > 0 ? `🎉 ${prize.toLocaleString()} コイン獲得！（${fmtClock(Date.now())}）` : "😢 ハズレ… また明日挑戦しよう！";
+      rlSpinning = false; updateRouletteUI();
+    }, 4400);
+  } catch (e) {
+    msg.textContent = (e && e.message) || "ルーレットに失敗しました。";
+    rlSpinning = false; updateRouletteUI();
+  }
+}
+$id("rlSpinBtn").onclick = spinRoulette;
+
+// 状態表示（毎秒）
+function updatePremiumClock() {
+  const el = $id("premStatus"); if (!el) return;
+  const until = getPremiumUntil(), now = Date.now();
+  if (currentAccount && until > now) {
+    const rem = until - now, d = Math.floor(rem / DAY_MS), rest = rem - d * DAY_MS, p2 = n => String(n).padStart(2, "0");
+    const hh = Math.floor(rest / 3600000), mm = Math.floor(rest % 3600000 / 60000), ss = Math.floor(rest % 60000 / 1000);
+    el.className = "prem-status on";
+    el.innerHTML = `<div class="big">👑 プレミアム会員</div><div class="sub">残り ${d}日 ${p2(hh)}:${p2(mm)}:${p2(ss)}</div><div class="sub">有効期限 ${formatDate(until)}</div>`;
+  } else {
+    el.className = "prem-status";
+    el.innerHTML = `<div class="big">プレミアム未加入</div><div class="sub">1日 ${PREMIUM_PRICE_PER_DAY} コインで、下の特典がすべて使えます。</div>`;
+  }
+  updateRouletteUI();
+}
+
+function renderFrameGrid() {
+  const box = $id("premFrames"); if (!box) return;
+  const cur = localStorage.getItem("iconFrame") || "";
+  const inner = premPreviewIcon
+    ? `<img src="${premPreviewIcon}" style="width:34px;height:34px;object-fit:cover;background:#fff;border-radius:50%;">`
+    : `<span class="pfr-ph" style="width:34px;height:34px;background:#dfe6e9;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:50%;">🙂</span>`;
+  box.className = "prem-grid" + (isPremium() ? "" : " prem-lock");
+  box.innerHTML = [{ id: "", name: "なし" }, ...ICON_FRAMES].map(f =>
+    `<div class="prem-item${f.id === cur ? " sel" : ""}" data-f="${f.id}"><div class="pv">${wrapFrameHtml(inner, f.id)}</div>${f.name}</div>`).join("");
+}
+function renderTagGrid() {
+  const box = $id("premTags"); if (!box) return;
+  const curName = localStorage.getItem("customTagName") || "", on = localStorage.getItem("customTagEnabled") === "true";
+  box.className = "prem-grid" + (isPremium() ? "" : " prem-lock");
+  box.innerHTML = PREMIUM_TAGS.map((t, i) => {
+    const active = on && curName === t.name;
+    return `<div class="prem-item${active ? " sel" : ""}" data-i="${i}"><div class="pv"><span class="prem-tagchip" style="background:${t.color}">${t.name}</span></div>${active ? "着用中" : "つける"}</div>`;
+  }).join("");
+}
+function renderPremiumAll() {
+  buildRouletteOnce();
+  $id("premPriceDay").textContent = PREMIUM_PRICE_PER_DAY;
+  const pct = n => (n * 100).toFixed(2) + "%";
+  $id("premPerks").innerHTML = [
+    `👑 限定スタンプ ${PREMIUM_STAMPS.length}種が使い放題`,
+    `🏷️ 限定タグ ${PREMIUM_TAGS.length}種が使い放題`,
+    `🎡 毎日1回、ルーレットでコインが当たる（最大10,000コイン・ハズレあり）`,
+    `🖼️ アイコンの枠を ${ICON_FRAMES.length}種類から選べる`,
+    `🏦 預金の日利アップ（${pct(DEPOSIT_RATE_NORMAL)} → ${pct(DEPOSIT_RATE_PREMIUM)}）`,
+    `🎰 コインガチャが ${Math.round((1 - PREMIUM_GACHA_DISCOUNT) * 100)}%OFF（${GACHA_COST_BASE} → ${Math.floor(GACHA_COST_BASE * PREMIUM_GACHA_DISCOUNT)}コイン）`,
+    `✨ 投稿のハイライト表示が無料（通常100コイン）`,
+    `📍 スレッドの注目固定が半額（通常500 → ${Math.floor(500 * PREMIUM_BOOST_RATE)}コイン）`,
+    `👑 投稿の名前の横にプレミアムマークが付く`
+  ].map(t => `<li>${t}</li>`).join("");
+  $id("premStamps").innerHTML = PREMIUM_STAMPS.map(s => `<span style="${isPremium() ? "" : "opacity:.45"}">${s}</span>`).join("");
+  renderFrameGrid(); renderTagGrid(); updatePremCost(); updatePremiumClock();
+}
+function updatePremCost() {
+  const d = parseInt($id("premDaysInput").value, 10), el = $id("premCostText"); if (!el) return;
+  if (isNaN(d) || d < 1) { el.textContent = ""; return; }
+  el.textContent = `合計 ${(d * PREMIUM_PRICE_PER_DAY).toLocaleString()} コイン（${isPremium() ? `今の期限に ${d}日 追加` : `${d}日間`}）`;
+}
+function startPremiumUI() {
+  stopPremiumUI();
+  renderPremiumAll();
+  premTimer = setInterval(updatePremiumClock, 1000);
+  const iid = getCookie("iconId");
+  if (iid) getIconSrc(iid).then(src => { if (src) { premPreviewIcon = src; renderFrameGrid(); } }).catch(() => {});
+}
+function stopPremiumUI() { if (premTimer) { clearInterval(premTimer); premTimer = null; } }
+
+async function buyPremium() {
+  const msg = $id("premMsg");
+  if (!currentAccount) return alert("プレミアムを利用するにはアカウントにログインしてください。");
+  if (premBusy) return;
+  const days = parseInt($id("premDaysInput").value, 10);
+  if (isNaN(days) || days < 1 || days > 365) { msg.textContent = "日数は 1〜365 で入力してください。"; return; }
+  const cost = days * PREMIUM_PRICE_PER_DAY;
+  if (getMyCoins() < cost) { msg.textContent = `コインが足りません（必要: ${cost.toLocaleString()} コイン）`; return; }
+  if (!confirm(`${cost.toLocaleString()} コインを使って、プレミアムを ${days}日分 ${isPremium() ? "延長" : "購入"}しますか？`)) return;
+  premBusy = true; msg.textContent = "処理中...";
+  try {
+    const ref = doc(db, "accounts", currentAccount);
+    const r = await runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("アカウントが見つかりません。");
+      const acc = snap.data(), now = Date.now();
+      const coins = acc.coins !== undefined ? acc.coins : 1000;
+      if (coins < cost) throw new Error(`コインが足りません（必要: ${cost.toLocaleString()} コイン）`);
+      const until = Math.max(now, acc.premiumUntil || 0) + days * DAY_MS;
+      const upd = { coins: coins - cost, premiumUntil: until, updated_at: Timestamp.now() };
+      // 日利が切り替わる前に、ここまでの利子を確定させる
+      if ((acc.deposit || 0) > 0) { upd.deposit = calcDeposit(acc.deposit, acc.depositAt, now, acc.premiumUntil || 0); upd.depositAt = now; }
+      tx.update(ref, upd);
+      return { coins: upd.coins, until, deposit: upd.deposit, depositAt: upd.depositAt };
+    });
+    localStorage.setItem("myCoins", r.coins);
+    localStorage.setItem("premiumUntil", String(r.until));
+    if (r.deposit !== undefined) { localStorage.setItem("myDeposit", String(r.deposit)); localStorage.setItem("myDepositAt", String(r.depositAt)); }
+    syncCoinViews(); onPremiumStateChanged();
+    msg.textContent = `👑 プレミアムを ${days}日分 ${cost.toLocaleString()} コインで購入しました。有効期限: ${formatDate(r.until)}`;
+  } catch (e) {
+    msg.textContent = (e && e.message) || "購入に失敗しました。";
+  }
+  premBusy = false;
+}
+$id("premBuyBtn").onclick = buyPremium;
+$id("premDaysInput").oninput = updatePremCost;
+document.querySelectorAll("#premiumSection .prem-buy .quick").forEach(b => {
+  b.onclick = () => { $id("premDaysInput").value = b.dataset.d; updatePremCost(); };
+});
+
+$id("premFrames").onclick = e => {
+  const it = e.target.closest(".prem-item"); if (!it || !isPremium()) return;
+  const id = it.dataset.f || "";
+  localStorage.setItem("iconFrame", id);
+  saveAccountData({ iconFrame: id });
+  renderFrameGrid();
+};
+function applyPremiumTag(t) {
+  localStorage.setItem("customTagName", t.name);
+  localStorage.setItem("customTagColor", t.color);
+  localStorage.setItem("customTagEnabled", "true");
+  saveAccountData({ customTagEnabled: true, customTagName: t.name, customTagColor: t.color });
+}
+$id("premTags").onclick = e => {
+  const it = e.target.closest(".prem-item"); if (!it || !isPremium()) return;
+  const t = PREMIUM_TAGS[parseInt(it.dataset.i, 10)]; if (!t) return;
+  applyPremiumTag(t); renderTagGrid();
+};
+$id("premTagOffBtn").onclick = () => {
+  localStorage.setItem("customTagEnabled", "false");
+  saveAccountData({ customTagEnabled: false });
+  renderTagGrid();
+};
+
+$id("menuPremiumBtn").onclick = () => {
+  if (!currentAccount) return alert("プレミアムを利用するにはアカウントが必要です。");
+  hideAllSections();
+  $id("premiumSection").style.display = "block";
+  syncCoinViews();
+  $id("premMsg").textContent = ""; $id("rlMsg").textContent = "";
+  startPremiumUI();
+};
+
+updatePremiumLabels();
+
 // --- ガチャシステム（コインのみ） ---
-const GACHA_COST = 500; // ★1回の値段
+const GACHA_COST = GACHA_COST_BASE; // ★1回の値段（プレミアムの割引後は gachaCost()）
 
 // ★rate は確率(%)。合計100。還元率 約86% ／ 500コイン以上が出る確率 約37%
 const GACHA_COINS = [
@@ -2312,7 +2927,7 @@ const GACHA_ITEMS = GACHA_COINS; // ★限定タグは廃止（コインだけ�
 document.getElementById("playGachaBtn").onclick = () => {
   if (!currentAccount) return alert("ガチャを利用するにはアカウントにログインしてください。");
   const myCoins = getMyCoins();
-  if (myCoins < GACHA_COST) return alert(`コインが足りません (必要: ${GACHA_COST}コイン)`);
+  if (myCoins < gachaCost()) return alert(`コインが足りません (必要: ${gachaCost()}コイン)`);
 
   const totalRate = GACHA_ITEMS.reduce((sum, item) => sum + item.rate, 0);
   let random = Math.random() * totalRate;
@@ -2322,7 +2937,7 @@ document.getElementById("playGachaBtn").onclick = () => {
     random -= item.rate;
   }
 
-  setMyCoins(myCoins - GACHA_COST + selected.value);
+  setMyCoins(myCoins - gachaCost() + selected.value);
 
   document.getElementById("gachaResultContent").textContent = selected.name;
   document.getElementById("gachaResultModal").style.display = "block";
@@ -2882,13 +3497,14 @@ document.getElementById("boostThreadBtn").onclick = async () => {
   if (!currentThreadId) return;
 
   const myCoins = getMyCoins();
-  if (myCoins < 500) return alert("コインが足りません (必要: 500コイン)");
+  const bCost = boostCost();
+  if (myCoins < bCost) return alert(`コインが足りません (必要: ${bCost}コイン)`);
 
-  if (!confirm("500コインを消費してこのスレッドを10分間 📍マーク付きで注目固定しますか？")) return;
+  if (!confirm(`${bCost}コインを消費してこのスレッドを10分間 📍マーク付きで注目固定しますか？${isPremium() ? "\n（👑プレミアム半額）" : ""}`)) return;
 
   showLoading("ブースト適用中...");
   try {
-    setMyCoins(myCoins - 500);
+    setMyCoins(myCoins - bCost);
     await updateDoc(doc(db, currentRoom, currentThreadId), {
       boosted: true,
       boostedBy: currentAccount,
@@ -2934,6 +3550,7 @@ function savePurchasedTag(tagVal) {
 
 const DEFAULT_STAMPS = ["😀", "😊", "🥶", "🎉", "👍", "👀"];
 function getStampCategory(st) {
+  if (PREMIUM_STAMPS.includes(st) && !getPurchasedEmojis().includes(st)) return "premium";
   const hit = SHOP_EMOJIS.find(e => e.emoji === st);
   return hit ? hit.category : "face";
 }
@@ -2941,10 +3558,10 @@ function getStampCategory(st) {
 function renderStampMenu() {
   const menuContent = document.getElementById("stampMenuContent");
   if (!menuContent) return;
-  const stampKey = JSON.stringify(getPurchasedEmojis());
+  const stampKey = JSON.stringify(getUsableEmojis());
   if (renderStampMenu._k === stampKey && menuContent.childElementCount) return;
   renderStampMenu._k = stampKey;
-  const allStamps = [...new Set([...DEFAULT_STAMPS, ...getPurchasedEmojis()])];
+  const allStamps = [...new Set([...DEFAULT_STAMPS, ...getUsableEmojis()])];
 
   menuContent.innerHTML = "";
   // ★メニューには最初の6個だけ表示
@@ -2972,7 +3589,7 @@ function renderStampMenu() {
 // ★「もっと見る」ポップアップ（カテゴリで絞り込んで選べる）
 function openStampPicker() {
   const old = document.getElementById("stampPickerPopup"); if (old) old.remove();
-  const owned = [...new Set([...DEFAULT_STAMPS, ...getPurchasedEmojis()])];
+  const owned = [...new Set([...DEFAULT_STAMPS, ...getUsableEmojis()])];
   let cat = "all";
   const pop = document.createElement("div");
   pop.id = "stampPickerPopup";
@@ -2989,7 +3606,7 @@ function openStampPicker() {
   pop.querySelector("#stampPickerClose").onclick = close;
   const draw = () => {
     tabs.innerHTML = ""; grid.innerHTML = "";
-    const cats = [{ id: "all", label: "すべて" }, ...EMOJI_CATS.filter(c => owned.some(s => getStampCategory(s) === c.id))];
+    const cats = [{ id: "all", label: "すべて" }, ...[{ id: "premium", label: "👑 プレミアム" }, ...EMOJI_CATS].filter(c => owned.some(s => getStampCategory(s) === c.id))];
     cats.forEach(c => {
       const b = document.createElement("button"); b.textContent = c.label;
       b.style.cssText = `flex:0 0 auto; padding:5px 10px; border:none; border-radius:14px; font-size:12px; cursor:pointer; background:${c.id === cat ? "#27ae60" : "#ecf0f1"}; color:${c.id === cat ? "#fff" : "#333"};`;
@@ -3026,12 +3643,17 @@ document.getElementById("fullStoreRedeemBtn").onclick = async () => {
 };
 
 function getCustomTagData() {
-  const enabled = localStorage.getItem("customTagEnabled") === "true";
+  const prem = isPremium();
+  const tagName = localStorage.getItem("customTagName") || "";
+  const premiumOnly = PREMIUM_TAGS.some(t => t.name === tagName);   // 限定タグはプレミアム中だけ付く
+  const enabled = localStorage.getItem("customTagEnabled") === "true" && (!premiumOnly || prem);
   return {
     customTag: enabled,
-    customTagName: localStorage.getItem("customTagName") || "",
+    customTagName: tagName,
     customTagColor: localStorage.getItem("customTagColor") || "#e74c3c",
-    nameEffect: localStorage.getItem("activeNameEffect") || ""
+    nameEffect: localStorage.getItem("activeNameEffect") || "",
+    premium: prem,
+    iconFrame: prem ? (localStorage.getItem("iconFrame") || "") : ""
   };
 }
 
@@ -3192,12 +3814,12 @@ const threadTitleElem=document.getElementById('threadTitle'), threadDetailElem=d
 
 function formatDate(ts){ 
   if(!ts) return ''; const d = ts.toDate? ts.toDate() : new Date(ts);
-  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 }
 function formatRelativeTime(ts){
   if(!ts) return ''; const now = new Date(), d = ts.toDate ? ts.toDate() : new Date(ts);
   const diffSec = Math.floor((now - d) / 1000), diffMin = Math.floor(diffSec / 60), diffHour = Math.floor(diffMin / 60), diffDay = Math.floor(diffHour / 24);
-  const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
   if(diffDay > 0) return `${dateStr} (${diffDay}日前)`; if(diffHour > 0) return `${dateStr} (${diffHour}時間前)`; if(diffMin > 0) return `${dateStr} (${diffMin}分前)`; return `${dateStr} (たった今)`;
 }
 
@@ -3218,6 +3840,8 @@ function setSectionsHeight(){
   document.getElementById('favoritesSection').style.height = sectionHeight;
   document.getElementById('diceSection').style.height = sectionHeight;
   document.getElementById('dmSection').style.height = sectionHeight;
+  document.getElementById('depositSection').style.height = sectionHeight;
+  document.getElementById('premiumSection').style.height = sectionHeight;
 }
 window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
@@ -3555,7 +4179,8 @@ function fillPostIcons() {
     const s = iconCache[sp.dataset.iconId]; if (!s) return;
     const img = document.createElement("img"); img.src = s;
     img.style.cssText = "width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:0;object-fit:cover;background:#fff;";
-    sp.replaceWith(img);
+    const fr = frameCls(sp.dataset.frame || "");
+    if (fr) { const w = document.createElement("span"); w.className = fr; w.appendChild(img); sp.replaceWith(w); } else sp.replaceWith(img);
   });
 }
 const escHtmlD = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -3599,7 +4224,8 @@ async function loadPosts(threadId) {
               if(existingLi && existingLi.classList.contains('temp-post')) existingLi.remove();
               if (data.deleted) { const dl = document.createElement("li"); dl.id = "post-" + docId; renderDeletedPost(dl, data); postList.appendChild(dl); continue; }
 
-              let iconHtml = data.icon && iconCache[data.icon] ? `<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">` : (data.icon ? `<span class="pIcon" data-icon-id="${data.icon}" style="display:inline-block;width:24px;height:24px;"></span>` : "");
+              const _frId = ICON_FRAMES.some(f => f.id === data.iconFrame) ? data.iconFrame : "";
+              let iconHtml = data.icon && iconCache[data.icon] ? wrapFrameHtml(`<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">`, _frId) : (data.icon ? `<span class="pIcon" data-icon-id="${data.icon}" data-frame="${_frId}" style="display:inline-block;width:24px;height:24px;"></span>` : "");
 
               const li = document.createElement("li");
               li.id = "post-" + docId;
@@ -3633,7 +4259,7 @@ async function loadPosts(threadId) {
                 ${actionBox}
                 ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && !data.nameDup && !currentThreadCreatorDup && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}${dupMark}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && !data.nameDup && !currentThreadCreatorDup && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}${dupMark}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}${data.premium ? '<span title="プレミアム会員" style="font-size:12px;margin-left:2px;">👑</span>' : ""}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
               const userLinkSpan = li.querySelector('.postUserLink');
@@ -3771,8 +4397,9 @@ document.getElementById('createPostBtn').onclick=async()=>{
     if (isHighlight) {
       if (!currentAccount) return alert("投稿のハイライト表示はログインユーザーのみ利用できます。");
       const myCoins = getMyCoins();
-      if (myCoins < 100) return alert("ハイライト表示に必要なコインが足りません (必要: 100コイン)");
-      setMyCoins(myCoins - 100);
+      const hlCost = highlightCost();
+      if (myCoins < hlCost) return alert(`ハイライト表示に必要なコインが足りません (必要: ${hlCost}コイン)`);
+      if (hlCost) setMyCoins(myCoins - hlCost);
     }
 
     const iconFile=document.getElementById('postIconInput').files[0]; let iconId = getCookie('iconId');
