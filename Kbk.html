@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sinzo株価表示</title>
 <style>
-:root{--bar:#080d18;--tk:#000;--bg:#05080f;--panel:#0d1422;--line:#1c2740;--tx:#e8eefc;--sub:#7f8fb0;--up:#ff4d5e;--down:#2ee6a0;--flat:#9aa7c7}
+/* マイナス（下落）を赤、プラス（上昇）を緑に変更した配色定義 */
+:root{--bar:#080d18;--tk:#000;--bg:#05080f;--panel:#0d1422;--line:#1c2740;--tx:#e8eefc;--sub:#7f8fb0;--up:#2ee6a0;--down:#ff4d5e;--flat:#9aa7c7}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI","Hiragino Sans",Meiryo,sans-serif;overflow:hidden}
 #app{display:flex;flex-direction:column;height:100%}
@@ -22,8 +23,8 @@ body.hideui #bar{display:none}
 .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
 .num{font-variant-numeric:tabular-nums;font-weight:700}
 .flash-up{animation:fu .6s}.flash-down{animation:fd .6s}
-@keyframes fu{from{background:rgba(255,77,94,.45)}to{background:transparent}}
-@keyframes fd{from{background:rgba(46,230,160,.4)}to{background:transparent}}
+@keyframes fu{from{background:rgba(46,230,160,.4)}to{background:transparent}}
+@keyframes fd{from{background:rgba(255,77,94,.45)}to{background:transparent}}
 /* 電光掲示板 */
 .board{display:grid;gap:8px;height:100%;grid-auto-rows:1fr}
 .row{display:grid;grid-template-columns:2.2fr 1.2fr 1.1fr 2fr;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 18px;min-height:0}
@@ -52,7 +53,7 @@ body.hideui #bar{display:none}
 .main canvas{flex:1;min-height:0;width:100%}
 @media(max-width:900px){.tiles{grid-template-columns:repeat(2, 1fr);grid-template-rows:repeat(5, 1fr);}}
 @media(max-width:700px){.single{grid-template-columns:1fr;grid-template-rows:auto 1fr}.side{flex-direction:row}.side .it{min-width:130px}.row{grid-template-columns:1.6fr 1fr 1fr;}.row canvas{display:none}}
-html.blue{--bg:#0020c8;--panel:#0a2fe0;--line:#5470ff;--tx:#fff;--sub:#c3ceff;--up:#ff8593;--down:#7dffc0;--flat:#e3e9ff;--bar:#001590;--tk:#000f6e}
+html.blue{--bg:#0020c8;--panel:#0a2fe0;--line:#5470ff;--tx:#fff;--sub:#c3ceff;--up:#7dffc0;--down:#ff8593;--flat:#e3e9ff;--bar:#001590;--tk:#000f6e}
 .focus{height:100%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 28px;min-height:0}
 .fhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .fnm{font-size:clamp(20px,4vh,48px);font-weight:800}
@@ -212,7 +213,8 @@ function drawLine(cv,arr,color,opt){
   const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,color+"55");gr.addColorStop(1,color+"00");g.fillStyle=gr;g.fill();
   const lx=X(arr.length-1),ly=Y(arr[arr.length-1]);g.beginPath();g.arc(lx,ly,opt.axis?5:3,0,7);g.fillStyle=color;g.fill();
 }
-const colOf=v=>v>0?"#ff4d5e":v<0?"#2ee6a0":"#9aa7c7";
+// 下落時（v<0）を赤(#ff4d5e)、上昇時（v>0）を緑(#2ee6a0)に設定
+const colOf=v=>v>0?"#2ee6a0":v<0?"#ff4d5e":"#9aa7c7";
 function info(d){
   const s=market[d.id],h=s.h,p=s.p,prev=h.length>1?h[h.length-2]:p,open=h[0];
   return {d,s,h,p,prev,open,tick:p-prev,diff:p-prev,pct:prev?(p-prev)/prev*100:0,dOpen:p-open,pOpen:open?(p-open)/open*100:0};
@@ -244,7 +246,7 @@ function render(){
       drawLine(el.querySelector("canvas"),i.h,colOf(i.diff));
       if(old!=null&&old!==i.p){el.classList.remove("flash-up","flash-down");void el.offsetWidth;el.classList.add(i.p>old?"flash-up":"flash-down");}
     }else if(layout==="tiles"){
-      const a=Math.min(.85,Math.abs(i.pct)/2+.18),rgb=i.diff>0?"200,40,60":i.diff<0?"20,150,100":"60,70,100";
+      const a=Math.min(.85,Math.abs(i.pct)/2+.18),rgb=i.diff>0?"20,150,100":i.diff<0?"200,40,60":"60,70,100";
       el.style.background=`rgba(${rgb},${a})`;
       el.querySelector(".pr").textContent=fmt(i.p);
       el.querySelector(".ch").innerHTML=`${arrow(i.diff)} ${sgn(i.diff)} (${sgn(i.pct,2)}%)`;
