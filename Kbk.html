@@ -31,8 +31,8 @@ body.hideui #bar{display:none}
 .row .pr{font-size:clamp(24px,5vh,64px);text-align:right}
 .row .ch{font-size:clamp(14px,2.4vh,28px);text-align:right}
 .row canvas{width:100%;height:70%}
-/* タイル */
-.tiles{display:grid;gap:10px;height:100%}
+/* タイル（5列×2行固定） */
+.tiles{display:grid;grid-template-columns:repeat(5, 1fr);grid-template-rows:repeat(2, 1fr);gap:10px;height:100%}
 .tile{border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:0;position:relative;overflow:hidden}
 .tile .nm{font-size:clamp(14px,2.4vh,26px);font-weight:700}
 .tile .pr{font-size:clamp(28px,7vh,90px);font-weight:800}
@@ -50,6 +50,7 @@ body.hideui #bar{display:none}
 .main .meta{display:flex;gap:28px;color:var(--sub);font-size:clamp(12px,1.8vh,18px);margin:6px 0 10px;flex-wrap:wrap}
 .main .meta b{color:var(--tx)}
 .main canvas{flex:1;min-height:0;width:100%}
+@media(max-width:900px){.tiles{grid-template-columns:repeat(2, 1fr);grid-template-rows:repeat(5, 1fr);}}
 @media(max-width:700px){.single{grid-template-columns:1fr;grid-template-rows:auto 1fr}.side{flex-direction:row}.side .it{min-width:130px}.row{grid-template-columns:1.6fr 1fr 1fr;}.row canvas{display:none}}
 html.blue{--bg:#0020c8;--panel:#0a2fe0;--line:#5470ff;--tx:#fff;--sub:#c3ceff;--up:#ff8593;--down:#7dffc0;--flat:#e3e9ff;--bar:#001590;--tk:#000f6e}
 .focus{height:100%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 28px;min-height:0}
@@ -102,11 +103,12 @@ const app = initializeApp({
 const db = getFirestore(app);
 const marketRef = doc(db, "market", "global");
 
-// ===== 銘柄定義（本体 index.html と同一） =====
 const STOCKS = [
   { id:"snz", name:"sinzo株式会社", emoji:"🏢", base:300, min:15, max:2500, vol:0.11, drift:0.002, revert:0.010, jump:{p:0.05,size:0.40} },
   { id:"snzb", name:"sinzobord", emoji:"📱", base:250, min:20, max:1500, vol:0.09, drift:0.0015, revert:0.012, jump:{p:0.04,size:0.35} },
   { id:"frbs", name:"firebase株式会社", emoji:"💻", base:200, min:70, max:500, vol:0.07, drift:0.001, revert:0.020 },
+  { id: "mrbs", name: "丸菱商事",   emoji: "⭕️", base: 200, min: 70,  max: 500,  vol: 0.07,  drift: 0.001,  revert: 0.020 },
+  { id: "bepn", name: "別班",   emoji: "🔫", base: 200, min: 70,  max: 500,  vol: 0.07,  drift: 0.001,  revert: 0.020 },
   { id:"szmt", name:"sinzomart", emoji:"🍙", base:150, min:90, max:260, vol:0.05, drift:0.0008, revert:0.030 },
   { id:"szdk", name:"sinzo電力", emoji:"💡", base:100, min:80, max:125, vol:0.04, drift:0.0003, revert:0.040 },
   { id:"szsh", name:"sinzo高校", emoji:"🏫", base:100, min:80, max:125, vol:0.03, drift:0.0003, revert:0.040 },
@@ -115,7 +117,6 @@ const STOCKS = [
 ];
 const TICK_MS = 1000, MAIN_MAX = 240, ARCH = 120, MAX_CATCHUP = 30;
 
-// ===== 株価更新ロジック（本体と共通。どちらの画面が開いていても更新される） =====
 function randn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 function stockParams(d, ov){
   if(!ov||!(ov.base>0))return d;
@@ -167,12 +168,11 @@ async function tickMarket(){
 }
 (function loop(){setTimeout(async()=>{await tickMarket();loop();},TICK_MS+Math.random()*1000);})();
 
-// ===== 表示 =====
 const $=id=>document.getElementById(id);
 const LAYOUTS=[["board","📋 電光掲示板"],["tiles","🟥 ヒートマップ"],["single","📊 大チャート"],["focus","🎯 1銘柄集中"]];
-let layout=localStorage.getItem("sb_layout")||"board";
+let layout=localStorage.getItem("sb_layout")||"tiles";
 let chosen=[];try{chosen=JSON.parse(localStorage.getItem("sb_sel")||"[]");}catch(e){}
-chosen=chosen.filter(id=>STOCKS.some(s=>s.id===id));   // 旧IDが保存されていても無視する
+chosen=chosen.filter(id=>STOCKS.some(s=>s.id===id));
 if(!chosen.length)chosen=STOCKS.map(s=>s.id);
 let focus=localStorage.getItem("sb_focus");
 if(!chosen.includes(focus))focus=chosen[0];
@@ -196,7 +196,6 @@ document.addEventListener("keydown",e=>{if(e.key==="h"||e.key==="H")document.bod
 document.addEventListener("dblclick",()=>document.body.classList.toggle("hideui"));
 setInterval(()=>{$("clock").textContent=new Date().toLocaleString("ja-JP",{hour12:false});},500);
 
-// 折れ線描画
 function drawLine(cv,arr,color,opt){
   opt=opt||{};const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1;
   cv.width=Math.max(1,r.width*dpr);cv.height=Math.max(1,r.height*dpr);
@@ -223,19 +222,18 @@ const sgn=(v,dg)=>(v>0?"+":"")+(dg?v.toFixed(dg):v);
 function render(){
   if(!market)return;
   const list=STOCKS.filter(s=>chosen.includes(s.id)).map(info);
-  // ティッカー
   $("tk").innerHTML=STOCKS.map(info).map(i=>`<span style="margin-right:36px">${i.d.emoji} ${i.d.name} <b class="${cls(i.diff)}">${fmt(i.p)}</b> <span class="${cls(i.diff)}">${arrow(i.diff)}${sgn(i.pct,2)}%</span></span>`).join("");
   const key=layout+"|"+chosen.join(",")+"|"+(layout==="single"?focus:"");
   const v=$("view");
   if(key!==lastRenderKey){
     lastRenderKey=key;
     if(layout==="board"){v.innerHTML=`<div class="board">${list.map(i=>`<div class="row" data-id="${i.d.id}"><div class="nm">${i.d.emoji} ${i.d.name}<small>${i.d.id.toUpperCase()}</small></div><div class="pr num"></div><div class="ch num"></div><canvas></canvas></div>`).join("")}</div>`;}
-    else if(layout==="tiles"){const n=list.length,c=Math.ceil(Math.sqrt(n*(innerWidth/innerHeight)));v.innerHTML=`<div class="tiles" style="grid-template-columns:repeat(${Math.min(c,n)},1fr)">${list.map(i=>`<div class="tile" data-id="${i.d.id}"><div class="nm">${i.d.emoji} ${i.d.name}</div><div><div class="pr num"></div><div class="ch num"></div></div><canvas></canvas></div>`).join("")}</div>`;}
+    else if(layout==="tiles"){v.innerHTML=`<div class="tiles">${list.map(i=>`<div class="tile" data-id="${i.d.id}"><div class="nm">${i.d.emoji}${i.d.name}</div><div><div class="pr num"></div><div class="ch num"></div></div><canvas></canvas></div>`).join("")}</div>`;}
     else if(layout==="focus"){if(!chosen.includes(focus))focus=chosen[0];
       const d0=STOCKS.find(x=>x.id===focus)||STOCKS[0];
       v.innerHTML=`<div class="focus" data-id="${focus}"><div class="fhead"><div class="fnm">${d0.emoji} ${d0.name}<small>${d0.id.toUpperCase()}</small></div><div class="fnav"><button data-d="-1">◀</button> <button data-d="1">▶</button></div></div><div class="fbig num"></div><div class="fchg num"></div><canvas></canvas><div class="fmeta"></div></div>`;}
     else{if(!chosen.includes(focus))focus=chosen[0];
-      v.innerHTML=`<div class="single"><div class="side">${list.map(i=>`<div class="it" data-id="${i.d.id}"><div>${i.d.emoji} ${i.d.name}</div><div class="p num"></div><div class="c"></div></div>`).join("")}</div><div class="main"><h2></h2><div class="big num"></div><div class="meta"></div><canvas></canvas></div></div>`;}
+      v.innerHTML=`<div class="single"><div class="side">${list.map(i=>`<div class="it" data-id="${i.d.id}"><div>${i.d.emoji}${i.d.name}</div><div class="p num"></div><div class="c"></div></div>`).join("")}</div><div class="main"><h2></h2><div class="big num"></div><div class="meta"></div><canvas></canvas></div></div>`;}
   }
   list.forEach(i=>{
     const el=v.querySelector(`[data-id="${i.d.id}"]`);if(!el)return;
