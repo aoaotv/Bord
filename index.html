@@ -258,6 +258,18 @@ textarea { min-height:60px; resize: vertical; }
 .stk-trade{display:flex;align-items:center;gap:10px;background:#fff;padding:10px;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:8px}
 .stk-est{font-size:13px;color:#555;margin-bottom:10px;min-height:1.2em}
 .stk-msg{font-size:13px;margin-top:10px;min-height:1.2em;color:#2c3e50}
+
+/* ▼ 横スクロール防止 */
+html, body { max-width: 100%; overflow-x: hidden; }
+#threadListSection, #threadDetailSection { max-width: 100vw; box-sizing: border-box; overflow-x: hidden; }
+#threadListSection ul, #threadDetailSection ul, #threadListSection ol, #threadDetailSection ol { max-width: 100%; }
+li { box-sizing: border-box; max-width: 100%; min-width: 0; overflow: hidden; overflow-wrap: anywhere; word-break: break-word; }
+li > div { max-width: 100%; min-width: 0; }
+li > div > span { max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; }
+li small { max-width: 100%; flex-wrap: wrap !important; row-gap: 4px; }
+li small span { white-space: normal; }
+li img, li video { max-width: 100%; height: auto; }
+/* ▲ 横スクロール防止 */
 </style>
 </head>
 <body>
@@ -3602,7 +3614,7 @@ async function loadPosts(threadId) {
                 displayBody = `<span style="font-size: 6em; line-height: 1.2; display: inline-block;">${stampText}</span>`;
               }
 
-              const bodyHtml = data.body ? `<div><span style="display: inline-block; padding-right: 95px;">${displayBody}</span></div>` : "";
+              const bodyHtml = data.body ? `<div><span style="display: inline-block; max-width: 100%; padding-right: 95px; box-sizing: border-box;">${displayBody}</span></div>` : "";
               const replyBtnStyle = currentThreadLocked ? "background: #95a5a6; cursor: not-allowed; opacity: 0.7;" : "background: rgba(0,0,0,0.25); cursor: pointer;";
               
               const isMine = !!currentAccount && !!data.isAccountUser && data.memberId === currentAccount;   // アカウント持ち本人の投稿のみ
@@ -3621,7 +3633,7 @@ async function loadPosts(threadId) {
                 ${actionBox}
                 ${bodyHtml}
                 ${data.image ? `<div><button class="greenBtn" style="margin-top:4px;" onclick="showImagePopup('${data.image}')">画像を表示</button></div>` : ""}
-                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && !data.nameDup && !currentThreadCreatorDup && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}${dupMark}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
+                <small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap;"><strong style="margin-right:6px;">#${data.index ?? "?"}</strong>${renderBadge(data)}${renderCustomTag(data)}${data.memberId && !data.nameDup && !currentThreadCreatorDup && data.memberId === currentThreadCreatorName ? `<span style="background:#003366;color:#fff;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:bold;margin-right:4px;white-space:nowrap;">作成者</span>` : ""}${iconHtml}${dupMark}<span style="margin-left:0;" class="postUserLink" data-user="${data.memberId || ""}">${formattedName}${userMark}</span><span> / ${formatRelativeTime(data.created_at)}</span></small>
               `;
               
               const userLinkSpan = li.querySelector('.postUserLink');
@@ -3775,7 +3787,7 @@ document.getElementById('createPostBtn').onclick=async()=>{
     
     const postList = document.getElementById("postList"); let index = postList.children.length + 1;
     const tempLi = document.createElement("li"); tempLi.id="post-"+index; tempLi.className="temp-post"; tempLi.style.backgroundColor = color || "#3498db"; tempLi.style.opacity = "0.6"; 
-    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${isDupName ? DUP_MARK_HTML : ""}${nickName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
+    tempLi.innerHTML = `<span style="display: inline-block; padding-right: 95px;">${convertText(body || "")}</span>${imageBase64 ? `<div style="margin-top:4px; font-size:12px;">(画像送信中...)</div>` : ""}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${isDupName ? DUP_MARK_HTML : ""}${nickName}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
     postList.appendChild(tempLi); tempLi.scrollIntoView({ behavior: "smooth", block: "center" });
 
     try{
@@ -4376,7 +4388,7 @@ async function commitPost(postData) {
 function addTempPost(inner, index, name) {
   const postList = document.getElementById("postList"), li = document.createElement("li");
   li.id = "post-" + index; li.className = "temp-post"; li.style.backgroundColor = "#3498db"; li.style.opacity = "0.6";
-  li.innerHTML = `${inner}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:nowrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${name}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
+  li.innerHTML = `${inner}<small style="display:flex;align-items:center;gap:3px;margin-top:2px;flex-wrap:wrap;"><strong style="margin-right:6px;">#${index}</strong><span style="margin-left:0;">${name}${renderAccountUserMark(!!currentAccount)} / 送信中...</span></small>`;
   postList.appendChild(li); li.scrollIntoView({ behavior: "smooth", block: "center" });
   return li;
 }
