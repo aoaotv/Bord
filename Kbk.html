@@ -216,7 +216,7 @@ function drawLine(cv,arr,color,opt){
 const colOf=v=>v>0?"#ff4d5e":v<0?"#2ee6a0":"#9aa7c7";
 function info(d){
   const s=market[d.id],h=s.h,p=s.p,prev=h.length>1?h[h.length-2]:p,open=h[0];
-  return {d,s,h,p,prev,open,tick:p-prev,diff:p-open,pct:open?(p-open)/open*100:0};
+  return {d,s,h,p,prev,open,tick:p-prev,diff:p-prev,pct:prev?(p-prev)/prev*100:0,dOpen:p-open,pOpen:open?(p-open)/open*100:0};
 }
 const sgn=(v,dg)=>(v>0?"+":"")+(dg?v.toFixed(dg):v);
 
@@ -246,15 +246,15 @@ function render(){
       drawLine(el.querySelector("canvas"),i.h,colOf(i.diff));
       if(old!=null&&old!==i.p){el.classList.remove("flash-up","flash-down");void el.offsetWidth;el.classList.add(i.p>old?"flash-up":"flash-down");}
     }else if(layout==="tiles"){
-      const a=Math.min(.85,Math.abs(i.pct)/6+.18),rgb=i.diff>0?"200,40,60":i.diff<0?"20,150,100":"60,70,100";
+      const a=Math.min(.85,Math.abs(i.pct)/2+.18),rgb=i.diff>0?"200,40,60":i.diff<0?"20,150,100":"60,70,100";
       el.style.background=`rgba(${rgb},${a})`;
       el.querySelector(".pr").textContent=fmt(i.p);
       el.querySelector(".ch").innerHTML=`${arrow(i.diff)} ${sgn(i.diff)} (${sgn(i.pct,2)}%)`;
       drawLine(el.querySelector("canvas"),i.h,"#ffffff");
     }else if(layout==="focus"){
       el.querySelector(".fbig").className="fbig num "+c;el.querySelector(".fbig").textContent=fmt(i.p);
-      const fc=el.querySelector(".fchg");fc.className="fchg num "+c;fc.textContent=`${arrow(i.diff)} ${sgn(i.diff)}（${sgn(i.pct,2)}%）`;
-      el.querySelector(".fmeta").innerHTML=`<span>高値 <b>${fmt(Math.max(...i.h))}</b></span><span>安値 <b>${fmt(Math.min(...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前tick <b>${fmt(i.prev)}</b></span><span>${chosen.indexOf(focus)+1} / ${chosen.length}</span>`;
+      const fc=el.querySelector(".fchg");fc.className="fchg num "+c;fc.textContent=`前回比 ${arrow(i.diff)} ${sgn(i.diff)}（${sgn(i.pct,2)}%）`;
+      el.querySelector(".fmeta").innerHTML=`<span>高値 <b>${fmt(Math.max(...i.h))}</b></span><span>安値 <b>${fmt(Math.min(...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前回 <b>${fmt(i.prev)}</b></span><span>始値比 <b class="${cls(i.dOpen)}">${arrow(i.dOpen)} ${sgn(i.dOpen)}（${sgn(i.pOpen,2)}%）</b></span><span>${chosen.indexOf(focus)+1} / ${chosen.length}</span>`;
       drawLine(el.querySelector("canvas"),i.h,colOf(i.diff),{axis:true});
       if(old!=null&&old!==i.p){el.classList.remove("flash-up","flash-down");void el.offsetWidth;el.classList.add(i.p>old?"flash-up":"flash-down");}
     }else{
@@ -263,8 +263,8 @@ function render(){
       el.querySelector(".c").innerHTML=`<span class="${c}">${arrow(i.diff)} ${sgn(i.pct,2)}%</span>`;
       if(i.d.id===focus){
         const m=v.querySelector(".main");m.querySelector("h2").textContent=`${i.d.emoji} ${i.d.name}`;
-        const b=m.querySelector(".big");b.className="big num "+c;b.innerHTML=`${fmt(i.p)} <small style="font-size:.28em">コイン</small> <span style="font-size:.3em">${arrow(i.diff)} ${sgn(i.diff)} (${sgn(i.pct,2)}%)</span>`;
-        m.querySelector(".meta").innerHTML=`<span>高値 <b>${fmt(Math.max(...i.h))}</b></span><span>安値 <b>${fmt(Math.min(...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前tick <b>${fmt(i.prev)}</b></span><span>表示 <b>${i.h.length}</b>点</span>`;
+        const b=m.querySelector(".big");b.className="big num "+c;b.innerHTML=`${fmt(i.p)} <small style="font-size:.28em">コイン</small> <span style="font-size:.3em">前回比 ${arrow(i.diff)} ${sgn(i.diff)} (${sgn(i.pct,2)}%)</span>`;
+        m.querySelector(".meta").innerHTML=`<span>高値 <b>${fmt(Math.max(...i.h))}</b></span><span>安値 <b>${fmt(Math.min(...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前回 <b>${fmt(i.prev)}</b></span><span>始値比 <b class="${cls(i.dOpen)}">${arrow(i.dOpen)} ${sgn(i.dOpen)}（${sgn(i.pOpen,2)}%）</b></span><span>表示 <b>${i.h.length}</b>点</span>`;
         drawLine(m.querySelector("canvas"),i.h,colOf(i.diff),{axis:true});
       }
     }
