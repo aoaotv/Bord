@@ -121,7 +121,7 @@ tr.sel{background:#e6f0ff}
       <div class="tablewrap"><table id="timeline"></table></div>
       <button class="ghost" id="timelineMore">もっと表示</button>
     </div>
-    <p class="sub">※ 預金・株・ガチャなどの記録は、ログ記録機能を入れた以降の分のみ表示されます。「現在の預金残高」「株の評価額」は現在のデータから計算しています。</p>
+    <p class="sub">※ 預金・株・ガチャなどの記録と「操作後の残高」は、ログ記録機能を入れた以降の分のみ表示されます（それ以前は「—」）。「現在の預金残高」「株の評価額」は現在のデータから計算しています。</p>
   </div>
 </main>
 </div>
@@ -175,7 +175,11 @@ const PAGE = 100;
 
 function normalize(d) {
   const a = d.action, x = d.detail || {}, at = tsMs(d.created_at), u = d.user || "不明";
-  const ev = (cat, label, deltas, extra = {}) => ({ at, cat, label, deltas, accounts: Object.keys(deltas).length ? Object.keys(deltas) : [u], ...extra });
+  const bal = {};
+  if (a === "send_coin") { bal[x.from] = { coins: x.fromAfter ?? x.coinsAfter, dep: x.depAfter }; bal[x.to] = { coins: x.toAfter }; }
+  else if (a !== "admin_edit_account_coins") bal[u] = { coins: x.coinsAfter, dep: x.depAfter };
+  else bal[x.targetAccount || u] = { coins: x.newCoins };
+  const ev = (cat, label, deltas, extra = {}) => ({ at, cat, label, deltas, bal, accounts: Object.keys(deltas).length ? Object.keys(deltas) : [u], ...extra });
   switch (a) {
     case "send_coin": return ev("transfer", "送金", { [x.from]: -x.amount, [x.to]: +x.amount }, { from: x.from, to: x.to, amount: x.amount });
     case "coin_rain": return ev("transfer", `コインの雨（${x.recipientsCount ?? "?"}人に分配）`, { [u]: -x.amount }, { from: u, to: `オンライン${x.recipientsCount ?? "?"}人`, amount: x.amount });
@@ -190,7 +194,7 @@ function normalize(d) {
     case "roulette": return ev("game", `プレミアムルーレット${x.prize ? "" : "（ハズレ）"}`, { [u]: +x.prize });
     case "coin_redeem": return ev("other", `コインコード「${x.code}」でチャージ`, { [u]: +x.amount });
     case "shop_buy": return ev("other", `${x.kind}購入：${x.name}`, { [u]: -x.price });
-    case "admin_edit_account_coins": return { at, cat: "admin", label: `管理者がコインを ${fmt(x.newCoins)} に設定`, deltas: {}, accounts: [x.targetAccount || u] };
+    case "admin_edit_account_coins": return { at, cat: "admin", label: `管理者がコインを ${fmt(x.newCoins)} に設定`, deltas: {}, bal, accounts: [x.targetAccount || u] };
   }
   return null;
 }
@@ -306,7 +310,7 @@ function applyFilter() {
   const acc = $("fAcc").value.trim(), cat = catSel, accL = acc.toLowerCase();
   const hit = n => n && String(n).toLowerCase().includes(accL);
   filtered = events.filter(e => (!acc || e.accounts.some(hit) || hit(e.from) || hit(e.to)) && (!cat || e.cat === cat));
-  shown = 0; $("timeline").innerHTML = "<thead><tr><th>日時</th><th>種類</th><th>内容</th><th>金額（コイン）</th></tr></thead><tbody></tbody>";
+  shown = 0; $("timeline").innerHTML = "<thead><tr><th>日時</th><th>種類</th><th>内容</th><th>金額（コイン）</th><th>操作後の所持コイン</th><th>操作後の預金</th></tr></thead><tbody></tbody>";
   moreRows(); renderAccounts();
 }
 function moreRows() {
@@ -323,15 +327,26 @@ function moreRows() {
       const d = Object.values(e.deltas)[0];
       amount = d === undefined ? "—" : `<span class="${cls(d)}">${fmtSigned(d)}</span>`;
     }
+    // 操作後の残高（絞り込み中はその人の分、そうでなければ操作した人の分。送金は両方）
+    const accL = acc.toLowerCase(), keys = Object.keys(e.bal || {});
+    const num = n => (n === undefined || n === null ? "—" : fmt(n));
+    let coinsCell, depCell;
+    if (e.label === "送金" && !acc) {
+      coinsCell = keys.map(k => `<div><span class="sub">${esc(k)}</span> ${num(e.bal[k].coins)}</div>`).join("");
+      depCell = keys.map(k => `<div><span class="sub">${esc(k)}</span> ${num(e.bal[k].dep)}</div>`).join("");
+    } else {
+      const k = (acc && keys.find(n => n.toLowerCase().includes(accL))) || keys[0], b = (k && e.bal[k]) || {};
+      coinsCell = num(b.coins); depCell = num(b.dep);
+    }
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td data-label="日時" style="text-align:left">${dstr(e.at)}</td><td data-label="種類" style="text-align:left"><span class="tag t-${e.cat}">${CATS[e.cat]}</span></td><td data-label="内容" style="text-align:left">${content}</td><td data-label="金額">${amount}</td>`;
+    tr.innerHTML = `<td data-label="日時" style="text-align:left">${dstr(e.at)}</td><td data-label="種類" style="text-align:left"><span class="tag t-${e.cat}">${CATS[e.cat]}</span></td><td data-label="内容" style="text-align:left">${content}</td><td data-label="金額">${amount}</td><td data-label="操作後の所持コイン"><b>${coinsCell}</b></td><td data-label="操作後の預金"><b>${depCell}</b></td>`;
     tb.appendChild(tr);
   });
   tb.querySelectorAll(".who").forEach(el => el.onclick = () => { $("fAcc").value = el.dataset.n; applyFilter(); });
   shown += slice.length;
   $("fCount").textContent = `${filtered.length} 件中 ${shown} 件を表示`;
   $("timelineMore").style.display = shown < filtered.length ? "" : "none";
-  if (!filtered.length) tb.innerHTML = "<tr><td colspan='4' style='text-align:left'>該当する記録はありません</td></tr>";
+  if (!filtered.length) tb.innerHTML = "<tr><td colspan='6' style='text-align:left'>該当する記録はありません</td></tr>";
 }
 $("fAcc").oninput = applyFilter;
 function setCat(v) { catSel = v; $("fCat").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c.dataset.v === v)); }
