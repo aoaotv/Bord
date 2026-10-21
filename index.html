@@ -1974,6 +1974,7 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
   isSendingCoin = true; showLoading("コインを送金中...");
   try {
     const meRef = doc(db, "accounts", currentAccount), toRef = doc(db, "accounts", target);
+    let fromAfter = null, toAfter = null;
     const item = { id: Date.now() + "_" + Math.random().toString(36).slice(2, 8), from: currentAccount, amount, at: Date.now() };
     await runTransaction(db, async tx => {
       const [me, to] = await Promise.all([tx.get(meRef), tx.get(toRef)]);
@@ -1982,9 +1983,10 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
       const mc = me.data().coins !== undefined ? me.data().coins : 1000;
       if (mc < amount) throw new Error("NO_COINS");
       tx.update(meRef, { coins: mc - amount, updated_at: Timestamp.now() });
+      fromAfter = mc - amount; toAfter = (to.data().coins !== undefined ? to.data().coins : 1000) + amount;
       tx.update(toRef, { coins: increment(amount), pendingTransfers: arrayUnion(item), updated_at: Timestamp.now() });
     });
-    saveLog("send_coin", { from: currentAccount, to: target, amount });
+    saveLog("send_coin", { from: currentAccount, to: target, amount, coinsAfter: fromAfter, fromAfter, toAfter });
     hideLoading(); isSendingCoin = false;
     document.getElementById("modalCoinAmountInput").value = "";
     alert(`「${target}」さんに ${amount} コインを送りました！`);
@@ -2669,6 +2671,7 @@ function tradeStock(kind) {
   tradeChain = tradeChain.then(async () => {
     try {
       const accRef = doc(db, "accounts", account);
+      let after = null;
       await runTransaction(db, async tx => {
         const aSnap = await tx.get(accRef);
         if (!aSnap.exists()) throw new Error("アカウントが見つかりません。");
@@ -2682,9 +2685,10 @@ function tradeStock(kind) {
           coins += total; h[d.id] = cur - qty; if (!h[d.id]) delete h[d.id];
         }
         tx.update(accRef, { coins, holdings: h, shares: sumHoldings(h), updated_at: Timestamp.now() });
+        after = coins;
       });
       pendingTrades--;
-      saveLog(kind === "buy" ? "stock_buy" : "stock_sell", { stock: d.id, qty, price, total });
+      saveLog(kind === "buy" ? "stock_buy" : "stock_sell", { stock: d.id, qty, price, total, coinsAfter: after });
       if (!pendingTrades) await resyncFromServer();
     } catch (e) {
       pendingTrades--;
@@ -2785,7 +2789,7 @@ async function depositOp(kind) {
     localStorage.setItem("myCoins", r.coins);
     localStorage.setItem("myDeposit", String(r.bal));
     localStorage.setItem("myDepositAt", String(r.now));
-    saveLog(kind === "in" ? "deposit_in" : "deposit_out", { amount: r.moved, balanceAfter: Math.round(r.bal * 10000) / 10000 });
+    saveLog(kind === "in" ? "deposit_in" : "deposit_out", { amount: r.moved, coinsAfter: r.coins, depAfter: Math.round(r.bal * 100) / 100 });
     syncCoinViews(); renderDeposit();
     $id("depAmountInput").value = "";
     msg.textContent = `${kind === "in" ? "預けました" : "引き出しました"}：${r.moved.toLocaleString()} コイン（${fmtClock(r.now)}）`;
@@ -2865,7 +2869,7 @@ async function spinRoulette() {
       return { coins };
     });
     localStorage.setItem("rouletteDate", today);
-    saveLog("roulette", { prize });
+    saveLog("roulette", { prize, coinsAfter: res.coins });
     // 当選したマスに止まるように回す
     const idxs = RL_SEGMENTS.map((v, i) => v === prize ? i : -1).filter(i => i >= 0);
     const idx = idxs[Math.floor(Math.random() * idxs.length)];
@@ -3802,7 +3806,13 @@ function formatNameWithEffect(name, effectId) {
   return name;
 }
 
+const MONEY_LOG_ACTIONS = new Set(["send_coin", "coin_rain", "deposit_in", "deposit_out", "stock_buy", "stock_sell", "premium_buy", "gacha", "dice_win", "dice_lose", "roulette", "coin_redeem", "shop_buy"]);
 function saveLog(action, detail = {}) {
+  if (currentAccount && MONEY_LOG_ACTIONS.has(action)) {   // お金の動きには、操作後の残高も一緒に記録する
+    detail = { ...detail };
+    if (detail.coinsAfter === undefined) detail.coinsAfter = getMyCoins();
+    if (detail.depAfter === undefined) detail.depAfter = Math.round(currentDepositBalance() * 100) / 100;
+  }
   try {
     addDoc(collection(db, "logs"), { action, detail, user: currentAccount || nickName || "名称未設定", room: currentRoom || "threads", ip: cachedIP || "unknown", created_at: Timestamp.now() }).catch(() => {});
   } catch (e) {}
