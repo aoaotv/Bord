@@ -2684,6 +2684,7 @@ function tradeStock(kind) {
         tx.update(accRef, { coins, holdings: h, shares: sumHoldings(h), updated_at: Timestamp.now() });
       });
       pendingTrades--;
+      saveLog(kind === "buy" ? "stock_buy" : "stock_sell", { stock: d.id, qty, price, total });
       if (!pendingTrades) await resyncFromServer();
     } catch (e) {
       pendingTrades--;
@@ -2784,6 +2785,7 @@ async function depositOp(kind) {
     localStorage.setItem("myCoins", r.coins);
     localStorage.setItem("myDeposit", String(r.bal));
     localStorage.setItem("myDepositAt", String(r.now));
+    saveLog(kind === "in" ? "deposit_in" : "deposit_out", { amount: r.moved, balanceAfter: Math.round(r.bal * 10000) / 10000 });
     syncCoinViews(); renderDeposit();
     $id("depAmountInput").value = "";
     msg.textContent = `${kind === "in" ? "預けました" : "引き出しました"}：${r.moved.toLocaleString()} コイン（${fmtClock(r.now)}）`;
@@ -2863,6 +2865,7 @@ async function spinRoulette() {
       return { coins };
     });
     localStorage.setItem("rouletteDate", today);
+    saveLog("roulette", { prize });
     // 当選したマスに止まるように回す
     const idxs = RL_SEGMENTS.map((v, i) => v === prize ? i : -1).filter(i => i >= 0);
     const idx = idxs[Math.floor(Math.random() * idxs.length)];
@@ -2977,6 +2980,7 @@ async function buyPremium() {
     localStorage.setItem("myCoins", r.coins);
     localStorage.setItem("premiumUntil", String(r.until));
     if (r.deposit !== undefined) { localStorage.setItem("myDeposit", String(r.deposit)); localStorage.setItem("myDepositAt", String(r.depositAt)); }
+    saveLog("premium_buy", { days, cost });
     syncCoinViews(); onPremiumStateChanged();
     msg.textContent = `👑 プレミアムを ${days}日分 ${cost.toLocaleString()} コインで購入しました。有効期限: ${formatDate(r.until)}`;
   } catch (e) {
@@ -3056,6 +3060,7 @@ document.getElementById("playGachaBtn").onclick = () => {
   }
 
   setMyCoins(myCoins - gachaCost() + selected.value);
+  saveLog("gacha", { cost: gachaCost(), prize: selected.value });
 
   document.getElementById("gachaResultContent").textContent = selected.name;
   document.getElementById("gachaResultModal").style.display = "block";
@@ -3427,6 +3432,7 @@ function renderTagShop() {
       btn.onclick = () => {
         if (currentCoins < item.price) return alert("コインが足りません。");
         setMyCoins(currentCoins - item.price);
+        saveLog("shop_buy", { kind: "タグ", name: item.name, price: item.price });
         savePurchasedTag(item.value);
         const [tagName, tagColor] = item.value.split("|");
         localStorage.setItem("customTagName", tagName);
@@ -3487,6 +3493,7 @@ function renderEmojiShop() {
       btn.onclick = () => {
         if (currentCoins < item.price) return alert("コインが足りません。");
         setMyCoins(currentCoins - item.price);
+        saveLog("shop_buy", { kind: "絵文字", name: item.emoji + " " + item.name, price: item.price });
         savePurchasedEmoji(item.emoji);
         document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
         renderEmojiShop(); renderStampMenu();
@@ -3581,6 +3588,7 @@ function renderEffectShop() {
       btn.onclick = () => {
         if (currentCoins < item.price) return alert("コインが足りません。");
         setMyCoins(currentCoins - item.price);
+        saveLog("shop_buy", { kind: "名前エフェクト", name: item.name, price: item.price });
         savePurchasedEffect(item.id);
         localStorage.setItem("activeNameEffect", item.id);
         saveAccountData({ activeNameEffect: item.id });
@@ -3753,6 +3761,7 @@ document.getElementById("fullStoreRedeemBtn").onclick = async () => {
     await updateDoc(codeRef, { used: true, used_at: Timestamp.now() });
     const addAmount = data.coins || 100;
     setMyCoins(getMyCoins() + addAmount);
+    saveLog("coin_redeem", { code, amount: addAmount });
     hideLoading();
     document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
     document.getElementById("fullStoreCoinCodeInput").value = "";
