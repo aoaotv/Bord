@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>株価履歴の削除 | Bord 管理者</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#243447;background:#eaf2ff}
+*{box-sizing:border-box}body{margin:0;padding:20px}main{max-width:1050px;margin:auto;background:#fff;border-radius:16px;padding:22px;box-shadow:0 5px 24px #16345b18}
+h1{font-size:24px;margin:0 0 8px}p{line-height:1.65}.muted{color:#617184;font-size:13px}
+.panel{background:#f6f9fd;border:1px solid #dbe5f0;border-radius:12px;padding:14px;margin:14px 0}
+input,button{font:inherit}input[type=password],input[type=search]{width:100%;padding:11px;border:1px solid #c7d3e0;border-radius:8px;margin:6px 0}
+button{border:0;border-radius:9px;padding:10px 15px;cursor:pointer;background:#2878bd;color:#fff;font-weight:650;margin:4px 3px 4px 0}
+button:disabled{opacity:.45;cursor:not-allowed}.danger{background:#c0392b}.secondary{background:#64748b}.success{background:#218653}
+.status{padding:10px;border-radius:8px;background:#eef6ff;margin:10px 0;white-space:pre-wrap}.status.error{background:#fff0f0;color:#a21c1c}.status.ok{background:#eaf9ef;color:#17683b}
+.list{display:grid;gap:8px}.item{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:14px;border:1px solid #dce5ee;border-radius:12px;background:#fff}
+.item input{width:22px;height:22px;margin:0}.item strong{display:block;overflow-wrap:anywhere}.meta{font-size:12px;color:#66768a;margin-top:5px;overflow-wrap:anywhere}
+.stock-price{font-size:clamp(24px,5vw,36px);font-weight:800;line-height:1.2;letter-spacing:-.5px;color:#123b66;margin:5px 0}.stock-name{font-size:15px;font-weight:750;color:#26384a}.item-info{min-width:0}.item-top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.doc-tag{font-size:11px;color:#60748a;background:#edf3fa;border-radius:6px;padding:3px 6px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row button{margin:0}.row .fill{flex:1}
+#entries{max-height:58vh;overflow:auto}.warning{color:#9c2c21;font-weight:650}
+@media(max-width:600px){body{padding:8px}main{padding:14px}h1{font-size:21px}.row button{flex:1}}
+</style>
+</head>
+<body>
+<main>
+  <h1>📈 株価履歴の選択削除</h1>
+  <p class="muted">会社ごと・日時ごとに株価履歴を選択して削除できます。株価は大きく表示されます。</p>
+  <section id="login" class="panel">
+    <strong>管理者ログイン</strong>
+    <label for="password">管理者パスワード</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="パスワードを入力">
+    <button id="loginBtn">ログインして履歴を読み込む</button>
+    <div class="muted">メインサイトと同じ管理者パスワードを使用します。</div>
+  </section>
+  <section id="manager" hidden>
+    <div class="panel">
+      <div class="row">
+        <button id="reloadBtn">履歴を再読み込み</button>
+        <button id="allBtn" class="secondary">表示分をすべて選択</button>
+        <button id="noneBtn" class="secondary">選択解除</button>
+      </div>
+      <p id="summary" class="muted">履歴を読み込み中…</p>
+      <input id="filter" type="search" placeholder="会社名・日時・履歴ID・株価で絞り込み">
+      <div class="row" id="companyFilters" aria-label="会社ごとの表示フィルター"></div>
+      <div class="row">
+        <button id="deleteBtn" class="danger" disabled>選択した履歴を削除</button>
+        <span id="selectedCount" class="muted">選択 0 件</span>
+      </div>
+    </div>
+    <div id="status" class="status" role="status">履歴を読み込んでください。</div>
+    <div id="entries" class="list"></div>
+    <p class="muted">注意：チェックした会社の、その日時の株価だけを削除します。ほかの会社の同時刻の株価や日時データは残します。削除後は元に戻せません。</p>
+  </section>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, getDocs, collection, query, orderBy,
+  writeBatch, runTransaction, Timestamp
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
+  authDomain: "sinzo-3f972.firebaseapp.com",
+  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
+  projectId: "sinzo-3f972",
+  storageBucket: "sinzo-3f972.firebasestorage.app",
+  messagingSenderId: "1058985227031",
+  appId: "1:1058985227031:web:6b152911e917903910bd52"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const ADMIN_PASSWORD = "2026";
+const STOCKS = [
+  {id:"snz",name:"sinzo株式会社"},{id:"snzb",name:"sinzobord"},
+  {id:"frbs",name:"firebase株式会社"},{id:"mrbs",name:"丸菱商事"},
+  {id:"bepn",name:"別班"},{id:"szmt",name:"sinzomart"},
+  {id:"szdk",name:"sinzo電力"},{id:"szsh",name:"sinzo高校"},
+  {id:"szgs",name:"sinzoガス"}
+];
+const $ = id => document.getElementById(id);
+let loggedIn = false;
+let entries = [];
+let selectedCompany = "all";
+let busy = false;
+
+function setStatus(message, kind="") {
+  $("status").textContent = message;
+  $("status").className = "status " + kind;
+}
+function timeLabel(v) {
+  let n = typeof v === "number" ? v : (v && typeof v.toMillis === "function" ? v.toMillis() : null);
+  if (n === null || !Number.isFinite(n)) return "時刻不明";
+  try { return new Date(n).toLocaleString("ja-JP", {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}); }
+  catch { return new Date(n).toISOString(); }
+}
+function priceSummary(prices) {
+  return STOCKS.filter(s => prices[s.id] !== undefined && prices[s.id] !== null && prices[s.id] !== "").map(s => `${s.name}: ${prices[s.id]}`).join(" / ");
+}
+function buildEntries(docId, data, kind) {
+  const ts = Array.isArray(data.ts) ? data.ts : [];
+  const out = [];
+  if (kind === "archive") {
+    const p = data.p || {};
+    const n = Math.max(ts.length, ...STOCKS.map(s => Array.isArray(p[s.id]) ? p[s.id].length : 0), 0);
+    for (let i=0;i<n;i++) {
+      const prices = {};
+      for (const s of STOCKS) if (Array.isArray(p[s.id]) && i < p[s.id].length) prices[s.id] = p[s.id][i];
+      out.push({key:`${docId}::${i}`,docId,kind,index:i,ts:ts[i],label:timeLabel(ts[i]),prices,priceText:priceSummary(prices)});
+    }
+  } else {
+    const stocks = data.stocks || {};
+    const n = Math.max(ts.length, ...STOCKS.map(s => Array.isArray(stocks[s.id]?.h) ? stocks[s.id].h.length : 0), 0);
+    for (let i=0;i<n;i++) {
+      const prices = {};
+      for (const s of STOCKS) if (Array.isArray(stocks[s.id]?.h) && i < stocks[s.id].h.length) prices[s.id] = stocks[s.id].h[i];
+      out.push({key:`global::${i}`,docId:"global",kind,index:i,ts:ts[i],label:timeLabel(ts[i]),prices,priceText:priceSummary(prices)});
+    }
+  }
+  return out;
+}
+async function loadHistory() {
+  if (!loggedIn || busy) return;
+  busy = true; $("reloadBtn").disabled = true; $("deleteBtn").disabled = true;
+  setStatus("Firestore から履歴を取得しています…");
+  try {
+    const results = [];
+    const globalSnap = await getDoc(doc(db,"market","global"));
+    if (globalSnap.exists()) results.push(...buildEntries("global",globalSnap.data(),"global"));
+    const archiveSnap = await getDocs(query(collection(db,"market"),orderBy("n","asc")));
+    archiveSnap.forEach(snap => {
+      if (/^h_\d+$/.test(snap.id)) results.push(...buildEntries(snap.id,snap.data(),"archive"));
+    });
+    entries = results;
+    render();
+    $("summary").textContent = `日時ポイント: ${entries.length.toLocaleString("ja-JP")} 件（最新履歴 ${globalSnap.exists() ? "あり" : "なし"}）`;
+    setStatus(`読み込み完了：${entries.length.toLocaleString("ja-JP")} 件。削除したい履歴にチェックを入れてください。`,"ok");
+  } catch (e) {
+    console.error(e);
+    setStatus("履歴の読み込みに失敗しました。\nFirestore のアクセス権限・ネットワークを確認してください。\n詳細: "+(e?.message || e),"error");
+  } finally {
+    busy = false; $("reloadBtn").disabled = false; updateSelection();
+  }
+}
+function renderCompanyFilters() {
+  const root = $("companyFilters");
+  root.replaceChildren();
+  const options = [{id:"all",name:"すべての会社"}, ...STOCKS];
+  for (const stock of options) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = stock.name;
+    b.className = selectedCompany === stock.id ? "success" : "secondary";
+    b.addEventListener("click", () => { selectedCompany = stock.id; render(); });
+    root.append(b);
+  }
+}
+function render() {
+  const root = $("entries"); root.replaceChildren();
+  renderCompanyFilters();
+  const filter = $("filter").value.trim().toLocaleLowerCase();
+  const frag = document.createDocumentFragment();
+  for (const item of entries) {
+    const companyRows = STOCKS.filter(s =>
+      (selectedCompany === "all" || selectedCompany === s.id) &&
+      item.prices[s.id] !== undefined && item.prices[s.id] !== null && item.prices[s.id] !== ""
+    );
+    for (const stock of companyRows) {
+      const price = item.prices[stock.id];
+      const searchable = `${stock.name} ${item.label} ${item.docId} ${price}`.toLocaleLowerCase();
+      if (filter && !searchable.includes(filter)) continue;
+      const key = `${item.key}::${stock.id}`;
+      const label = document.createElement("label"); label.className = "item"; label.dataset.key = key;
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.key = key;
+      cb.addEventListener("change", updateSelection);
+      const body = document.createElement("div"); body.className = "item-info";
+      const top = document.createElement("div"); top.className = "item-top";
+      const name = document.createElement("span"); name.className = "stock-name"; name.textContent = stock.name;
+      const doc = document.createElement("span"); doc.className = "doc-tag"; doc.textContent = `${item.kind === "global" ? "最新履歴" : "過去履歴 " + item.docId} · #${item.index+1}`;
+      const priceEl = document.createElement("div"); priceEl.className = "stock-price"; priceEl.textContent = Number.isFinite(Number(price)) ? Number(price).toLocaleString("ja-JP") : String(price);
+      const time = document.createElement("div"); time.className = "meta"; time.textContent = item.label;
+      top.append(name, doc); body.append(top, priceEl, time); label.append(cb, body); frag.append(label);
+    }
+  }
+  root.append(frag);
+  updateSelection();
+}
+function selectedKeys() {
+  return new Set([...$("entries").querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.dataset.key));
+}
+function updateSelection() {
+  const n = selectedKeys().size;
+  $("selectedCount").textContent = `選択 ${n.toLocaleString("ja-JP")} 件`;
+  $("deleteBtn").disabled = !loggedIn || busy || n===0;
+}
+async function deleteSelected() {
+  if (!loggedIn || busy) return;
+  const keys = selectedKeys();
+  if (!keys.size) return;
+  if (!confirm(`選択した ${keys.size} 件の「会社ごとの株価履歴」を削除します。\n選択した会社の株価だけを削除し、ほかの会社のデータは残します。\nこの操作は取り消せません。続行しますか？`)) return;
+  busy = true; $("deleteBtn").disabled = true; $("reloadBtn").disabled = true;
+  setStatus(`選択した ${keys.size} 件の株価を削除しています…`);
+  try {
+    const grouped = new Map();
+    for (const key of keys) {
+      const [entryKey, stockId] = key.split("::").length > 2
+        ? [key.slice(0, key.lastIndexOf("::")), key.slice(key.lastIndexOf("::")+2)]
+        : [null, null];
+      const item = entries.find(e => e.key === entryKey);
+      if (!item || !STOCKS.some(s => s.id === stockId)) continue;
+      if (!grouped.has(item.docId)) grouped.set(item.docId, []);
+      grouped.get(item.docId).push({index:item.index, stockId});
+    }
+    if (grouped.has("global")) {
+      const changes = grouped.get("global");
+      await runTransaction(db, async tx => {
+        const ref = doc(db,"market","global");
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error("market/global が見つかりません。");
+        const data = snap.data();
+        const ts = Array.isArray(data.ts) ? data.ts.slice() : [];
+        const stocks = structuredClone(data.stocks || {});
+        for (const {index,stockId} of changes) {
+          const arr = stocks[stockId]?.h;
+          if (Array.isArray(arr) && index >= 0 && index < arr.length) arr[index] = null;
+        }
+        tx.set(ref,{...data,ts,stocks,updated_at:Timestamp.now()});
+      });
+      grouped.delete("global");
+    }
+    for (const [docId, changes] of grouped) {
+      const ref = doc(db,"market",docId);
+      await runTransaction(db, async tx => {
+        const fresh = await tx.get(ref);
+        if (!fresh.exists()) throw new Error(`${docId} が削除されています。再読み込みしてください。`);
+        const latest = fresh.data();
+        const ts = Array.isArray(latest.ts) ? latest.ts.slice() : [];
+        const p = structuredClone(latest.p || {});
+        for (const {index,stockId} of changes) {
+          const arr = p[stockId];
+          if (Array.isArray(arr) && index >= 0 && index < arr.length) arr[index] = null;
+        }
+        tx.set(ref,{...latest,ts,p,deletedHistoryUpdatedAt:Timestamp.now()});
+      });
+    }
+    setStatus(`削除処理が完了しました（会社ごとの株価 ${keys.size} 件）。再読み込みしています。`,"ok");
+    await loadHistory();
+  } catch (e) {
+    console.error(e);
+    setStatus("削除に失敗しました。履歴を再読み込みしてから再試行してください。\n詳細: "+(e?.message||e),"error");
+  } finally {
+    busy = false; $("reloadBtn").disabled = false; updateSelection();
+  }
+}
+$("loginBtn").addEventListener("click",async()=>{
+  if ($("password").value.trim()!==ADMIN_PASSWORD) { alert("パスワードが違います。"); return; }
+  loggedIn=true; $("login").hidden=true; $("manager").hidden=false;
+  await loadHistory();
+});
+$("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
+$("reloadBtn").addEventListener("click",loadHistory);
+$("deleteBtn").addEventListener("click",deleteSelected);
+$("allBtn").addEventListener("click",()=>{$("entries").querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=true);updateSelection()});
+$("noneBtn").addEventListener("click",()=>{$("entries").querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);updateSelection()});
+$("filter").addEventListener("input",render);
+</script>
+</body>
+</html>
