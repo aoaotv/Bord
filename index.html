@@ -923,6 +923,7 @@ li img, li video { max-width: 100%; height: auto; }
         <div class="adminPanel">
           <h4>🚪 部屋削除</h4>
           <label>削除する部屋を選択</label>
+          <button id="adminLoadRoomBtn" type="button" class="greenBtn" style="width:100%; margin:0 0 8px; background:#2980b9;">📥 部屋一覧を読み込む</button>
           <select id="adminRoomSelect"><option value="">部屋選択</option></select>
           <button id="deleteRoomBtn" type="button" class="redBtn" style="width:100%; margin-top:10px;">選択した部屋を削除</button>
         </div>
@@ -932,6 +933,7 @@ li img, li video { max-width: 100%; height: auto; }
           <label>BANするIPアドレス</label>
           <input id="adminIpInput" placeholder="例: 123.123.123.123">
           <button id="ipBanBtn" type="button" class="redBtn" style="width:100%; margin-top:6px;">IPをBAN</button>
+          <button id="adminLoadIpBtn" type="button" class="greenBtn" style="width:100%; margin:0 0 8px; background:#2980b9;">📥 BAN済みIPを読み込む</button>
           <label style="margin-top:10px;">BAN解除</label>
           <select id="adminBannedIpSelect"><option value="">BAN済みIP選択</option></select>
           <button id="ipUnbanBtn" type="button" class="greenBtn" style="width:100%; margin-top:6px; --btn-color:#2980b9;">BAN解除</button>
@@ -946,6 +948,8 @@ li img, li video { max-width: 100%; height: auto; }
         </div>
 
         <div id="subTabAcc">
+          <button id="adminLoadAccBtn" type="button" class="greenBtn" style="width:100%; margin:0 0 8px; background:#2980b9;">📥 アカウント情報を読み込む</button>
+          <div id="adminAccLoadStatus" class="stk-sub" style="margin-bottom:8px;"></div>
           <label>対象アカウント</label>
           <select id="adminAccountSelect" style="margin-bottom:8px;"><option value="">アカウント選択</option></select>
           <input id="adminBanReasonInput" placeholder="BANの理由（例: 規約違反のため）" style="margin-bottom:8px;">
@@ -982,6 +986,11 @@ li img, li video { max-width: 100%; height: auto; }
         </div>
 
         <div id="subTabThread" style="display:none;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="adminLoadThreadBtn" type="button" class="greenBtn" style="margin:0 0 8px; background:#2980b9;">📥 スレッドを読み込む（新しい100件）</button>
+            <button id="adminLoadThreadMoreBtn" type="button" class="greenBtn" style="margin:0 0 8px; background:#3498db; display:none;">⬇ もっと読み込む（全件）</button>
+          </div>
+          <div id="adminThreadLoadStatus" class="stk-sub" style="margin-bottom:8px;"></div>
           <label>対象スレッド</label>
           <select id="adminThreadSelect" style="margin-bottom:8px;"><option value="">スレッド選択</option></select>
           <label>対象投稿</label>
@@ -4714,7 +4723,7 @@ document.getElementById('adminBtn').onclick = async () => {
   if (adminLoggedIn) {
     loginPanel.style.display = 'none';
     dashPanel.style.display = 'block';
-    await loadAdminData();
+    loadAdminData();
   } else {
     loginPanel.style.display = 'block';
     dashPanel.style.display = 'none';
@@ -4726,46 +4735,77 @@ document.getElementById('adminLoginSubmitBtn').onclick = async () => {
   const pass = document.getElementById('adminPasswordInput').value.trim();
   if (pass !== ADMIN_PASSWORD) return alert("パスワードが違います");
   adminLoggedIn = true;
-  await saveLog("admin_login_success");
+  saveLog("admin_login_success");
   document.getElementById('adminLoginPanel').style.display = 'none';
   document.getElementById('adminDashboardPanel').style.display = 'block';
   updateAdminBadgeStatus();
-  await loadAdminData();
-  alert("管理者としてログインしました。");
+  loadAdminData();   // 画面は先に表示し、一覧は裏で読み込む
 };
 
+// 管理データは「読み込みボタン」を押したときだけ取得する（ログイン直後は何も読まない）
+const adminLoaded = { acc: false, thr: false, room: false, ip: false };
+let adminThreadAll = false;
+function adminFill(sel, first, snap, label) {
+  sel.innerHTML = `<option value=''>${first}</option>`;
+  snap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = label ? label(d) : d.id; sel.appendChild(opt); });
+}
+async function adminRun(btn, statusEl, msg, fn) {   // 実行中はボタンを止めて「読み込み中」を表示
+  if (btn.disabled) return;
+  const label = btn.textContent; btn.disabled = true; btn.style.opacity = ".7";
+  if (statusEl) statusEl.textContent = "⏳ " + msg;
+  try { await fn(); }
+  catch (e) { if (statusEl) statusEl.textContent = "⚠️ 読み込みに失敗しました"; else alert("読み込みに失敗しました"); }
+  finally { btn.disabled = false; btn.style.opacity = ""; btn.textContent = label; }
+}
+async function adminLoadAccounts() {
+  const st = $id("adminAccLoadStatus");
+  await adminRun($id("adminLoadAccBtn"), st, "アカウント情報を読み込み中...", async () => {
+    const [acc, bans] = await Promise.all([getDocs(collection(db, "accounts")), getDocs(collection(db, "accountBans"))]);
+    adminFill($id("adminAccountSelect"), "アカウント選択", acc);
+    adminFill($id("adminBannedAccountSelect"), "BAN済みアカウント選択", bans);
+    renderAdminStoreCheckboxes([], []);
+    adminLoaded.acc = true;
+    st.textContent = `✅ アカウント ${acc.size} 件 / BAN済み ${bans.size} 件を読み込みました（${fmtClock(Date.now())}）`;
+  });
+}
+async function adminLoadThreads(all) {
+  const st = $id("adminThreadLoadStatus"), more = $id("adminLoadThreadMoreBtn");
+  adminThreadAll = !!all;
+  await adminRun(all ? more : $id("adminLoadThreadBtn"), st, all ? "全スレッドを読み込み中..." : "スレッドを読み込み中...", async () => {
+    const qs = [collection(db, currentRoom), orderBy("created_at", "desc")]; if (!all) qs.push(limit(100));
+    const snap = await getDocs(query(...qs));
+    adminFill($id("adminThreadSelect"), "スレッド選択", snap, d => d.data().title || d.id);
+    $id("adminPostSelect").innerHTML = "<option value=''>投稿選択 (必要な場合)</option>";
+    adminLoaded.thr = true;
+    more.style.display = (!all && snap.size >= 100) ? "" : "none";
+    st.textContent = `✅ 「${currentRoom}」のスレッド ${snap.size} 件を読み込みました${(!all && snap.size >= 100) ? "（新しい100件）" : "（全件）"}`;
+  });
+}
+async function adminLoadRooms() {
+  await adminRun($id("adminLoadRoomBtn"), null, "読み込み中...", async () => {
+    adminFill($id("adminRoomSelect"), "部屋選択", await getDocs(collection(db, "rooms"))); adminLoaded.room = true;
+  });
+}
+async function adminLoadIps() {
+  await adminRun($id("adminLoadIpBtn"), null, "読み込み中...", async () => {
+    adminFill($id("adminBannedIpSelect"), "BAN済みIP選択", await getDocs(collection(db, "ipBans"))); adminLoaded.ip = true;
+  });
+}
+// 操作の後は、すでに読み込み済みの一覧だけ更新する
 async function loadAdminData() {
   updateAdminBadgeStatus();
-  
-  const threadSelect = document.getElementById('adminThreadSelect');
-  const roomSelect = document.getElementById('adminRoomSelect');
-  const bannedIpSelect = document.getElementById('adminBannedIpSelect');
-  const accountSelect = document.getElementById('adminAccountSelect');
-  const bannedAccountSelect = document.getElementById('adminBannedAccountSelect');
-
-  const q = query(collection(db, currentRoom), orderBy("created_at", "desc")); 
-  const snap = await getDocs(q);
-  threadSelect.innerHTML = "<option value=''>スレッド選択</option>"; 
-  snap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.data().title || d.id; threadSelect.appendChild(opt); });
-
-  roomSelect.innerHTML = "<option value=''>部屋選択</option>";
-  const roomSnap = await getDocs(collection(db, "rooms")); 
-  roomSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; roomSelect.appendChild(opt); });
-
-  bannedIpSelect.innerHTML = "<option value=''>BAN済みIP選択</option>"; 
-  const banSnap = await getDocs(collection(db, "ipBans")); 
-  banSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; bannedIpSelect.appendChild(opt); });
-
-  accountSelect.innerHTML = "<option value=''>アカウント選択</option>"; 
-  const accSnap = await getDocs(collection(db, "accounts")); 
-  accSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; accountSelect.appendChild(opt); });
-
-  bannedAccountSelect.innerHTML = "<option value=''>BAN済みアカウント選択</option>"; 
-  const accBanSnap = await getDocs(collection(db, "accountBans")); 
-  accBanSnap.forEach(d => { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = d.id; bannedAccountSelect.appendChild(opt); });
-
-  renderAdminStoreCheckboxes([], []);
+  const t = [];
+  if (adminLoaded.acc) t.push(adminLoadAccounts());
+  if (adminLoaded.thr) t.push(adminLoadThreads(adminThreadAll));
+  if (adminLoaded.room) t.push(adminLoadRooms());
+  if (adminLoaded.ip) t.push(adminLoadIps());
+  await Promise.all(t);
 }
+$id("adminLoadAccBtn").onclick = adminLoadAccounts;
+$id("adminLoadThreadBtn").onclick = () => adminLoadThreads(false);
+$id("adminLoadThreadMoreBtn").onclick = () => adminLoadThreads(true);
+$id("adminLoadRoomBtn").onclick = adminLoadRooms;
+$id("adminLoadIpBtn").onclick = adminLoadIps;
 
 function renderAdminStoreCheckboxes(ownedTags = [], ownedEmojis = []) {
   const tagContainer = document.getElementById('adminTagCheckboxes');
