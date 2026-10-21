@@ -82,10 +82,10 @@ tr.sel{background:#e6f0ff}
   <h1>💰 Bord マネーフロー</h1>
   <span class="sub" id="loadedAt" style="color:#aab4c3"></span>
   <span class="sp"></span>
-  <button id="loadBtn">📥 データを読み込む</button>
+  <span id="liveBadge" class="sub" style="color:#aab4c3">⏳ 接続待ち</span>
 </header>
 <main>
-  <div id="status" class="status">「データを読み込む」を押すと、アカウント・預金・株・送金の記録を集めます。</div>
+  <div id="status" class="status">パスワードを入力すると、自動で読み込みを始めて、リアルタイムに更新されます。</div>
 
   <div id="body" class="hidden">
     <div class="kpis" id="kpis"></div>
@@ -128,7 +128,7 @@ tr.sel{background:#e6f0ff}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, getDocs, getDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
@@ -164,7 +164,7 @@ const dstr = ms => { const d = new Date(ms), p = n => String(n).padStart(2, "0")
 // ---- ログイン ----
 function openGate() {
   if ($("pw").value.trim() !== ADMIN_PASSWORD) { $("pwErr").textContent = "パスワードが違います"; return; }
-  $("gate").classList.add("hidden"); $("app").classList.remove("hidden");
+  $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); startLive();
 }
 $("pwBtn").onclick = openGate;
 $("pw").addEventListener("keydown", e => { if (e.key === "Enter") openGate(); });
@@ -195,57 +195,62 @@ function normalize(d) {
   return null;
 }
 
-async function load() {
-  const btn = $("loadBtn"); btn.disabled = true;
-  $("status").classList.remove("err"); $("status").textContent = "⏳ 読み込み中...（アカウント・市場・ログ）";
-  try {
-    const [accSnap, marketSnap, logSnap] = await Promise.all([
-      getDocs(collection(db, "accounts")),
-      getDoc(doc(db, "market", "global")).catch(() => null),
-      getDocs(query(collection(db, "logs"), where("action", "in", ACTIONS)))
-    ]);
-    const now = Date.now(), prices = {};
-    const st = marketSnap && marketSnap.exists() ? marketSnap.data().stocks || {} : {};
-    Object.keys(st).forEach(k => prices[k] = st[k].p);
-
-    accounts = accSnap.docs.map(d => {
-      const a = d.data(), hold = a.holdings && Object.keys(a.holdings).length ? a.holdings : (a.shares > 0 ? { frbs: a.shares } : {});
-      let stockVal = 0, shares = 0; Object.keys(hold).forEach(k => { shares += hold[k]; stockVal += hold[k] * (prices[k] || 0); });
-      const coins = a.coins !== undefined ? a.coins : 1000, dep = calcDeposit(a.deposit || 0, a.depositAt, now, a.premiumUntil || 0);
-      return { name: d.id, coins, dep, stockVal, shares, total: coins + dep + stockVal, premium: (a.premiumUntil || 0) > now };
-    });
-
-    events = logSnap.docs.map(d => normalize(d.data())).filter(Boolean).sort((a, b) => b.at - a.at);
-    stats = {}; const get = n => stats[n] || (stats[n] = { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 });
-    const pairs = {};
-    events.forEach(e => {
-      Object.keys(e.deltas).forEach(n => { get(n).net += e.deltas[n]; });
-      if (e.cat === "transfer" && e.from) {
-        get(e.from).sent += e.amount;
-        if (e.label === "送金") { get(e.to).recv += e.amount; const k = e.from + "\u0000" + e.to; (pairs[k] = pairs[k] || { from: e.from, to: e.to, n: 0, sum: 0 }); pairs[k].n++; pairs[k].sum += e.amount; }
-      }
-      if (e.depIn) get(e.accounts[0]).depIn += e.depIn;
-      if (e.depOut) get(e.accounts[0]).depOut += e.depOut;
-    });
-    window.__pairs = Object.values(pairs).sort((a, b) => b.sum - a.sum);
-
-    renderAll();
-    $("loadedAt").textContent = "最終読み込み " + dstr(now);
-    $("status").textContent = `✅ アカウント ${accounts.length} 件 / 記録 ${events.length} 件を読み込みました`;
-    $("body").classList.remove("hidden");
-  } catch (e) {
-    console.error(e);
-    $("status").classList.add("err");
-    $("status").textContent = "⚠️ 読み込みに失敗しました（" + (e && e.code ? e.code : "通信エラー") + "）。Firestoreのルールで logs / accounts の読み取りが許可されているか確認してください。";
-  }
-  btn.disabled = false;
+// ---- リアルタイム購読（アカウント・市場・ログ）。変更が来たら少し待ってまとめて再描画 ----
+let accDocs = null, marketStocks = {}, logDocs = null, liveStarted = false, renderTimer = null, lastUpdate = 0;
+function scheduleRecompute() { if (renderTimer) return; renderTimer = setTimeout(() => { renderTimer = null; recompute(); }, 300); }
+function onErr(e) {
+  console.error(e);
+  $("status").classList.add("err");
+  $("status").textContent = "⚠️ 読み込みに失敗しました（" + (e && e.code ? e.code : "通信エラー") + "）。Firestoreのルールで logs / accounts の読み取りが許可されているか確認してください。";
+  $("liveBadge").textContent = "🔴 接続エラー";
 }
-$("loadBtn").onclick = load;
+function startLive() {
+  if (liveStarted) return; liveStarted = true;
+  $("status").textContent = "⏳ 読み込み中...";
+  onSnapshot(collection(db, "accounts"), snap => { accDocs = snap.docs.map(d => ({ name: d.id, data: d.data() })); scheduleRecompute(); }, onErr);
+  onSnapshot(doc(db, "market", "global"), snap => { const st = snap.exists() ? snap.data().stocks || {} : {}; marketStocks = {}; Object.keys(st).forEach(k => marketStocks[k] = st[k].p); scheduleRecompute(); }, () => {});
+  onSnapshot(query(collection(db, "logs"), where("action", "in", ACTIONS)), snap => { logDocs = snap.docs.map(d => d.data()); scheduleRecompute(); }, onErr);
+  setInterval(() => { if (accDocs) { renderKpis(); renderAccounts(); } }, 3000);   // 預金の利子が増えていくので定期的に再計算
+}
+function recompute() {
+  if (!accDocs || !logDocs) return;
+  const now = Date.now(), prices = marketStocks;
+  accounts = accDocs.map(({ name, data: a }) => {
+    const hold = a.holdings && Object.keys(a.holdings).length ? a.holdings : (a.shares > 0 ? { frbs: a.shares } : {});
+    let stockVal = 0, shares = 0; Object.keys(hold).forEach(k => { shares += hold[k]; stockVal += hold[k] * (prices[k] || 0); });
+    const coins = a.coins !== undefined ? a.coins : 1000;
+    return { name, coins, raw: a, hold, stockVal, shares, premium: (a.premiumUntil || 0) > now };
+  });
+  events = logDocs.map(normalize).filter(Boolean).sort((a, b) => b.at - a.at);
+  stats = {}; const get = n => stats[n] || (stats[n] = { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 });
+  const pairs = {};
+  events.forEach(e => {
+    Object.keys(e.deltas).forEach(n => { get(n).net += e.deltas[n]; });
+    if (e.cat === "transfer" && e.from) {
+      get(e.from).sent += e.amount;
+      if (e.label === "送金") { get(e.to).recv += e.amount; const k = e.from + "\u0000" + e.to; (pairs[k] = pairs[k] || { from: e.from, to: e.to, n: 0, sum: 0 }); pairs[k].n++; pairs[k].sum += e.amount; }
+    }
+    if (e.depIn) get(e.accounts[0]).depIn += e.depIn;
+    if (e.depOut) get(e.accounts[0]).depOut += e.depOut;
+  });
+  window.__pairs = Object.values(pairs).sort((a, b) => b.sum - a.sum);
+  const keep = shown;
+  renderAll();
+  while (shown < keep && shown < filtered.length) moreRows();   // 表示件数を保ったまま更新
+  lastUpdate = now;
+  $("loadedAt").textContent = "最終更新 " + dstr(now);
+  $("liveBadge").textContent = "🟢 リアルタイム更新中";
+  $("status").classList.remove("err");
+  $("status").textContent = `アカウント ${accounts.length} 件 / 記録 ${events.length} 件`;
+  $("body").classList.remove("hidden");
+}
+
 
 // ---- 描画 ----
 function renderAll() { renderKpis(); renderAccounts(); renderPairs(); renderFilters(); applyFilter(); }
 
 function renderKpis() {
+  accounts.forEach(liveCalc);
   const sum = k => accounts.reduce((a, b) => a + b[k], 0);
   const transfers = events.filter(e => e.label === "送金"), tsum = transfers.reduce((a, e) => a + e.amount, 0);
   const depIn = Object.values(stats).reduce((a, s) => a + s.depIn, 0), depOut = Object.values(stats).reduce((a, s) => a + s.depOut, 0);
@@ -261,8 +266,10 @@ const COLS = [
   ["name", "アカウント"], ["coins", "所持コイン"], ["dep", "預金残高"], ["stockVal", "株評価額"], ["total", "合計資産"],
   ["sent", "送った計"], ["recv", "受け取った計"], ["depIn", "預入累計"], ["depOut", "引出累計"], ["net", "記録上の増減"]
 ];
+function liveCalc(a) { const r = a.raw || {}; a.dep = calcDeposit(r.deposit || 0, r.depositAt, Date.now(), r.premiumUntil || 0); a.total = a.coins + a.dep + a.stockVal; }
 function rowVal(a, k) { return k in a ? a[k] : (stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 })[k]; }
 function renderAccounts() {
+  accounts.forEach(liveCalc);
   const rows = accounts.slice().sort((a, b) => {
     const x = rowVal(a, sortKey), y = rowVal(b, sortKey);
     return (typeof x === "string" ? x.localeCompare(y, "ja") : x - y) * sortDir;
