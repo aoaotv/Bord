@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Bord マネーフロー</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1f2a37;--mute:#6b7785;--line:#e3e8ef;--blue:#2f7de1;--green:#1f9d63;--red:#d64545;--orange:#e67e22}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans",Roboto,sans-serif;font-size:14px}
+header{background:#1f2a37;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:18px}
+header .sp{flex:1}
+main{max-width:1180px;margin:0 auto;padding:16px}
+button{font:inherit;border:none;border-radius:8px;padding:9px 16px;background:var(--blue);color:#fff;cursor:pointer;font-weight:600}
+button:disabled{opacity:.55;cursor:default}
+button.ghost{background:#e8edf5;color:var(--ink)}
+input,select{font:inherit;padding:8px 10px;border:1px solid #cdd5e0;border-radius:8px;background:#fff;color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.card h2{margin:0 0 10px;font-size:16px}
+.sub{color:var(--mute);font-size:12px}
+.gate{max-width:340px;margin:12vh auto;text-align:center}
+.gate input{width:100%;margin:10px 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi .l{font-size:12px;color:var(--mute)}
+.kpi .v{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:hidden}
+table{border-collapse:collapse;width:100%;table-layout:auto}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}
+th{font-size:12px;color:var(--mute);font-weight:600;background:#f8fafc;position:sticky;top:0;cursor:pointer;user-select:none}
+th:first-child,td:first-child{text-align:left}
+tr.clickable{cursor:pointer}
+tr.clickable:hover{background:#f1f6fe}
+tr.sel{background:#e6f0ff}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.bar{display:inline-block;height:8px;border-radius:4px;background:var(--blue);vertical-align:middle;margin-right:6px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;color:#fff}
+.t-transfer{background:#2f7de1}.t-deposit{background:#16a085}.t-stock{background:#8e44ad}.t-game{background:#e67e22}.t-other{background:#7f8c8d}.t-admin{background:#c0392b}
+.flow{display:inline-flex;gap:6px;align-items:center}
+.arrow{color:var(--mute)}
+.who{font-weight:700;cursor:pointer}
+.who:hover{text-decoration:underline}
+.status{margin:8px 0;color:var(--mute)}
+.err{color:var(--red)}
+#timelineMore{margin-top:10px}
+.hidden{display:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:#e8edf5;color:var(--ink);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600}
+.chip.on{background:var(--blue);color:#fff}
+#fAcc{flex:1;min-width:0;max-width:260px}
+#sortSel{display:none}
+.bar{max-width:60px}
+@media(max-width:760px){
+  main{padding:10px}
+  #sortSel{display:inline-block;margin-bottom:8px;max-width:100%}
+  table,thead,tbody,tr,td{display:block;width:100%}
+  thead{display:none}
+  tr{border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-bottom:8px;background:#fff}
+  td{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding:5px 0;text-align:right!important}
+  td:last-child{border-bottom:none}
+  td::before{content:attr(data-label);color:var(--mute);font-size:12px;flex:0 0 auto;text-align:left}
+  td:first-child{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate card">
+  <h2>💰 Bord マネーフロー</h2>
+  <div class="sub">管理者専用ページです</div>
+  <input id="pw" type="password" placeholder="管理者パスワード" autocomplete="off">
+  <button id="pwBtn" style="width:100%">開く</button>
+  <div id="pwErr" class="err"></div>
+</div>
+
+<div id="app" class="hidden">
+<header>
+  <h1>💰 Bord マネーフロー</h1>
+  <span class="sub" id="loadedAt" style="color:#aab4c3"></span>
+  <span class="sp"></span>
+  <button id="loadBtn">📥 データを読み込む</button>
+</header>
+<main>
+  <div id="status" class="status">「データを読み込む」を押すと、アカウント・預金・株・送金の記録を集めます。</div>
+
+  <div id="body" class="hidden">
+    <div class="kpis" id="kpis"></div>
+
+    <div class="card">
+      <h2>👥 アカウント別の資産 <span class="sub">（行をクリックすると、その人の動きだけ表示）</span></h2>
+      <select id="sortSel"></select>
+      <div class="tablewrap"><table id="accTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>🔁 誰が誰に送ったか（送金ペア別）</h2>
+      <div class="tablewrap"><table id="pairTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h2>🧾 お金の動き（新しい順）</h2>
+      <div class="filters">
+        <input id="fAcc" list="accList" placeholder="アカウント名で絞り込み" autocomplete="off">
+        <datalist id="accList"></datalist>
+        <div class="chips" id="fCat">
+          <button type="button" class="chip on" data-v="">すべて</button>
+          <button type="button" class="chip" data-v="transfer">送金</button>
+          <button type="button" class="chip" data-v="deposit">預金</button>
+          <button type="button" class="chip" data-v="stock">株</button>
+          <button type="button" class="chip" data-v="game">ゲーム</button>
+          <button type="button" class="chip" data-v="other">その他</button>
+          <button type="button" class="chip" data-v="admin">管理者</button>
+        </div>
+        <button class="ghost" id="fClear">条件をクリア</button>
+        <span class="sub" id="fCount"></span>
+      </div>
+      <div class="tablewrap"><table id="timeline"></table></div>
+      <button class="ghost" id="timelineMore">もっと表示</button>
+    </div>
+    <p class="sub">※ 預金・株・ガチャなどの記録は、ログ記録機能を入れた以降の分のみ表示されます。「現在の預金残高」「株の評価額」は現在のデータから計算しています。</p>
+  </div>
+</main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs, getDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
+  authDomain: "sinzo-3f972.firebaseapp.com",
+  projectId: "sinzo-3f972",
+  storageBucket: "sinzo-3f972.firebasestorage.app",
+  messagingSenderId: "1058985227031",
+  appId: "1:1058985227031:web:6b152911e917903910bd52"
+});
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ADMIN_PASSWORD = "2026";
+
+// ---- アプリ本体と同じ設定 ----
+const DAY_MS = 86400000, RATE_NORMAL = 0.002, RATE_PREMIUM = 0.003;
+const STOCK_NAMES = { snz: "sinzo株式会社", snzb: "sinzobord", frbs: "firebase株式会社", mrbs: "丸菱商事", bepn: "別班", szmt: "sinzomart", szdk: "sinzo電力", szsh: "sinzo高校", szwt: "sinzowater", szgs: "sinzoガス" };
+function calcDeposit(principal, since, now, premiumUntil) {
+  if (!principal || principal <= 0) return 0;
+  since = since || now;
+  const total = Math.max(0, now - since), prem = Math.min(total, Math.max(0, (premiumUntil || 0) - since)), norm = total - prem;
+  return principal * Math.pow(1 + RATE_PREMIUM, prem / DAY_MS) * Math.pow(1 + RATE_NORMAL, norm / DAY_MS);
+}
+const ACTIONS = ["send_coin", "coin_rain", "deposit_in", "deposit_out", "stock_buy", "stock_sell", "premium_buy", "gacha", "dice_win", "dice_lose", "roulette", "coin_redeem", "shop_buy", "admin_edit_account_coins"];
+const CATS = { transfer: "送金", deposit: "預金", stock: "株", game: "ゲーム", other: "その他", admin: "管理者" };
+
+const fmt = n => Math.round(n).toLocaleString("ja-JP");
+const fmtSigned = n => (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n));
+const cls = n => n > 0 ? "pos" : n < 0 ? "neg" : "";
+const tsMs = t => !t ? 0 : t.toMillis ? t.toMillis() : t.toDate ? t.toDate().getTime() : new Date(t).getTime() || 0;
+const dstr = ms => { const d = new Date(ms), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
+
+// ---- ログイン ----
+function openGate() {
+  if ($("pw").value.trim() !== ADMIN_PASSWORD) { $("pwErr").textContent = "パスワードが違います"; return; }
+  $("gate").classList.add("hidden"); $("app").classList.remove("hidden");
+}
+$("pwBtn").onclick = openGate;
+$("pw").addEventListener("keydown", e => { if (e.key === "Enter") openGate(); });
+
+// ---- データ ----
+let catSel = "", accounts = [], events = [], stats = {}, filtered = [], shown = 0, sortKey = "total", sortDir = -1;
+const PAGE = 100;
+
+function normalize(d) {
+  const a = d.action, x = d.detail || {}, at = tsMs(d.created_at), u = d.user || "不明";
+  const ev = (cat, label, deltas, extra = {}) => ({ at, cat, label, deltas, accounts: Object.keys(deltas).length ? Object.keys(deltas) : [u], ...extra });
+  switch (a) {
+    case "send_coin": return ev("transfer", "送金", { [x.from]: -x.amount, [x.to]: +x.amount }, { from: x.from, to: x.to, amount: x.amount });
+    case "coin_rain": return ev("transfer", `コインの雨（${x.recipientsCount ?? "?"}人に分配）`, { [u]: -x.amount }, { from: u, to: `オンライン${x.recipientsCount ?? "?"}人`, amount: x.amount });
+    case "deposit_in": return ev("deposit", "預金に預けた", { [u]: -x.amount }, { amount: x.amount, depIn: x.amount });
+    case "deposit_out": return ev("deposit", "預金から引き出し", { [u]: +x.amount }, { amount: x.amount, depOut: x.amount });
+    case "stock_buy": return ev("stock", `${STOCK_NAMES[x.stock] || x.stock} を ${x.qty}株 購入（@${x.price}）`, { [u]: -x.total });
+    case "stock_sell": return ev("stock", `${STOCK_NAMES[x.stock] || x.stock} を ${x.qty}株 売却（@${x.price}）`, { [u]: +x.total });
+    case "premium_buy": return ev("other", `プレミアム ${x.days}日分 購入`, { [u]: -x.cost });
+    case "gacha": return ev("game", `ガチャ（${x.cost}→${x.prize}コイン）`, { [u]: x.prize - x.cost });
+    case "dice_win": return ev("game", `サイコロ勝ち（賭け${x.bet}）`, { [u]: x.reward - x.bet });
+    case "dice_lose": return ev("game", `サイコロ負け（賭け${x.bet}）`, { [u]: -x.bet });
+    case "roulette": return ev("game", `プレミアムルーレット${x.prize ? "" : "（ハズレ）"}`, { [u]: +x.prize });
+    case "coin_redeem": return ev("other", `コインコード「${x.code}」でチャージ`, { [u]: +x.amount });
+    case "shop_buy": return ev("other", `${x.kind}購入：${x.name}`, { [u]: -x.price });
+    case "admin_edit_account_coins": return { at, cat: "admin", label: `管理者がコインを ${fmt(x.newCoins)} に設定`, deltas: {}, accounts: [x.targetAccount || u] };
+  }
+  return null;
+}
+
+async function load() {
+  const btn = $("loadBtn"); btn.disabled = true;
+  $("status").classList.remove("err"); $("status").textContent = "⏳ 読み込み中...（アカウント・市場・ログ）";
+  try {
+    const [accSnap, marketSnap, logSnap] = await Promise.all([
+      getDocs(collection(db, "accounts")),
+      getDoc(doc(db, "market", "global")).catch(() => null),
+      getDocs(query(collection(db, "logs"), where("action", "in", ACTIONS)))
+    ]);
+    const now = Date.now(), prices = {};
+    const st = marketSnap && marketSnap.exists() ? marketSnap.data().stocks || {} : {};
+    Object.keys(st).forEach(k => prices[k] = st[k].p);
+
+    accounts = accSnap.docs.map(d => {
+      const a = d.data(), hold = a.holdings && Object.keys(a.holdings).length ? a.holdings : (a.shares > 0 ? { frbs: a.shares } : {});
+      let stockVal = 0, shares = 0; Object.keys(hold).forEach(k => { shares += hold[k]; stockVal += hold[k] * (prices[k] || 0); });
+      const coins = a.coins !== undefined ? a.coins : 1000, dep = calcDeposit(a.deposit || 0, a.depositAt, now, a.premiumUntil || 0);
+      return { name: d.id, coins, dep, stockVal, shares, total: coins + dep + stockVal, premium: (a.premiumUntil || 0) > now };
+    });
+
+    events = logSnap.docs.map(d => normalize(d.data())).filter(Boolean).sort((a, b) => b.at - a.at);
+    stats = {}; const get = n => stats[n] || (stats[n] = { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 });
+    const pairs = {};
+    events.forEach(e => {
+      Object.keys(e.deltas).forEach(n => { get(n).net += e.deltas[n]; });
+      if (e.cat === "transfer" && e.from) {
+        get(e.from).sent += e.amount;
+        if (e.label === "送金") { get(e.to).recv += e.amount; const k = e.from + "\u0000" + e.to; (pairs[k] = pairs[k] || { from: e.from, to: e.to, n: 0, sum: 0 }); pairs[k].n++; pairs[k].sum += e.amount; }
+      }
+      if (e.depIn) get(e.accounts[0]).depIn += e.depIn;
+      if (e.depOut) get(e.accounts[0]).depOut += e.depOut;
+    });
+    window.__pairs = Object.values(pairs).sort((a, b) => b.sum - a.sum);
+
+    renderAll();
+    $("loadedAt").textContent = "最終読み込み " + dstr(now);
+    $("status").textContent = `✅ アカウント ${accounts.length} 件 / 記録 ${events.length} 件を読み込みました`;
+    $("body").classList.remove("hidden");
+  } catch (e) {
+    console.error(e);
+    $("status").classList.add("err");
+    $("status").textContent = "⚠️ 読み込みに失敗しました（" + (e && e.code ? e.code : "通信エラー") + "）。Firestoreのルールで logs / accounts の読み取りが許可されているか確認してください。";
+  }
+  btn.disabled = false;
+}
+$("loadBtn").onclick = load;
+
+// ---- 描画 ----
+function renderAll() { renderKpis(); renderAccounts(); renderPairs(); renderFilters(); applyFilter(); }
+
+function renderKpis() {
+  const sum = k => accounts.reduce((a, b) => a + b[k], 0);
+  const transfers = events.filter(e => e.label === "送金"), tsum = transfers.reduce((a, e) => a + e.amount, 0);
+  const depIn = Object.values(stats).reduce((a, s) => a + s.depIn, 0), depOut = Object.values(stats).reduce((a, s) => a + s.depOut, 0);
+  const items = [
+    ["アカウント数", fmt(accounts.length) + " 人"], ["所持コイン合計", fmt(sum("coins"))], ["預金残高合計", fmt(sum("dep"))],
+    ["株の評価額合計", fmt(sum("stockVal"))], ["総資産", fmt(sum("total"))],
+    ["送金（回数 / 合計）", `${fmt(transfers.length)} 回 / ${fmt(tsum)}`], ["預入累計 / 引出累計", `${fmt(depIn)} / ${fmt(depOut)}`]
+  ];
+  $("kpis").innerHTML = items.map(([l, v]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
+}
+
+const COLS = [
+  ["name", "アカウント"], ["coins", "所持コイン"], ["dep", "預金残高"], ["stockVal", "株評価額"], ["total", "合計資産"],
+  ["sent", "送った計"], ["recv", "受け取った計"], ["depIn", "預入累計"], ["depOut", "引出累計"], ["net", "記録上の増減"]
+];
+function rowVal(a, k) { return k in a ? a[k] : (stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 })[k]; }
+function renderAccounts() {
+  const rows = accounts.slice().sort((a, b) => {
+    const x = rowVal(a, sortKey), y = rowVal(b, sortKey);
+    return (typeof x === "string" ? x.localeCompare(y, "ja") : x - y) * sortDir;
+  });
+  const max = Math.max(1, ...accounts.map(a => a.total));
+  const sel = $("fAcc").value.trim();
+  $("accTable").innerHTML = `<thead><tr>${COLS.map(([k, l]) => `<th data-k="${k}">${l}${k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : ""}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(a => {
+      const s = stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 };
+      return `<tr class="clickable${sel === a.name ? " sel" : ""}" data-n="${esc(a.name)}"><td data-label="アカウント"><b>${esc(a.name)}</b>${a.premium ? " 👑" : ""}</td><td data-label="所持コイン">${fmt(a.coins)}</td><td data-label="預金残高">${fmt(a.dep)}</td><td data-label="株評価額">${fmt(a.stockVal)}</td><td data-label="合計資産"><span class="bar" style="width:${Math.max(2, a.total / max * 60)}px"></span>${fmt(a.total)}</td><td data-label="送った計">${fmt(s.sent)}</td><td data-label="受け取った計">${fmt(s.recv)}</td><td data-label="預入累計">${fmt(s.depIn)}</td><td data-label="引出累計">${fmt(s.depOut)}</td><td data-label="記録上の増減" class="${cls(s.net)}">${fmtSigned(s.net)}</td></tr>`;
+    }).join("") + "</tbody>";
+  const ss = $("sortSel");
+  ss.innerHTML = COLS.map(([k, l]) => `<option value="${k}">並び替え：${l}</option>`).join(""); ss.value = sortKey;
+  ss.onchange = () => { sortKey = ss.value; sortDir = sortKey === "name" ? 1 : -1; renderAccounts(); };
+  $("accTable").querySelectorAll("th").forEach(th => th.onclick = () => { const k = th.dataset.k; if (k === sortKey) sortDir *= -1; else { sortKey = k; sortDir = k === "name" ? 1 : -1; } renderAccounts(); });
+  $("accTable").querySelectorAll("tr.clickable").forEach(tr => tr.onclick = () => { $("fAcc").value = tr.dataset.n; applyFilter(); renderAccounts(); $("timeline").scrollIntoView({ behavior: "smooth", block: "start" }); });
+}
+
+function renderPairs() {
+  const pairs = window.__pairs || [];
+  if (!pairs.length) { $("pairTable").innerHTML = "<tbody><tr><td style='text-align:left'>送金の記録はまだありません</td></tr></tbody>"; return; }
+  const max = Math.max(...pairs.map(p => p.sum));
+  $("pairTable").innerHTML = "<thead><tr><th>送った人 → 受け取った人</th><th>回数</th><th>合計コイン</th></tr></thead><tbody>" +
+    pairs.map(p => `<tr><td data-label="送金"><span class="who" data-n="${esc(p.from)}">${esc(p.from)}</span> <span class="arrow">→</span> <span class="who" data-n="${esc(p.to)}">${esc(p.to)}</span></td><td data-label="回数">${fmt(p.n)}</td><td data-label="合計コイン"><span class="bar" style="width:${Math.max(2, p.sum / max * 120)}px"></span>${fmt(p.sum)}</td></tr>`).join("") + "</tbody>";
+  $("pairTable").querySelectorAll(".who").forEach(el => el.onclick = () => { $("fAcc").value = el.dataset.n; applyFilter(); renderAccounts(); $("timeline").scrollIntoView({ behavior: "smooth", block: "start" }); });
+}
+
+function renderFilters() {
+  const names = accounts.map(a => a.name), extra = new Set();
+  events.forEach(e => e.accounts.forEach(n => { if (n && !names.includes(n)) extra.add(n); }));
+  $("accList").innerHTML = [...names, ...extra].sort((a, b) => a.localeCompare(b, "ja")).map(n => `<option value="${esc(n)}"></option>`).join("");
+}
+function applyFilter() {
+  const acc = $("fAcc").value.trim(), cat = catSel, accL = acc.toLowerCase();
+  const hit = n => n && String(n).toLowerCase().includes(accL);
+  filtered = events.filter(e => (!acc || e.accounts.some(hit) || hit(e.from) || hit(e.to)) && (!cat || e.cat === cat));
+  shown = 0; $("timeline").innerHTML = "<thead><tr><th>日時</th><th>種類</th><th>内容</th><th>金額（コイン）</th></tr></thead><tbody></tbody>";
+  moreRows(); renderAccounts();
+}
+function moreRows() {
+  const acc = $("fAcc").value.trim(), tb = $("timeline").querySelector("tbody"), slice = filtered.slice(shown, shown + PAGE);
+  slice.forEach(e => {
+    let content, amount;
+    if (e.cat === "transfer" && e.from) {
+      content = `<span class="flow"><span class="who" data-n="${esc(e.from)}">${esc(e.from)}</span><span class="arrow">→</span><span class="who" data-n="${esc(e.to)}">${esc(e.to)}</span></span> <span class="sub">${esc(e.label === "送金" ? "" : e.label)}</span>`;
+      const d = acc ? (e.deltas[acc] ?? (e.from === acc ? -e.amount : 0)) : null;
+      amount = acc && d ? `<span class="${cls(d)}">${fmtSigned(d)}</span>` : fmt(e.amount);
+    } else {
+      const who = Object.keys(e.deltas).length ? Object.keys(e.deltas)[0] : e.accounts[0];
+      content = `<span class="who" data-n="${esc(who)}">${esc(who)}</span> <span class="sub">${esc(e.label)}</span>`;
+      const d = Object.values(e.deltas)[0];
+      amount = d === undefined ? "—" : `<span class="${cls(d)}">${fmtSigned(d)}</span>`;
+    }
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td data-label="日時" style="text-align:left">${dstr(e.at)}</td><td data-label="種類" style="text-align:left"><span class="tag t-${e.cat}">${CATS[e.cat]}</span></td><td data-label="内容" style="text-align:left">${content}</td><td data-label="金額">${amount}</td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll(".who").forEach(el => el.onclick = () => { $("fAcc").value = el.dataset.n; applyFilter(); });
+  shown += slice.length;
+  $("fCount").textContent = `${filtered.length} 件中 ${shown} 件を表示`;
+  $("timelineMore").style.display = shown < filtered.length ? "" : "none";
+  if (!filtered.length) tb.innerHTML = "<tr><td colspan='4' style='text-align:left'>該当する記録はありません</td></tr>";
+}
+$("fAcc").oninput = applyFilter;
+function setCat(v) { catSel = v; $("fCat").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c.dataset.v === v)); }
+$("fCat").querySelectorAll(".chip").forEach(c => c.onclick = () => { setCat(c.dataset.v); applyFilter(); });
+$("fClear").onclick = () => { $("fAcc").value = ""; setCat(""); applyFilter(); };
+$("timelineMore").onclick = moreRows;
+</script>
+</body>
+</html>
