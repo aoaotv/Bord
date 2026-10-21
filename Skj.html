@@ -1,65 +1,184 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>株価履歴の削除 | Bord 管理者</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>株価履歴の削除（管理者用）</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#243447;background:#eaf2ff}
-*{box-sizing:border-box}body{margin:0;padding:20px}main{max-width:1050px;margin:auto;background:#fff;border-radius:16px;padding:22px;box-shadow:0 5px 24px #16345b18}
-h1{font-size:24px;margin:0 0 8px}p{line-height:1.65}.muted{color:#617184;font-size:13px}
-.panel{background:#f6f9fd;border:1px solid #dbe5f0;border-radius:12px;padding:14px;margin:14px 0}
-input,button{font:inherit}input[type=password],input[type=search]{width:100%;padding:11px;border:1px solid #c7d3e0;border-radius:8px;margin:6px 0}
-button{border:0;border-radius:9px;padding:10px 15px;cursor:pointer;background:#2878bd;color:#fff;font-weight:650;margin:4px 3px 4px 0}
-button:disabled{opacity:.45;cursor:not-allowed}.danger{background:#c0392b}.secondary{background:#64748b}.success{background:#218653}
-.status{padding:10px;border-radius:8px;background:#eef6ff;margin:10px 0;white-space:pre-wrap}.status.error{background:#fff0f0;color:#a21c1c}.status.ok{background:#eaf9ef;color:#17683b}
-.list{display:grid;gap:8px}.item{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:14px;border:1px solid #dce5ee;border-radius:12px;background:#fff}
-.item input{width:22px;height:22px;margin:0}.item strong{display:block;overflow-wrap:anywhere}.meta{font-size:12px;color:#66768a;margin-top:5px;overflow-wrap:anywhere}
-.stock-price{font-size:clamp(24px,5vw,36px);font-weight:800;line-height:1.2;letter-spacing:-.5px;color:#123b66;margin:5px 0}.stock-name{font-size:15px;font-weight:750;color:#26384a}.item-info{min-width:0}.item-top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.doc-tag{font-size:11px;color:#60748a;background:#edf3fa;border-radius:6px;padding:3px 6px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row button{margin:0}.row .fill{flex:1}
-#entries{max-height:58vh;overflow:auto}.warning{color:#9c2c21;font-weight:650}
-@media(max-width:600px){body{padding:8px}main{padding:14px}h1{font-size:21px}.row button{flex:1}}
+  :root { --bg:#e6f0ff; --card:#fff; --text:#222; --sub:#666; --line:#dfe6e9; --red:#c0392b; --green:#27ae60; --blue:#3498db; --orange:#e67e22; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1b2230; --card:#242d3f; --text:#eef1f6; --sub:#a9b4c6; --line:#3a465c; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:16px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; }
+  h1 { font-size:20px; margin:4px 0 14px; }
+  h2 { font-size:16px; margin:0 0 8px; }
+  .card { background:var(--card); border-radius:16px; padding:18px; margin-bottom:14px; box-shadow:0 2px 12px rgba(0,0,0,.08); }
+  button { padding:9px 16px; border:none; border-radius:20px; font-size:14px; cursor:pointer; color:#fff; background:var(--blue); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  button.red { background:var(--red); } button.green { background:var(--green); } button.gray { background:#7f8c8d; } button.orange { background:var(--orange); }
+  button.small { padding:6px 12px; font-size:13px; }
+  input[type=password], input[type=number], input[type=datetime-local], select {
+    padding:9px 10px; font-size:15px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); max-width:100%; }
+  input[type=password] { width:100%; margin:10px 0; font-size:16px; }
+  input[type=number] { width:120px; }
+  .meta { color:var(--sub); font-size:13px; line-height:1.7; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; align-items:center; }
+  .list { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .row { display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .row:last-child { border-bottom:none; }
+  .row:hover { background:rgba(52,152,219,.08); }
+  .row.checked { background:rgba(192,57,43,.10); }
+  .row input[type=checkbox] { width:22px; height:22px; flex:none; accent-color:var(--red); cursor:pointer; }
+  .emoji { font-size:22px; flex:none; }
+  .info { flex:1; min-width:0; }
+  .name { font-weight:700; }
+  .sub { font-size:12px; color:var(--sub); margin-top:2px; }
+  .price { font-weight:700; white-space:nowrap; }
+  .opt { display:flex; align-items:center; gap:8px; margin:8px 0; font-size:14px; cursor:pointer; }
+  .opt input { width:18px; height:18px; }
+  .bar { height:10px; background:var(--line); border-radius:99px; overflow:hidden; margin:10px 0 6px; }
+  .bar > div { height:100%; width:0; background:var(--blue); transition:width .15s; }
+  #log { font-size:12px; line-height:1.6; color:var(--sub); max-height:220px; overflow:auto; white-space:pre-wrap; background:rgba(0,0,0,.04); border-radius:10px; padding:8px 10px; margin-top:8px; display:none; }
+  .warn { color:var(--red); font-weight:700; font-size:13px; }
+  .hidden { display:none !important; }
+  .dhead { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; }
+  canvas { width:100%; height:200px; display:block; background:rgba(0,0,0,.03); border-radius:10px; cursor:crosshair; }
+  .filters { display:flex; flex-wrap:wrap; gap:10px 18px; margin:12px 0 4px; font-size:14px; }
+  .filters label { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .filters.priceRow { padding:10px 12px; border:2px solid var(--orange); border-radius:12px; background:rgba(230,126,34,.07); }
+  .dr .info { flex:1.4; font-variant-numeric:tabular-nums; }
+  .dr .src { width:56px; font-size:12px; color:var(--sub); text-align:right; }
+  .pager { display:flex; justify-content:center; align-items:center; gap:10px; margin:10px 0; font-size:13px; color:var(--sub); }
+  .empty { padding:18px; text-align:center; color:var(--sub); font-size:13px; }
+  body.busy .lock { pointer-events:none; opacity:.55; }
 </style>
 </head>
 <body>
-<main>
-  <h1>📈 株価履歴の選択削除</h1>
-  <p class="muted">会社ごと・日時ごとに株価履歴を選択して削除できます。株価は大きく表示されます。</p>
-  <section id="login" class="panel">
-    <strong>管理者ログイン</strong>
-    <label for="password">管理者パスワード</label>
-    <input id="password" type="password" autocomplete="current-password" placeholder="パスワードを入力">
-    <button id="loginBtn">ログインして履歴を読み込む</button>
-    <div class="muted">メインサイトと同じ管理者パスワードを使用します。</div>
-  </section>
-  <section id="manager" hidden>
-    <div class="panel">
-      <div class="row">
-        <button id="reloadBtn">履歴を再読み込み</button>
-        <button id="allBtn" class="secondary">表示分をすべて選択</button>
-        <button id="noneBtn" class="secondary">選択解除</button>
+<div class="wrap">
+  <h1>📉 株価履歴の削除（管理者用）</h1>
+
+  <!-- ログイン -->
+  <div id="loginCard" class="card">
+    <div class="meta">管理者パスワードを入力してください。</div>
+    <input id="pass" type="password" placeholder="管理者パスワード" autocomplete="off">
+    <button id="loginBtn" class="red" style="width:100%">ログイン</button>
+  </div>
+
+  <div id="mainCard" class="hidden">
+
+    <!-- 会社一覧 -->
+    <div class="card lock">
+      <h2>① 会社を選ぶ</h2>
+      <div id="marketMeta" class="meta">読み込み中...</div>
+      <div class="meta">会社ごと丸ごと削除 → チェックを入れて下のボタン ／ 一部のデータだけ選ぶ → 各行の「データを選ぶ」</div>
+      <div class="toolbar">
+        <button id="selAllBtn" class="gray small">すべて選択</button>
+        <button id="selNoneBtn" class="gray small">選択解除</button>
+        <button id="reloadBtn" class="gray small">🔄 再取得</button>
+        <button id="scanBtn" class="gray small">🔍 保存済み履歴の点数を調べる</button>
       </div>
-      <p id="summary" class="muted">履歴を読み込み中…</p>
-      <input id="filter" type="search" placeholder="会社名・日時・履歴ID・株価で絞り込み">
-      <div class="row" id="companyFilters" aria-label="会社ごとの表示フィルター"></div>
-      <div class="row">
-        <button id="deleteBtn" class="danger" disabled>選択した履歴を削除</button>
-        <span id="selectedCount" class="muted">選択 0 件</span>
+      <div class="toolbar" style="padding:8px 12px; border:2px solid var(--orange); border-radius:12px; background:rgba(230,126,34,.07)">
+        <b style="font-size:14px">「データを選ぶ」で読み込む範囲:</b>
+        <select id="rngSel">
+          <option value="today" selected>今日だけ</option>
+          <option value="yesterday">昨日だけ</option>
+          <option value="h24">直近24時間</option>
+          <option value="d7">直近7日</option>
+          <option value="date">日付を指定</option>
+          <option value="all">全期間（時間がかかります）</option>
+        </select>
+        <input id="rngDate" type="date" class="hidden">
+      </div>
+      <div id="list" class="list"></div>
+
+      <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line)">
+        <label class="opt"><input type="checkbox" id="optLoHi" checked>最安値・最高値の記録もリセットする</label>
+        <label class="opt"><input type="checkbox" id="optBackup" checked>削除前に履歴をJSONでバックアップ保存する</label>
+        <div class="toolbar"><button id="deleteBtn" class="red" disabled>選択した会社の履歴を丸ごと削除</button></div>
       </div>
     </div>
-    <div id="status" class="status" role="status">履歴を読み込んでください。</div>
-    <div id="entries" class="list"></div>
-    <p class="muted">注意：チェックした会社の、その日時の株価だけを削除します。ほかの会社の同時刻の株価や日時データは残します。削除後は元に戻せません。</p>
-  </section>
-</main>
+
+    <!-- データ選択 -->
+    <div id="detailCard" class="card hidden">
+      <div class="dhead">
+        <h2 id="dTitle">② データを選ぶ</h2>
+        <span style="display:flex; gap:6px; flex-wrap:wrap">
+          <button id="dReload" class="gray small lock">🔄 この範囲で読み直す</button>
+          <button id="dLoadAll" class="gray small lock">全期間を読み込む</button>
+          <button id="dClose" class="gray small lock">× 閉じる</button>
+        </span>
+      </div>
+      <div id="dStats" class="meta"></div>
+
+      <div class="lock">
+        <canvas id="chart"></canvas>
+        <div class="meta" style="margin-top:4px">🔴赤＝選択中 ／ 🟠オレンジの線＝金額の条件 ／ グラフをクリックすると、その金額が「以上」にセットされます</div>
+
+        <div class="filters priceRow">
+          <label><b>金額</b>
+            <input id="fMin" type="number" step="any" inputmode="decimal" placeholder="例: 300"> 以上
+            <input id="fMax" type="number" step="any" inputmode="decimal" placeholder="未指定"> 以下
+          </label>
+        </div>
+        <div class="filters">
+          <label>期間（任意）
+            <input id="fFrom" type="datetime-local"> 〜 <input id="fTo" type="datetime-local">
+          </label>
+        </div>
+        <label class="opt"><input type="checkbox" id="fAuto" checked>条件に合うデータを自動で選択する（入力するたびに選び直す）</label>
+        <div class="toolbar">
+          <button id="opReplace" class="orange small">条件に合うものだけ選択</button>
+          <button id="opAdd" class="gray small">選択に追加</button>
+          <button id="opRemove" class="gray small">条件に合うものを解除</button>
+          <button id="opAll" class="gray small">すべて選択</button>
+          <button id="opClear" class="gray small">すべて解除</button>
+          <button id="opClearFilter" class="gray small">条件クリア</button>
+        </div>
+
+        <div class="toolbar">
+          <span class="meta">表示:</span>
+          <select id="vMode">
+            <option value="match">条件に合うもの</option>
+            <option value="sel">選択中のもの</option>
+            <option value="all">すべて</option>
+          </select>
+          <label class="opt" style="margin:0"><input type="checkbox" id="vDesc" checked>新しい順</label>
+        </div>
+        <div id="dList" class="list"></div>
+        <div class="pager">
+          <button id="pPrev" class="gray small">◀ 前</button>
+          <span id="pInfo"></span>
+          <button id="pNext" class="gray small">次 ▶</button>
+        </div>
+
+        <label class="opt"><input type="checkbox" id="dRecalc" checked><span id="dRecalcLabel">最安値・最高値の記録を残りのデータから再計算する</span></label>
+        <label class="opt"><input type="checkbox" id="dBackup" checked>削除前に選択したデータをJSONでバックアップ保存する</label>
+        <div class="warn">⚠ 削除したデータは元に戻せません（グラフ上は「データなし」になります）。</div>
+        <div class="toolbar"><button id="dDeleteBtn" class="red" disabled>選択したデータを削除</button></div>
+      </div>
+    </div>
+
+    <!-- 進捗 -->
+    <div id="progCard" class="card hidden">
+      <div id="barText" class="meta"></div>
+      <div class="bar"><div id="barFill"></div></div>
+      <button id="stopBtn" class="gray small hidden">中止</button>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getFirestore, doc, getDoc, getDocs, collection, query, orderBy,
-  writeBatch, runTransaction, Timestamp
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, runTransaction, writeBatch, addDoc, collection, Timestamp }
+  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const firebaseConfig = {
+const ADMIN_PASSWORD = "2026";   // index.html の ADMIN_PASSWORD と同じ値
+
+const app = initializeApp({
   apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
   authDomain: "sinzo-3f972.firebaseapp.com",
   databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
@@ -67,202 +186,492 @@ const firebaseConfig = {
   storageBucket: "sinzo-3f972.firebasestorage.app",
   messagingSenderId: "1058985227031",
   appId: "1:1058985227031:web:6b152911e917903910bd52"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const ADMIN_PASSWORD = "2026";
-const STOCKS = [
-  {id:"snz",name:"sinzo株式会社"},{id:"snzb",name:"sinzobord"},
-  {id:"frbs",name:"firebase株式会社"},{id:"mrbs",name:"丸菱商事"},
-  {id:"bepn",name:"別班"},{id:"szmt",name:"sinzomart"},
-  {id:"szdk",name:"sinzo電力"},{id:"szsh",name:"sinzo高校"},
-  {id:"szgs",name:"sinzoガス"}
-];
-const $ = id => document.getElementById(id);
-let loggedIn = false;
-let entries = [];
-let selectedCompany = "all";
-let busy = false;
-
-function setStatus(message, kind="") {
-  $("status").textContent = message;
-  $("status").className = "status " + kind;
-}
-function timeLabel(v) {
-  let n = typeof v === "number" ? v : (v && typeof v.toMillis === "function" ? v.toMillis() : null);
-  if (n === null || !Number.isFinite(n)) return "時刻不明";
-  try { return new Date(n).toLocaleString("ja-JP", {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}); }
-  catch { return new Date(n).toISOString(); }
-}
-function priceSummary(prices) {
-  return STOCKS.filter(s => prices[s.id] !== undefined && prices[s.id] !== null && prices[s.id] !== "").map(s => `${s.name}: ${prices[s.id]}`).join(" / ");
-}
-function buildEntries(docId, data, kind) {
-  const ts = Array.isArray(data.ts) ? data.ts : [];
-  const out = [];
-  if (kind === "archive") {
-    const p = data.p || {};
-    const n = Math.max(ts.length, ...STOCKS.map(s => Array.isArray(p[s.id]) ? p[s.id].length : 0), 0);
-    for (let i=0;i<n;i++) {
-      const prices = {};
-      for (const s of STOCKS) if (Array.isArray(p[s.id]) && i < p[s.id].length) prices[s.id] = p[s.id][i];
-      out.push({key:`${docId}::${i}`,docId,kind,index:i,ts:ts[i],label:timeLabel(ts[i]),prices,priceText:priceSummary(prices)});
-    }
-  } else {
-    const stocks = data.stocks || {};
-    const n = Math.max(ts.length, ...STOCKS.map(s => Array.isArray(stocks[s.id]?.h) ? stocks[s.id].h.length : 0), 0);
-    for (let i=0;i<n;i++) {
-      const prices = {};
-      for (const s of STOCKS) if (Array.isArray(stocks[s.id]?.h) && i < stocks[s.id].h.length) prices[s.id] = stocks[s.id].h[i];
-      out.push({key:`global::${i}`,docId:"global",kind,index:i,ts:ts[i],label:timeLabel(ts[i]),prices,priceText:priceSummary(prices)});
-    }
-  }
-  return out;
-}
-async function loadHistory() {
-  if (!loggedIn || busy) return;
-  busy = true; $("reloadBtn").disabled = true; $("deleteBtn").disabled = true;
-  setStatus("Firestore から履歴を取得しています…");
-  try {
-    const results = [];
-    const globalSnap = await getDoc(doc(db,"market","global"));
-    if (globalSnap.exists()) results.push(...buildEntries("global",globalSnap.data(),"global"));
-    const archiveSnap = await getDocs(query(collection(db,"market"),orderBy("n","asc")));
-    archiveSnap.forEach(snap => {
-      if (/^h_\d+$/.test(snap.id)) results.push(...buildEntries(snap.id,snap.data(),"archive"));
-    });
-    entries = results;
-    render();
-    $("summary").textContent = `日時ポイント: ${entries.length.toLocaleString("ja-JP")} 件（最新履歴 ${globalSnap.exists() ? "あり" : "なし"}）`;
-    setStatus(`読み込み完了：${entries.length.toLocaleString("ja-JP")} 件。削除したい履歴にチェックを入れてください。`,"ok");
-  } catch (e) {
-    console.error(e);
-    setStatus("履歴の読み込みに失敗しました。\nFirestore のアクセス権限・ネットワークを確認してください。\n詳細: "+(e?.message || e),"error");
-  } finally {
-    busy = false; $("reloadBtn").disabled = false; updateSelection();
-  }
-}
-function renderCompanyFilters() {
-  const root = $("companyFilters");
-  root.replaceChildren();
-  const options = [{id:"all",name:"すべての会社"}, ...STOCKS];
-  for (const stock of options) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = stock.name;
-    b.className = selectedCompany === stock.id ? "success" : "secondary";
-    b.addEventListener("click", () => { selectedCompany = stock.id; render(); });
-    root.append(b);
-  }
-}
-function render() {
-  const root = $("entries"); root.replaceChildren();
-  renderCompanyFilters();
-  const filter = $("filter").value.trim().toLocaleLowerCase();
-  const frag = document.createDocumentFragment();
-  for (const item of entries) {
-    const companyRows = STOCKS.filter(s =>
-      (selectedCompany === "all" || selectedCompany === s.id) &&
-      item.prices[s.id] !== undefined && item.prices[s.id] !== null && item.prices[s.id] !== ""
-    );
-    for (const stock of companyRows) {
-      const price = item.prices[stock.id];
-      const searchable = `${stock.name} ${item.label} ${item.docId} ${price}`.toLocaleLowerCase();
-      if (filter && !searchable.includes(filter)) continue;
-      const key = `${item.key}::${stock.id}`;
-      const label = document.createElement("label"); label.className = "item"; label.dataset.key = key;
-      const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.key = key;
-      cb.addEventListener("change", updateSelection);
-      const body = document.createElement("div"); body.className = "item-info";
-      const top = document.createElement("div"); top.className = "item-top";
-      const name = document.createElement("span"); name.className = "stock-name"; name.textContent = stock.name;
-      const doc = document.createElement("span"); doc.className = "doc-tag"; doc.textContent = `${item.kind === "global" ? "最新履歴" : "過去履歴 " + item.docId} · #${item.index+1}`;
-      const priceEl = document.createElement("div"); priceEl.className = "stock-price"; priceEl.textContent = Number.isFinite(Number(price)) ? Number(price).toLocaleString("ja-JP") : String(price);
-      const time = document.createElement("div"); time.className = "meta"; time.textContent = item.label;
-      top.append(name, doc); body.append(top, priceEl, time); label.append(cb, body); frag.append(label);
-    }
-  }
-  root.append(frag);
-  updateSelection();
-}
-function selectedKeys() {
-  return new Set([...$("entries").querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.dataset.key));
-}
-function updateSelection() {
-  const n = selectedKeys().size;
-  $("selectedCount").textContent = `選択 ${n.toLocaleString("ja-JP")} 件`;
-  $("deleteBtn").disabled = !loggedIn || busy || n===0;
-}
-async function deleteSelected() {
-  if (!loggedIn || busy) return;
-  const keys = selectedKeys();
-  if (!keys.size) return;
-  if (!confirm(`選択した ${keys.size} 件の「会社ごとの株価履歴」を削除します。\n選択した会社の株価だけを削除し、ほかの会社のデータは残します。\nこの操作は取り消せません。続行しますか？`)) return;
-  busy = true; $("deleteBtn").disabled = true; $("reloadBtn").disabled = true;
-  setStatus(`選択した ${keys.size} 件の株価を削除しています…`);
-  try {
-    const grouped = new Map();
-    for (const key of keys) {
-      const [entryKey, stockId] = key.split("::").length > 2
-        ? [key.slice(0, key.lastIndexOf("::")), key.slice(key.lastIndexOf("::")+2)]
-        : [null, null];
-      const item = entries.find(e => e.key === entryKey);
-      if (!item || !STOCKS.some(s => s.id === stockId)) continue;
-      if (!grouped.has(item.docId)) grouped.set(item.docId, []);
-      grouped.get(item.docId).push({index:item.index, stockId});
-    }
-    if (grouped.has("global")) {
-      const changes = grouped.get("global");
-      await runTransaction(db, async tx => {
-        const ref = doc(db,"market","global");
-        const snap = await tx.get(ref);
-        if (!snap.exists()) throw new Error("market/global が見つかりません。");
-        const data = snap.data();
-        const ts = Array.isArray(data.ts) ? data.ts.slice() : [];
-        const stocks = structuredClone(data.stocks || {});
-        for (const {index,stockId} of changes) {
-          const arr = stocks[stockId]?.h;
-          if (Array.isArray(arr) && index >= 0 && index < arr.length) arr[index] = null;
-        }
-        tx.set(ref,{...data,ts,stocks,updated_at:Timestamp.now()});
-      });
-      grouped.delete("global");
-    }
-    for (const [docId, changes] of grouped) {
-      const ref = doc(db,"market",docId);
-      await runTransaction(db, async tx => {
-        const fresh = await tx.get(ref);
-        if (!fresh.exists()) throw new Error(`${docId} が削除されています。再読み込みしてください。`);
-        const latest = fresh.data();
-        const ts = Array.isArray(latest.ts) ? latest.ts.slice() : [];
-        const p = structuredClone(latest.p || {});
-        for (const {index,stockId} of changes) {
-          const arr = p[stockId];
-          if (Array.isArray(arr) && index >= 0 && index < arr.length) arr[index] = null;
-        }
-        tx.set(ref,{...latest,ts,p,deletedHistoryUpdatedAt:Timestamp.now()});
-      });
-    }
-    setStatus(`削除処理が完了しました（会社ごとの株価 ${keys.size} 件）。再読み込みしています。`,"ok");
-    await loadHistory();
-  } catch (e) {
-    console.error(e);
-    setStatus("削除に失敗しました。履歴を再読み込みしてから再試行してください。\n詳細: "+(e?.message||e),"error");
-  } finally {
-    busy = false; $("reloadBtn").disabled = false; updateSelection();
-  }
-}
-$("loginBtn").addEventListener("click",async()=>{
-  if ($("password").value.trim()!==ADMIN_PASSWORD) { alert("パスワードが違います。"); return; }
-  loggedIn=true; $("login").hidden=true; $("manager").hidden=false;
-  await loadHistory();
 });
-$("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
-$("reloadBtn").addEventListener("click",loadHistory);
-$("deleteBtn").addEventListener("click",deleteSelected);
-$("allBtn").addEventListener("click",()=>{$("entries").querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=true);updateSelection()});
-$("noneBtn").addEventListener("click",()=>{$("entries").querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);updateSelection()});
-$("filter").addEventListener("input",render);
+const db = getFirestore(app);
+const marketRef = doc(db, "market", "global");
+
+// index.html の STOCKS と同じ会社ID
+const STOCKS = [
+  { id: "snz",  name: "sinzo株式会社",   emoji: "🏢" },
+  { id: "snzb", name: "sinzobord",       emoji: "📱" },
+  { id: "frbs", name: "firebase株式会社", emoji: "💻" },
+  { id: "mrbs", name: "丸菱商事",         emoji: "⭕️" },
+  { id: "bepn", name: "別班",             emoji: "🔫" },
+  { id: "szmt", name: "sinzomart",        emoji: "🍙" },
+  { id: "szdk", name: "sinzo電力",        emoji: "💡" },
+  { id: "szsh", name: "sinzo高校",        emoji: "🏫" },
+  { id: "szwt", name: "sinzowater",       emoji: "💦" },
+  { id: "szgs", name: "sinzoガス",        emoji: "🔥" }
+];
+
+const $ = id => document.getElementById(id);
+const countNonNull = a => Array.isArray(a) ? a.reduce((n, v) => n + (v == null ? 0 : 1), 0) : 0;
+// 時刻の配列と株価の配列の本数がずれていても、index.html と同じ並びで扱う
+const alignTo = (arr, len) => { const a = Array.isArray(arr) ? arr : []; return a.length === len ? a : a.length < len ? new Array(len - a.length).fill(null).concat(a) : a.slice(a.length - len); };
+const normH = (h, n) => { const a = Array.isArray(h) ? h.slice() : []; if (a.length < n) return new Array(n - a.length).fill(a.length ? a[0] : null).concat(a); return a.length > n ? a.slice(a.length - n) : a; };
+const fmtT = t => new Date(t).toLocaleString("ja-JP", { hour12: false, year: "2-digit", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+let market = null, archiveCounts = null;
+let busy = false, stopFlag = false;
+
+// ---------- ログイン ----------
+function login() {
+  if ($("pass").value.trim() !== ADMIN_PASSWORD) return alert("パスワードが違います");
+  $("loginCard").classList.add("hidden");
+  $("mainCard").classList.remove("hidden");
+  loadMarket();
+}
+$("loginBtn").onclick = login;
+$("pass").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+
+// ---------- 進捗・ログ ----------
+function setProgress(done, total, text) {
+  $("progCard").classList.remove("hidden");
+  $("barFill").style.width = (total ? Math.round(done / total * 100) : 100) + "%";
+  $("barText").textContent = text + (total ? `（${done} / ${total}）` : "");
+}
+function log(msg) { $("progCard").classList.remove("hidden"); const el = $("log"); el.style.display = "block"; el.textContent += msg + "\n"; el.scrollTop = el.scrollHeight; }
+function resetLog() { $("log").textContent = ""; $("log").style.display = "none"; $("barFill").style.width = "0"; $("barText").textContent = ""; }
+function setBusy(b) {
+  busy = b; document.body.classList.toggle("busy", b);
+  $("stopBtn").classList.toggle("hidden", !b); $("stopBtn").disabled = false;
+}
+$("stopBtn").onclick = () => { stopFlag = true; $("stopBtn").disabled = true; };
+
+function downloadJson(obj, filename) {
+  const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+// ======================================================================
+//  ① 会社一覧
+// ======================================================================
+async function loadMarket() {
+  $("marketMeta").textContent = "読み込み中...";
+  try { const snap = await getDoc(marketRef); market = snap.exists() ? snap.data() : null; }
+  catch (e) { $("marketMeta").textContent = "取得に失敗しました: " + e.message; return; }
+  renderCompanies();
+}
+
+function renderCompanies() {
+  const checked = new Set([...document.querySelectorAll("#list input[type=checkbox]:checked")].map(i => i.dataset.id));
+  const chunks = (market && market.chunks) || 0;
+  const mainLen = (market && Array.isArray(market.ts)) ? market.ts.length : 0;
+  const upd = market && market.updated_at && market.updated_at.toDate ? market.updated_at.toDate().toLocaleString("ja-JP") : "不明";
+  $("marketMeta").innerHTML = market
+    ? `履歴ファイル(h_N): <b>${chunks}</b> 個（約 ${chunks * 120} 点）／ 直近データ: <b>${mainLen}</b> 点 ／ 最終更新: ${upd}`
+    : "market/global が見つかりません。";
+  $("list").innerHTML = STOCKS.map(s => {
+    const st = market && market.stocks && market.stocks[s.id];
+    const price = st ? st.p : "—";
+    const arch = archiveCounts ? `／ 保存済み履歴 ${archiveCounts[s.id] ?? 0} 点` : "";
+    return `<label class="row ${checked.has(s.id) ? "checked" : ""}">
+      <input type="checkbox" data-id="${s.id}" ${checked.has(s.id) ? "checked" : ""} ${st ? "" : "disabled"}>
+      <span class="emoji">${s.emoji}</span>
+      <span class="info"><div class="name">${s.name}</div><div class="sub">${s.id} ／ 現在 ${price}${st ? " コイン" : ""} ／ 直近 ${st ? countNonNull(st.h) : 0} 点 ${arch}</div></span>
+      <button class="detailBtn orange small" data-id="${s.id}" ${st ? "" : "disabled"}>データを選ぶ ▶</button>
+    </label>`;
+  }).join("");
+  updateBulkBtn();
+}
+const selectedIds = () => [...document.querySelectorAll("#list input[type=checkbox]:checked")].map(i => i.dataset.id);
+function updateBulkBtn() {
+  const n = selectedIds().length;
+  $("deleteBtn").disabled = busy || n === 0;
+  $("deleteBtn").textContent = n ? `選択した ${n} 社の履歴を丸ごと削除` : "選択した会社の履歴を丸ごと削除";
+  document.querySelectorAll("#list .row").forEach(r => r.classList.toggle("checked", r.querySelector("input").checked));
+}
+$("list").addEventListener("change", updateBulkBtn);
+$("list").addEventListener("click", e => {
+  const b = e.target.closest(".detailBtn"); if (!b) return;
+  e.preventDefault(); e.stopPropagation(); openDetail(b.dataset.id);
+});
+$("selAllBtn").onclick = () => { document.querySelectorAll("#list input[type=checkbox]:not(:disabled)").forEach(i => i.checked = true); updateBulkBtn(); };
+$("selNoneBtn").onclick = () => { document.querySelectorAll("#list input[type=checkbox]").forEach(i => i.checked = false); updateBulkBtn(); };
+$("reloadBtn").onclick = () => { if (!busy) { archiveCounts = null; loadMarket(); } };
+
+// h_N を全部読む（一括削除・点数調査用）
+async function readArchives(chunks, ids, label) {
+  const docs = [], counts = {}; ids.forEach(id => counts[id] = 0);
+  let missing = 0, done = 0; const PAR = 25;
+  for (let from = 0; from < chunks; from += PAR) {
+    if (stopFlag) throw new Error("中止しました");
+    const idx = Array.from({ length: Math.min(PAR, chunks - from) }, (_, k) => from + k);
+    const snaps = await Promise.all(idx.map(n => getDoc(doc(db, "market", "h_" + n)).catch(() => null)));
+    snaps.forEach((sn, k) => {
+      if (!sn || !sn.exists()) { missing++; return; }
+      const d = sn.data(), entry = { n: idx[k], ts: d.ts || [], len: {}, p: {} };
+      let has = false;
+      ids.forEach(id => { const arr = d.p && d.p[id]; const c = countNonNull(arr); counts[id] += c; if (c > 0) { has = true; entry.len[id] = arr.length; entry.p[id] = arr; } });
+      if (has) docs.push(entry);
+    });
+    done += idx.length; setProgress(done, chunks, label);
+  }
+  return { docs, counts, missing };
+}
+
+$("scanBtn").onclick = async () => {
+  if (busy || !market) return;
+  stopFlag = false; setBusy(true); resetLog();
+  try {
+    const chunks = market.chunks || 0;
+    const r = await readArchives(chunks, STOCKS.map(s => s.id), "保存済み履歴を調査中");
+    archiveCounts = r.counts;
+    log(`調査完了: ${chunks - r.missing} 個の履歴ファイルを確認` + (r.missing ? `（${r.missing} 個は存在しませんでした）` : ""));
+    $("barText").textContent = "調査完了";
+  } catch (e) { log("⚠ " + e.message); $("barText").textContent = e.message; }
+  setBusy(false); renderCompanies();
+};
+
+// 会社ごと丸ごと削除
+$("deleteBtn").onclick = async () => {
+  const ids = selectedIds();
+  if (busy || !ids.length || !market) return;
+  const names = ids.map(id => STOCKS.find(s => s.id === id).name).join("、");
+  if (!confirm(`次の会社の株価履歴をすべて削除します。\n\n${names}\n\nこの操作は元に戻せません。実行しますか？`)) return;
+  stopFlag = false; setBusy(true); resetLog();
+  const resetLoHi = $("optLoHi").checked, doBackup = $("optBackup").checked;
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  try {
+    const fresh = await getDoc(marketRef);
+    if (!fresh.exists()) throw new Error("market/global が見つかりません");
+    const chunks = fresh.data().chunks || 0;
+    log(`履歴ファイル ${chunks} 個を読み込みます`);
+    const r = await readArchives(chunks, ids, "履歴を読み込み中");
+    log(`削除対象の履歴が入っているファイル: ${r.docs.length} 個`);
+    if (doBackup) {
+      const g = fresh.data(), backup = { exportedAt: new Date().toISOString(), stocks: ids, main: { ts: g.ts || [], h: {} }, archives: r.docs.map(d => ({ n: d.n, ts: d.ts, p: d.p })) };
+      ids.forEach(id => { backup.main.h[id] = g.stocks && g.stocks[id] ? g.stocks[id].h : []; });
+      downloadJson(backup, `stock_history_backup_${stamp}.json`); log("バックアップを保存しました");
+    }
+    if (stopFlag) throw new Error("中止しました（まだ何も削除していません）");
+    setProgress(0, 0, "直近データを削除中");
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(marketRef);
+      if (!snap.exists()) throw new Error("market/global が見つかりません");
+      const d = snap.data(), n = Array.isArray(d.ts) ? d.ts.length : 0, upd = {};
+      ids.forEach(id => {
+        const st = d.stocks && d.stocks[id]; if (!st) return;
+        const h = new Array(Math.max(n, 1)).fill(null); h[h.length - 1] = st.p;
+        upd[`stocks.${id}.h`] = h;
+        if (resetLoHi) { upd[`stocks.${id}.lo`] = st.p; upd[`stocks.${id}.hi`] = st.p; }
+      });
+      tx.update(marketRef, upd);
+    });
+    log("✔ 直近データを削除しました");
+    let written = 0; const GROUP = 20;
+    for (let i = 0; i < r.docs.length; i += GROUP) {
+      if (stopFlag) { log(`⚠ 中止しました（${written} / ${r.docs.length} 個まで削除済み。もう一度実行すると続きから消せます）`); break; }
+      const batch = writeBatch(db);
+      r.docs.slice(i, i + GROUP).forEach(d => {
+        const upd = {}; Object.keys(d.len).forEach(id => { upd[`p.${id}`] = new Array(d.len[id]).fill(null); });
+        batch.update(doc(db, "market", "h_" + d.n), upd);
+      });
+      await batch.commit(); written += Math.min(GROUP, r.docs.length - i);
+      setProgress(written, r.docs.length, "保存済み履歴を削除中");
+    }
+    log(`✔ 保存済み履歴 ${written} 個を更新しました`);
+    addDoc(collection(db, "logs"), { action: "admin_delete_stock_history", detail: { stocks: ids, archiveDocsUpdated: written, resetLoHi }, user: "stock_history_cleaner", room: "market", ip: "unknown", created_at: Timestamp.now() }).catch(() => {});
+    if (!stopFlag) { $("barText").textContent = "削除が完了しました"; log("完了: " + names); }
+    archiveCounts = null;
+  } catch (e) { console.error(e); log("⚠ エラー: " + e.message); $("barText").textContent = "エラー: " + e.message; }
+  setBusy(false); await loadMarket();
+};
+
+// ======================================================================
+//  ② 会社の中のデータを選ぶ
+// ======================================================================
+const PAGE = 100;
+let D = null;          // 読み込んだ1社分のデータ
+let view = [], page = 0, chartRaf = 0;
+
+function getRange() {
+  const k = $("rngSel").value, now = Date.now(), d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const t0 = d0.getTime(), DAY = 864e5, fm = t => new Date(t).toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+  if (k === "today") return { k, from: t0, to: Infinity, label: `今日（${fm(t0)} 〜）` };
+  if (k === "yesterday") return { k, from: t0 - DAY, to: t0 - 1, label: `昨日（${fm(t0 - DAY)} 〜 ${fm(t0 - 1)}）` };
+  if (k === "h24") return { k, from: now - DAY, to: Infinity, label: "直近24時間" };
+  if (k === "d7") return { k, from: now - 7 * DAY, to: Infinity, label: "直近7日" };
+  if (k === "date") {
+    const v = $("rngDate").value; if (!v) throw new Error("日付を指定してください");
+    const st = new Date(v + "T00:00:00").getTime(); if (isNaN(st)) throw new Error("日付が正しくありません");
+    return { k, from: st, to: st + DAY - 1, label: v };
+  }
+  return { k: "all", from: -Infinity, to: Infinity, label: "全期間" };
+}
+$("rngSel").onchange = () => { $("rngDate").classList.toggle("hidden", $("rngSel").value !== "date"); };
+
+async function openDetail(id, keepLog = false) {
+  if (busy) return;
+  const meta = STOCKS.find(s => s.id === id);
+  let R; try { R = getRange(); } catch (e) { return alert(e.message); }
+  stopFlag = false; setBusy(true); if (!keepLog) resetLog();
+  $("detailCard").classList.remove("hidden");
+  $("dTitle").textContent = `② ${meta.emoji} ${meta.name} のデータを選ぶ`;
+  $("dStats").textContent = `履歴を読み込み中...（範囲: ${R.label}）`;
+  if (!keepLog) $("detailCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  try {
+    const g = await getDoc(marketRef);
+    if (!g.exists()) throw new Error("market/global が見つかりません");
+    const gd = g.data(), chunks = gd.chunks || 0;
+    // 新しい履歴ファイルから順に読み、範囲より古くなったら打ち切る
+    const found = []; let read = 0, missing = 0, stoppedEarly = false; const PAR = 25;
+    for (let hi = chunks - 1; hi >= 0; hi -= PAR) {
+      if (stopFlag) throw new Error("中止しました");
+      const idx = []; for (let n = hi; n > hi - PAR && n >= 0; n--) idx.push(n);
+      const snaps = await Promise.all(idx.map(n => getDoc(doc(db, "market", "h_" + n)).catch(() => null)));
+      let anyExist = false, allOlder = true;
+      snaps.forEach((sn, k) => {
+        if (!sn || !sn.exists()) { missing++; return; }
+        anyExist = true;
+        const n = idx[k], d = sn.data(), ts = Array.isArray(d.ts) ? d.ts : [];
+        let mx = -Infinity; for (let j = 0; j < ts.length; j++) if (+ts[j] > mx) mx = +ts[j];
+        if (mx >= R.from) allOlder = false; else return;
+        const arr = alignTo(d.p && d.p[id], ts.length), pts = [];
+        for (let j = 0; j < ts.length; j++) { const t = +ts[j], v = arr[j]; if (v == null || t < R.from || t > R.to) continue; pts.push([t, +v, j]); }
+        if (pts.length) found.push({ n, pts, arr });
+      });
+      read += idx.length; setProgress(read, chunks, "履歴を読み込み中");
+      if (R.from > -Infinity && anyExist && allOlder) { stoppedEarly = true; break; }
+    }
+    found.sort((a, b) => a.n - b.n);
+    const T = [], P = [], S = [], O = [], arch = new Map();
+    found.forEach(f => { arch.set(f.n, { arr: f.arr }); f.pts.forEach(([t, v, j]) => { T.push(t); P.push(v); S.push(f.n); O.push(j); }); });
+    const st = gd.stocks && gd.stocks[id], mts = Array.isArray(gd.ts) ? gd.ts : [];
+    if (st) { const h = normH(st.h, mts.length); for (let k = 0; k < mts.length; k++) { const t = +mts[k]; if (h[k] == null || t < R.from || t > R.to) continue; T.push(t); P.push(+h[k]); S.push(-1); O.push(k); } }
+    const N = T.length, partial = R.k !== "all";
+    D = { id, name: meta.name, N, chunks, arch, partial, rangeLabel: R.label,
+      ts: Float64Array.from(T), pr: Float64Array.from(P), src: Int32Array.from(S), off: Int32Array.from(O),
+      sel: new Uint8Array(N), match: new Uint8Array(N), pmin: 0, pmax: 1, t0: 0, t1: 1, cur: st ? st.p : null };
+    if (N) { let a = Infinity, b = -Infinity, t0 = Infinity, t1 = -Infinity; for (let i = 0; i < N; i++) { if (D.pr[i] < a) a = D.pr[i]; if (D.pr[i] > b) b = D.pr[i]; if (D.ts[i] < t0) t0 = D.ts[i]; if (D.ts[i] > t1) t1 = D.ts[i]; } D.pmin = a; D.pmax = b; D.t0 = t0; D.t1 = t1; }
+    // 一部の期間だけ読んだときは、全体の最安/最高を再計算できない
+    $("dRecalc").disabled = partial; if (partial) $("dRecalc").checked = false; else if (!keepLog) $("dRecalc").checked = true;
+    $("dRecalcLabel").textContent = partial ? "最安値・最高値の再計算（全期間を読み込んだときだけ使えます）" : "最安値・最高値の記録を残りのデータから再計算する";
+    ["fMin", "fMax", "fFrom", "fTo"].forEach(x => $(x).value = "");
+    $("vMode").value = "match"; page = 0;
+    $("barText").textContent = `読み込み完了: ${N} 点（${R.label}）`;
+    log(`${meta.name}: ${R.label} の ${N} 点を読み込みました（履歴ファイル ${read} / ${chunks} 個を確認${stoppedEarly ? "・範囲より古いので打ち切り" : ""}${missing ? `・存在しない ${missing} 個` : ""}）`);
+    refreshAll(true);
+  } catch (e) {
+    console.error(e); log("⚠ " + e.message); $("dStats").textContent = "読み込みに失敗しました: " + e.message; D = null;
+  }
+  setBusy(false);
+}
+$("dReload").onclick = () => { if (D) openDetail(D.id, true); };
+$("dLoadAll").onclick = () => {
+  if (!D || busy) return;
+  if (!confirm("全期間を読み込みます。履歴が多いと時間がかかります。よろしいですか？")) return;
+  $("rngSel").value = "all"; $("rngDate").classList.add("hidden"); openDetail(D.id, true);
+};
+$("dClose").onclick = () => { if (busy) return; $("detailCard").classList.add("hidden"); D = null; };
+
+// ----- 条件 -----
+const numOrNull = v => (v === "" || v == null || isNaN(+v)) ? null : +v;
+const dtOrNull = v => { if (!v) return null; const t = new Date(v).getTime(); return isNaN(t) ? null : t; };
+function computeMatch() {
+  if (!D) return 0;
+  const minV = numOrNull($("fMin").value), maxV = numOrNull($("fMax").value);
+  const from = dtOrNull($("fFrom").value), toRaw = dtOrNull($("fTo").value), to = toRaw == null ? null : toRaw + 59999;
+  const has = minV != null || maxV != null || from != null || to != null;
+  let c = 0;
+  for (let i = 0; i < D.N; i++) {
+    const p = D.pr[i], t = D.ts[i];
+    const m = has && (minV == null || p >= minV) && (maxV == null || p <= maxV) && (from == null || t >= from) && (to == null || t <= to);
+    D.match[i] = m ? 1 : 0; if (m) c++;
+  }
+  return c;
+}
+function onFilterChanged() {
+  if (!D) return;
+  computeMatch();
+  if ($("fAuto").checked) D.sel.set(D.match);
+  refreshAll(true);
+}
+["fMin", "fMax", "fFrom", "fTo"].forEach(x => $(x).addEventListener("input", onFilterChanged));
+$("fAuto").addEventListener("change", () => { if ($("fAuto").checked) onFilterChanged(); });
+$("opReplace").onclick = () => { if (!D) return; computeMatch(); D.sel.set(D.match); refreshAll(true); };
+$("opAdd").onclick = () => { if (!D) return; computeMatch(); for (let i = 0; i < D.N; i++) if (D.match[i]) D.sel[i] = 1; refreshAll(true); };
+$("opRemove").onclick = () => { if (!D) return; computeMatch(); for (let i = 0; i < D.N; i++) if (D.match[i]) D.sel[i] = 0; refreshAll(true); };
+$("opAll").onclick = () => { if (!D) return; D.sel.fill(1); refreshAll(true); };
+$("opClear").onclick = () => { if (!D) return; D.sel.fill(0); refreshAll(true); };
+$("opClearFilter").onclick = () => { if (!D) return; ["fMin", "fMax", "fFrom", "fTo"].forEach(x => $(x).value = ""); onFilterChanged(); };
+$("vMode").onchange = () => rebuildView(true);
+$("vDesc").onchange = () => rebuildView(true);
+
+// ----- 表示更新 -----
+const selCount = () => { let c = 0; if (D) for (let i = 0; i < D.N; i++) c += D.sel[i]; return c; };
+const matchCount = () => { let c = 0; if (D) for (let i = 0; i < D.N; i++) c += D.match[i]; return c; };
+function updateStats() {
+  if (!D) return;
+  const s = selCount(), m = matchCount();
+  $("dStats").innerHTML = D.N
+    ? `範囲: <b>${D.rangeLabel}</b> ／ 全 <b>${D.N}</b> 点（最安 ${D.pmin} ／ 最高 ${D.pmax}${D.cur != null ? ` ／ 現在 ${D.cur}` : ""}） ／ 条件に合う <b>${m}</b> 点 ／ 選択中 <b style="color:var(--red)">${s}</b> 点`
+    : "この会社に残っている履歴データはありません。";
+  $("dDeleteBtn").disabled = busy || s === 0;
+  $("dDeleteBtn").textContent = s ? `選択した ${s} 点を削除` : "選択したデータを削除";
+}
+function refreshAll(resetPage) { updateStats(); drawChartSoon(); rebuildView(resetPage); }
+function rebuildView(resetPage) {
+  if (!D) return;
+  const mode = $("vMode").value, arr = [];
+  for (let i = 0; i < D.N; i++) if (mode === "all" || (mode === "match" && D.match[i]) || (mode === "sel" && D.sel[i])) arr.push(i);
+  if ($("vDesc").checked) arr.reverse();
+  view = arr; if (resetPage) page = 0;
+  renderList();
+}
+function renderList() {
+  const pages = Math.max(1, Math.ceil(view.length / PAGE)); page = Math.min(page, pages - 1);
+  const slice = view.slice(page * PAGE, page * PAGE + PAGE);
+  $("dList").innerHTML = slice.length
+    ? slice.map(i => `<label class="row dr ${D.sel[i] ? "checked" : ""}"><input type="checkbox" data-i="${i}" ${D.sel[i] ? "checked" : ""}><span class="info">${fmtT(D.ts[i])}</span><span class="src">${D.src[i] < 0 ? "直近" : "h_" + D.src[i]}</span><span class="price">${D.pr[i]}</span></label>`).join("")
+    : `<div class="empty">${$("vMode").value === "match" ? "条件に合うデータがありません（金額などの条件を入力してください）" : "表示するデータがありません"}</div>`;
+  $("pInfo").textContent = `${view.length ? page * PAGE + 1 : 0}–${Math.min(view.length, (page + 1) * PAGE)} / ${view.length} 点（${page + 1} / ${pages} ページ）`;
+  $("pPrev").disabled = page <= 0; $("pNext").disabled = page >= pages - 1;
+}
+$("pPrev").onclick = () => { page = Math.max(0, page - 1); renderList(); };
+$("pNext").onclick = () => { page++; renderList(); };
+$("dList").addEventListener("change", e => {
+  const cb = e.target.closest("input[type=checkbox]"); if (!cb || !D) return;
+  D.sel[+cb.dataset.i] = cb.checked ? 1 : 0;
+  cb.closest(".row").classList.toggle("checked", cb.checked);
+  updateStats(); drawChartSoon();
+});
+
+// ----- グラフ -----
+const PADL = 46, PADR = 8, PADT = 8, PADB = 18, CH = 200;
+function drawChartSoon() { if (chartRaf) return; chartRaf = requestAnimationFrame(() => { chartRaf = 0; drawChart(); }); }
+function chartGeom(W) { const pw = Math.max(10, W - PADL - PADR), ph = CH - PADT - PADB; return { pw, ph }; }
+function drawChart() {
+  const cv = $("chart"), W = cv.clientWidth || 600, dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(CH * dpr);
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, CH);
+  const cs = getComputedStyle(document.body), txt = cs.getPropertyValue("--sub") || "#666";
+  ctx.font = "10px sans-serif"; ctx.fillStyle = txt;
+  if (!D || !D.N) { ctx.fillText("データなし", 12, 20); return; }
+  const { pw, ph } = chartGeom(W), span = (D.t1 - D.t0) || 1, rng = (D.pmax - D.pmin) || 1;
+  const mnA = new Float64Array(pw + 1).fill(Infinity), mxA = new Float64Array(pw + 1).fill(-Infinity);
+  const mnS = new Float64Array(pw + 1).fill(Infinity), mxS = new Float64Array(pw + 1).fill(-Infinity);
+  for (let i = 0; i < D.N; i++) {
+    const x = Math.min(pw, Math.max(0, Math.floor((D.ts[i] - D.t0) / span * pw))), v = D.pr[i];
+    if (v < mnA[x]) mnA[x] = v; if (v > mxA[x]) mxA[x] = v;
+    if (D.sel[i]) { if (v < mnS[x]) mnS[x] = v; if (v > mxS[x]) mxS[x] = v; }
+  }
+  const y = v => PADT + ph * (1 - (v - D.pmin) / rng);
+  // 目盛り
+  ctx.strokeStyle = "rgba(128,128,128,.25)"; ctx.textAlign = "right";
+  for (let k = 0; k <= 4; k++) { const v = D.pmin + rng * k / 4, yy = y(v); ctx.beginPath(); ctx.moveTo(PADL, yy); ctx.lineTo(W - PADR, yy); ctx.stroke(); ctx.fillText(String(Math.round(v * 10) / 10), PADL - 4, yy + 3); }
+  ctx.textAlign = "left"; ctx.fillText(fmtT(D.t0), PADL, CH - 4); ctx.textAlign = "right"; ctx.fillText(fmtT(D.t1), W - PADR, CH - 4);
+  // 全データ（青）
+  ctx.fillStyle = "#3498db";
+  for (let x = 0; x <= pw; x++) { if (mnA[x] === Infinity) continue; const y1 = y(mxA[x]), y2 = y(mnA[x]); ctx.fillRect(PADL + x, y1, 1, Math.max(1.5, y2 - y1)); }
+  // 選択中（赤）
+  ctx.fillStyle = "#c0392b";
+  for (let x = 0; x <= pw; x++) { if (mnS[x] === Infinity) continue; const y1 = y(mxS[x]), y2 = y(mnS[x]); ctx.fillRect(PADL + x - 0.5, y1 - 0.5, 2, Math.max(2, y2 - y1 + 1)); }
+  // 金額条件の線
+  ctx.setLineDash([5, 4]); ctx.strokeStyle = "#e67e22"; ctx.fillStyle = "#e67e22"; ctx.textAlign = "left";
+  [["fMin", "以上"], ["fMax", "以下"]].forEach(([k, lab]) => {
+    const v = numOrNull($(k).value); if (v == null) return;
+    const yy = Math.min(PADT + ph, Math.max(PADT, y(v)));
+    ctx.beginPath(); ctx.moveTo(PADL, yy); ctx.lineTo(W - PADR, yy); ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillText(`${v} ${lab}`, PADL + 4, yy - 3);
+  });
+  ctx.setLineDash([]); ctx.lineWidth = 1;
+}
+window.addEventListener("resize", () => { if (D) drawChartSoon(); });
+$("chart").addEventListener("click", e => {
+  if (!D || !D.N || busy) return;
+  const r = $("chart").getBoundingClientRect(), { ph } = chartGeom(r.width);
+  const yy = e.clientY - r.top, rng = (D.pmax - D.pmin) || 1;
+  const v = D.pmin + rng * (1 - (yy - PADT) / ph);
+  $("fMin").value = String(Math.round(Math.min(D.pmax, Math.max(D.pmin, v))));
+  onFilterChanged();
+});
+
+// ----- 選択したデータを削除 -----
+$("dDeleteBtn").onclick = async () => {
+  if (busy || !D) return;
+  const s = selCount(); if (!s) return;
+  const id = D.id, name = D.name;
+  if (!confirm(`${name} の選択した ${s} 点のデータを削除します。\n\nこの操作は元に戻せません。実行しますか？`)) return;
+  stopFlag = false; setBusy(true); resetLog();
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  try {
+    // 選択データを保存先ごとに整理
+    const byChunk = new Map(), mainSet = new Set(), points = [];
+    let remMin = Infinity, remMax = -Infinity;
+    for (let i = 0; i < D.N; i++) {
+      if (!D.sel[i]) { if (D.pr[i] < remMin) remMin = D.pr[i]; if (D.pr[i] > remMax) remMax = D.pr[i]; continue; }
+      points.push([D.ts[i], D.pr[i], D.src[i] < 0 ? "main" : "h_" + D.src[i]]);
+      if (D.src[i] < 0) mainSet.add(D.ts[i]);
+      else { if (!byChunk.has(D.src[i])) byChunk.set(D.src[i], []); byChunk.get(D.src[i]).push(D.off[i]); }
+    }
+    if ($("dBackup").checked) { downloadJson({ exportedAt: new Date().toISOString(), stock: id, name, points }, `stock_points_backup_${id}_${stamp}.json`); log("バックアップを保存しました"); }
+    const recalc = $("dRecalc").checked && !D.partial;
+
+    // 1) 直近データ（market/global）— 位置ではなく時刻で照合（途中で履歴が退避されてもずれない）
+    setProgress(0, 0, "直近データを削除中");
+    let matched = new Set();
+    const res = await runTransaction(db, async tx => {
+      const snap = await tx.get(marketRef);
+      if (!snap.exists()) throw new Error("market/global が見つかりません");
+      const d = snap.data(), st = d.stocks && d.stocks[id], ts = Array.isArray(d.ts) ? d.ts : [];
+      matched = new Set(); const upd = {};
+      if (st && ts.length) {
+        const h = normH(st.h, ts.length); let changed = false;
+        for (let k = 0; k < ts.length; k++) if (h[k] != null && mainSet.has(+ts[k])) { h[k] = null; matched.add(+ts[k]); changed = true; }
+        if (changed) upd[`stocks.${id}.h`] = h;
+        if (recalc) {
+          let lo = remMin, hi = remMax;
+          const cur = +st.p; if (isFinite(cur)) { lo = Math.min(lo, cur); hi = Math.max(hi, cur); }
+          h.forEach(v => { if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); } });
+          if (isFinite(lo) && isFinite(hi)) { upd[`stocks.${id}.lo`] = lo; upd[`stocks.${id}.hi`] = hi; }
+        }
+      }
+      if (Object.keys(upd).length) tx.update(marketRef, upd);
+      return { chunks: d.chunks || 0 };
+    });
+    log(`✔ 直近データ: ${matched.size} 点を削除`);
+
+    // 2) 保存済み履歴（h_N）
+    const jobs = [...byChunk.entries()];
+    let written = 0; const GROUP = 20;
+    for (let i = 0; i < jobs.length; i += GROUP) {
+      if (stopFlag) { log(`⚠ 中止しました（${written} / ${jobs.length} 個まで更新済み。再読み込みして、残りを選び直してください）`); break; }
+      const batch = writeBatch(db);
+      jobs.slice(i, i + GROUP).forEach(([n, offs]) => {
+        const arr = D.arch.get(n).arr.slice(); offs.forEach(o => { arr[o] = null; });
+        batch.update(doc(db, "market", "h_" + n), { [`p.${id}`]: arr });
+      });
+      await batch.commit(); written += Math.min(GROUP, jobs.length - i);
+      setProgress(written, jobs.length, "保存済み履歴を更新中");
+    }
+    if (jobs.length) log(`✔ 保存済み履歴: ${written} 個のファイルを更新`);
+
+    // 3) 読み込み後に直近データから履歴へ退避されてしまった分を追いかけて消す
+    const left = new Set([...mainSet].filter(t => !matched.has(t)));
+    if (left.size && res.chunks > D.chunks && !stopFlag) {
+      log(`読み込み後に退避された ${left.size} 点を探しています...`);
+      for (let n = D.chunks; n < res.chunks && left.size; n++) {
+        const sn = await getDoc(doc(db, "market", "h_" + n)); if (!sn.exists()) continue;
+        const d = sn.data(), ts = Array.isArray(d.ts) ? d.ts : [], arr = alignTo(d.p && d.p[id], ts.length).slice(); let ch = false;
+        for (let j = 0; j < ts.length; j++) if (arr[j] != null && left.has(+ts[j])) { arr[j] = null; left.delete(+ts[j]); ch = true; }
+        if (ch) await writeBatch(db).update(doc(db, "market", "h_" + n), { [`p.${id}`]: arr }).commit();
+      }
+    }
+    if (left.size) log(`⚠ ${left.size} 点は見つかりませんでした（すでに削除済みの可能性があります）`);
+
+    addDoc(collection(db, "logs"), { action: "admin_delete_stock_points", detail: { stock: id, count: points.length, recalcLoHi: recalc }, user: "stock_history_cleaner", room: "market", ip: "unknown", created_at: Timestamp.now() }).catch(() => {});
+    $("barText").textContent = stopFlag ? "中止しました" : "削除が完了しました";
+    if (!stopFlag) log(`完了: ${name} ${points.length} 点`);
+    archiveCounts = null;
+  } catch (e) { console.error(e); log("⚠ エラー: " + e.message); $("barText").textContent = "エラー: " + e.message; }
+  setBusy(false);
+  await loadMarket();
+  await openDetail(id, true);   // 最新の状態で読み直す（ログは残す）
+};
 </script>
 </body>
 </html>
