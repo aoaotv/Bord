@@ -5614,7 +5614,7 @@ async function bfClaimDailyLogin(){
     tx.update(ref,{bfDailyLoginDate:day,bfLoginStreak:streak,coins:Math.max(0,Number(a.coins)||0)+bonus,bfXp:Math.max(0,Number(a.bfXp)||0)+10,bfUpdatedAt:serverTimestamp()});
     claimed=true;
   });
-  if(claimed){showTopNotification(`🎁 ログインボーナス +${bonus}コイン / XP +10`);}
+  if(claimed){showTopNotification(`🎁 ログインボーナス +${bonus}コイン`);}
   return claimed;
 }
 async function bfTrackAction(type, extra={}){
@@ -5645,7 +5645,6 @@ async function bfTrackAction(type, extra={}){
     if(coinGain)extra.coinGain=coinGain;
   });
   /* Firestore account listener updates the local coin display after the transaction. */
-  if(xpGain)showTopNotification(`✨ XP +${xpGain}${rewards.length? " / ミッション達成！":""}`);
   if(rewards.length)showTopNotification("🎁 "+rewards.map(x=>`${x.title} +${x.coins}コイン`).join("、"));
   if(bfPanel && bfPanel.style.display==="block"&&(bfCurrentTab==="progress"||bfCurrentTab==="rank"))renderBfTab();
 }
