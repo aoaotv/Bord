@@ -106,6 +106,7 @@ tr.sel{background:#e6f0ff}
       <div class="filters">
         <input id="fAcc" list="accList" placeholder="アカウント名で絞り込み" autocomplete="off">
         <datalist id="accList"></datalist>
+        <button class="ghost" id="fAccClear" type="button" style="display:none">✖ アカウント選択を解除</button>
         <div class="chips" id="fCat">
           <button type="button" class="chip on" data-v="">すべて</button>
           <button type="button" class="chip" data-v="transfer">送金</button>
@@ -307,6 +308,7 @@ function renderFilters() {
   $("accList").innerHTML = [...names, ...extra].sort((a, b) => a.localeCompare(b, "ja")).map(n => `<option value="${esc(n)}"></option>`).join("");
 }
 function applyFilter() {
+  $("fAccClear").style.display = $("fAcc").value.trim() ? "" : "none";
   const acc = $("fAcc").value.trim(), cat = catSel, accL = acc.toLowerCase();
   const hit = n => n && String(n).toLowerCase().includes(accL);
   filtered = events.filter(e => (!acc || e.accounts.some(hit) || hit(e.from) || hit(e.to)) && (!cat || e.cat === cat));
@@ -349,6 +351,7 @@ function moreRows() {
   if (!filtered.length) tb.innerHTML = "<tr><td colspan='6' style='text-align:left'>該当する記録はありません</td></tr>";
 }
 $("fAcc").oninput = applyFilter;
+$("fAccClear").onclick = () => { $("fAcc").value = ""; applyFilter(); };
 function setCat(v) { catSel = v; $("fCat").querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c.dataset.v === v)); }
 $("fCat").querySelectorAll(".chip").forEach(c => c.onclick = () => { setCat(c.dataset.v); applyFilter(); });
 $("fClear").onclick = () => { $("fAcc").value = ""; setCat(""); applyFilter(); };
