@@ -1133,8 +1133,8 @@ const db = initializeFirestore(app, {
 // ==========================================
 const DAY_MS = 86400000;
 const PREMIUM_PRICE_PER_DAY = 500;                 // プレミアム 1日あたりの価格（コイン）
-const DEPOSIT_RATE_NORMAL  = 0.002;                // 預金の日利（複利）通常 0.20%
-const DEPOSIT_RATE_PREMIUM = 0.003;                // 預金の日利（複利）プレミアム 0.30%
+const DEPOSIT_RATE_NORMAL  = 0.05;                 // 預金の日利（複利）通常 5.00%
+const DEPOSIT_RATE_PREMIUM = 0.3;                // 預金の日利（複利）プレミアム 15.00%
 const GACHA_COST_BASE = 500;                       // コインガチャの通常価格
 const PREMIUM_GACHA_DISCOUNT = 0.8;                // ガチャ価格の倍率（0.8 = 2割引）
 const PREMIUM_BOOST_RATE = 0.5;                    // 注目固定の価格の倍率（0.5 = 半額）
@@ -2809,6 +2809,7 @@ function renderPremiumAll() {
     `🎡 毎日1回、ルーレットでコインが当たる（最大10,000コイン・ハズレあり）`,
     `🖼️ アイコンの枠を ${ICON_FRAMES.length}種類から選べる`,
     `🏦 預金の日利アップ（${pct(DEPOSIT_RATE_NORMAL)} → ${pct(DEPOSIT_RATE_PREMIUM)}）`,
+`🗑️ プレミアム特典：自分の投稿の【表示なし送信取り消し】（削除跡を残さず完全削除）`,
     `🎰 コインガチャが ${Math.round((1 - PREMIUM_GACHA_DISCOUNT) * 100)}%OFF（${GACHA_COST_BASE} → ${Math.floor(GACHA_COST_BASE * PREMIUM_GACHA_DISCOUNT)}コイン）`,
     `✨ 投稿のハイライト表示が無料（通常100コイン）`,
     `📍 スレッドの注目固定が半額（通常500 → ${Math.floor(500 * PREMIUM_BOOST_RATE)}コイン）`,
@@ -4982,8 +4983,16 @@ async function deleteOwnPost(pid) {
     if (!snap.exists()) return;
     const d = snap.data();
     if (!d.isAccountUser || d.memberId !== currentAccount) return showAlert("自分の投稿のみ取り消せます");
-    await updateDoc(ref, { deleted: true, deleted_at: Timestamp.now(), deleted_by: currentAccount, body: "", image: null, highlighted: false, ...getBoardWriteMeta() });
-    saveLog("delete_own_post", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
+
+    // 👑 プレミアム会員なら「表示なし送信取り消し」（跡形もなく完全削除）
+    if (isPremium()) {
+      await deleteDoc(ref);
+      saveLog("delete_own_post_silent", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
+    } else {
+      // 通常会員はこれまで通り「削除されました」の跡を残す
+      await updateDoc(ref, { deleted: true, deleted_at: Timestamp.now(), deleted_by: currentAccount, body: "", image: null, highlighted: false, ...getBoardWriteMeta() });
+      saveLog("delete_own_post", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
+    }
   } catch (e) { showAlert("取り消しに失敗しました"); }
 }
 // 自分のスレッドの削除（ログイン中の作成者本人のみ）
