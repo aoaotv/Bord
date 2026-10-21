@@ -4,14 +4,12 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
   <title>Sinzo Bord | 完全匿名の掲示板ツール</title>
-<meta name="description" content="Sinzobordは、みんなで気軽に情報交換できる掲示板です。スレッドの作成や投稿を通じて、自由に交流を楽しめます。ホーム画面に追加すれば、いつでもワンタップでアクセスできます。">
+<meta name="description" content="完全匿名の掲示板ツール Bord">
 <meta name="keywords" content="Bord,sinzobord,Sinzobord,bord,掲示板,sinzo bord,しんぞ教,シンゾボ">
 <meta name="robots" content="index, follow">
 <meta name="apple-mobile-web-app-title" content="Bord">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Bord">
+<link rel="apple-touch-icon" href="favicon.png">
 <link rel="canonical" href="https://sinzo.site/">
 
 <meta property="og:title" content="bord">
@@ -104,11 +102,16 @@ li small span { white-space: nowrap; }
 }
 
 #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 2400; }
-#loadingPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); z-index:3000; text-align:center; color:#333; }
+#loadingPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.5); z-index:3000; text-align:center; color:#333; width:min(340px, calc(100vw - 64px)); box-sizing:border-box; }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:0 auto 10px; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-#loadingOkBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
-#forceReloadBtn { display:none; margin-top:10px; padding:6px 12px; border:none; border-radius:6px; background:#e74c3c; color:#fff; cursor:pointer; }
+#loadingProgressWrap { display:none; width:100%; height:8px; margin:14px 0 5px; overflow:hidden; border-radius:99px; background:#e5e7eb; }
+#loadingProgressBar { width:0%; height:100%; border-radius:99px; background:#3498db; transition:width .12s ease; }
+#loadingProgressText { display:none; font-size:12px; color:#555; margin-top:4px; }
+#loadingPopup.is-error .spinner { display:none; }
+#loadingPopup.is-error #loadingText { color:#c0392b; font-weight:700; }
+#loadingOkBtn { display:none; margin:10px 5px 0; padding:6px 12px; border:none; border-radius:6px; background:#27ae60; color:#fff; cursor:pointer; }
+#forceReloadBtn { display:none; margin:10px 5px 0; padding:6px 12px; border:none; border-radius:6px; background:#e74c3c; color:#fff; cursor:pointer; }
 label { display:block; text-align:left; margin-top:8px; font-size:14px; color:#333; }
 input, select, textarea { width:100%; box-sizing: border-box; padding:8px; margin-top:4px; border-radius:4px; border:1px solid #ccc; font-size:14px; color: #333; background-color: #fff; font-family: inherit; }
 input:not([type="file"]), select { height:36px; }
@@ -391,6 +394,12 @@ li img, li video { max-width: 100%; height: auto; }
     <div id="menuTagShopBtn" class="menu-grid-item">🏷️<br>タグ購入画面</div>
     <div id="menuEmojiShopBtn" class="menu-grid-item">😀<br>絵文字購入画面</div>
     <div id="menuRoomBtn" class="menu-grid-item">🚪<br>部屋選択</div>
+    <div id="menuBfMissionsBtn" class="menu-grid-item">🎁<br>ログインボーナス・ミッション</div>
+    <div id="menuBfRankBtn" class="menu-grid-item">🏆<br>レベル・実績・称号</div>
+    <div id="menuBfTrendBtn" class="menu-grid-item">🔥<br>トレンド・ランキング</div>
+    <div id="menuBfNotifyBtn" class="menu-grid-item">🔔<br>通知センター</div>
+
+    <div id="menuBfSearchBtn" class="menu-grid-item">🔎<br>詳細検索</div>
   </div>
 </div>
 
@@ -398,8 +407,9 @@ li img, li video { max-width: 100%; height: auto; }
 
 <!-- スレッド一覧画面 -->
 <div id="threadListSection">
-  <div style="padding: 10px; text-align: center;">
-    <input type="text" id="threadSearchInput" placeholder="スレッド名を検索..." style="width: 85%; padding: 12px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+  <div id="threadSearchBar" style="padding:10px;display:flex;align-items:center;gap:8px;max-width:900px;margin:0 auto;box-sizing:border-box;">
+    <input type="text" id="threadSearchInput" placeholder="スレッド名を検索..." aria-label="スレッド名を検索" style="flex:1;min-width:0;width:auto;padding:12px;border-radius:25px;border:1px solid #ccc;font-size:16px;outline:none;box-shadow:0 2px 5px rgba(0,0,0,0.1);box-sizing:border-box;">
+    <button type="button" id="openDetailedSearchBtn" class="greenBtn" style="flex:0 0 auto;white-space:nowrap;padding:11px 14px;border-radius:22px;">詳細検索</button>
   </div>
   <ul id="threadList"></ul>
   <div id="pagination"></div>
@@ -1092,17 +1102,50 @@ li img, li video { max-width: 100%; height: auto; }
   </div>
 </div>
 
-<div id="loadingPopup">
-  <div class="spinner"></div>
+<div id="loadingPopup" role="status" aria-live="polite">
+  <div class="spinner" aria-hidden="true"></div>
   <div id="loadingText">読み込み中...</div>
-  <button id="loadingOkBtn">OK</button>
-  <button id="forceReloadBtn">データを更新</button>
+  <div id="loadingProgressWrap" aria-hidden="true"><div id="loadingProgressBar"></div></div>
+  <div id="loadingProgressText"></div>
+  <button id="loadingOkBtn" type="button">OK</button>
+  <button id="forceReloadBtn" type="button">再読み込み</button>
 </div>
 
 <div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
   <img id="popupImage" loading="lazy" decoding="async" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
   <br><button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
 </div>
+
+
+<style>
+#threadSearchBar #openDetailedSearchBtn{background:#4b3f91;color:#fff;font-weight:700}
+@media(max-width:420px){#threadSearchBar{gap:6px;padding:8px}#threadSearchBar #openDetailedSearchBtn{font-size:13px;padding:10px 11px}#threadSearchInput{font-size:14px!important}}
+.bord-feature-panel{display:none;position:fixed;inset:3vh 3vw;z-index:3600;background:#fff;color:#222;border-radius:18px;box-shadow:0 15px 60px #0005;overflow:auto;text-align:left;padding:16px;box-sizing:border-box}
+.bord-feature-panel h2{margin:4px 0 12px;font-size:21px}
+.bord-feature-panel .bf-card{background:#f6f8fc;border:1px solid #e3e8f1;border-radius:12px;padding:12px;margin:9px 0;overflow-wrap:anywhere}
+.bord-feature-panel input,.bord-feature-panel textarea,.bord-feature-panel select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #cbd2df;border-radius:9px;margin:5px 0;background:white;color:#222}
+.bord-feature-panel .bf-primary{background:#4b3f91;color:white}
+.bord-feature-panel .bf-muted{color:#667085;font-size:12px}
+.bord-feature-panel .bf-progress{height:8px;background:#e1e6ef;border-radius:9px;overflow:hidden;margin-top:7px}
+.bord-feature-panel .bf-progress span{display:block;height:100%;background:#4b3f91}
+.bord-feature-panel .bf-result{padding:9px;border-bottom:1px solid #e7eaf0;cursor:pointer}
+@media(max-width:600px){.bord-feature-panel{inset:0;border-radius:0;padding:13px}}
+</style>
+<section id="bfPanel-progress" class="bord-feature-panel" aria-label="ログインボーナス・ミッション">
+  <div class="bf-panel-header"><h2>🎁 ログインボーナス・ミッション</h2><button type="button" class="bf-close" style="background:#e9edf4;color:#222">✕ 閉じる</button></div><div id="bfContent-progress"><p>読み込み中...</p></div>
+</section>
+<section id="bfPanel-rank" class="bord-feature-panel" aria-label="レベル・実績・称号">
+  <div class="bf-panel-header"><h2>🏆 レベル・実績・称号</h2><button type="button" class="bf-close" style="background:#e9edf4;color:#222">✕ 閉じる</button></div><div id="bfContent-rank"><p>読み込み中...</p></div>
+</section>
+<section id="bfPanel-trend" class="bord-feature-panel" aria-label="トレンド・ランキング">
+  <div class="bf-panel-header"><h2>🔥 トレンド・ランキング</h2><button type="button" class="bf-close" style="background:#e9edf4;color:#222">✕ 閉じる</button></div><div id="bfContent-trend"><p>読み込み中...</p></div>
+</section>
+<section id="bfPanel-notify" class="bord-feature-panel" aria-label="通知センター">
+  <div class="bf-panel-header"><h2>🔔 通知センター</h2><button type="button" class="bf-close" style="background:#e9edf4;color:#222">✕ 閉じる</button></div><div id="bfContent-notify"><p>読み込み中...</p></div>
+</section>
+<section id="bfPanel-search" class="bord-feature-panel" aria-label="詳細検索">
+  <div class="bf-panel-header"><h2>🔎 詳細検索</h2><button type="button" class="bf-close" style="background:#e9edf4;color:#222">✕ 閉じる</button></div><div id="bfContent-search"><p>読み込み中...</p></div>
+</section>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -1135,8 +1178,8 @@ const db = initializeFirestore(app, {
 // ==========================================
 const DAY_MS = 86400000;
 const PREMIUM_PRICE_PER_DAY = 500;                 // プレミアム 1日あたりの価格（コイン）
-const DEPOSIT_RATE_NORMAL  = 0.05;                 // 預金の日利（複利）通常 5.00%
-const DEPOSIT_RATE_PREMIUM = 0.3;                // 預金の日利（複利）プレミアム 15.00%
+const DEPOSIT_RATE_NORMAL  = 0.002;                // 預金の日利（複利）通常 0.20%
+const DEPOSIT_RATE_PREMIUM = 0.003;                // 預金の日利（複利）プレミアム 0.30%
 const GACHA_COST_BASE = 500;                       // コインガチャの通常価格
 const PREMIUM_GACHA_DISCOUNT = 0.8;                // ガチャ価格の倍率（0.8 = 2割引）
 const PREMIUM_BOOST_RATE = 0.5;                    // 注目固定の価格の倍率（0.5 = 半額）
@@ -2811,7 +2854,6 @@ function renderPremiumAll() {
     `🎡 毎日1回、ルーレットでコインが当たる（最大10,000コイン・ハズレあり）`,
     `🖼️ アイコンの枠を ${ICON_FRAMES.length}種類から選べる`,
     `🏦 預金の日利アップ（${pct(DEPOSIT_RATE_NORMAL)} → ${pct(DEPOSIT_RATE_PREMIUM)}）`,
-`🗑️ プレミアム特典：自分の投稿の【表示なし送信取り消し】（削除跡を残さず完全削除）`,
     `🎰 コインガチャが ${Math.round((1 - PREMIUM_GACHA_DISCOUNT) * 100)}%OFF（${GACHA_COST_BASE} → ${Math.floor(GACHA_COST_BASE * PREMIUM_GACHA_DISCOUNT)}コイン）`,
     `✨ 投稿のハイライト表示が無料（通常100コイン）`,
     `📍 スレッドの注目固定が半額（通常500 → ${Math.floor(500 * PREMIUM_BOOST_RATE)}コイン）`,
@@ -3849,36 +3891,113 @@ function setSectionsHeight(){
 window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
 let loadingTimer = null;
-function showLoading(msg="読み込み中..."){
-  document.getElementById('loadingText').textContent = msg;
-  document.getElementById('loadingOkBtn').style.display = 'none';
-  document.getElementById('forceReloadBtn').style.display = 'none';
-  document.getElementById('loadingPopup').style.display = 'block';
-
+let loadingProgressToken = 0;
+function showLoading(msg="読み込み中...", options={}){
+  const popup = document.getElementById('loadingPopup');
+  const text = document.getElementById('loadingText');
+  const okBtn = document.getElementById('loadingOkBtn');
+  const reloadBtn = document.getElementById('forceReloadBtn');
+  const progressWrap = document.getElementById('loadingProgressWrap');
+  const progressText = document.getElementById('loadingProgressText');
+  const progressBar = document.getElementById('loadingProgressBar');
+  popup.classList.remove('is-error');
+  reloadBtn.disabled = false;
+  reloadBtn.textContent = '再読み込み';
+  text.textContent = msg;
+  okBtn.style.display = 'none';
+  reloadBtn.style.display = 'none';
+  progressWrap.style.display = options.progress ? 'block' : 'none';
+  progressText.style.display = options.progress ? 'block' : 'none';
+  progressText.textContent = options.progress ? '準備中...' : '';
+  progressBar.style.width = '0%';
+  document.querySelector('#loadingPopup .spinner').style.display = 'block';
+  popup.style.display = 'block';
+  loadingProgressToken++;
   if (loadingTimer) clearTimeout(loadingTimer);
   loadingTimer = setTimeout(() => {
-    const popup = document.getElementById('loadingPopup');
-    if (popup.style.display === 'block') {
-      document.getElementById('forceReloadBtn').style.display = 'inline-block';
+    if (popup.style.display === 'block' && !popup.classList.contains('is-error')) {
+      reloadBtn.style.display = 'inline-block';
     }
-  }, 5000);
+  }, 10000);
+}
+
+function updateLoadingProgress(done, total, msg="読み込み中..."){
+  const popup = document.getElementById('loadingPopup');
+  if (popup.style.display !== 'block' || popup.classList.contains('is-error')) return;
+  const safeTotal = Math.max(0, Number(total) || 0);
+  const safeDone = Math.max(0, Math.min(safeTotal, Number(done) || 0));
+  const percent = safeTotal === 0 ? 100 : Math.round((safeDone / safeTotal) * 100);
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingProgressWrap').style.display = 'block';
+  document.getElementById('loadingProgressText').style.display = 'block';
+  document.getElementById('loadingProgressBar').style.width = percent + '%';
+  document.getElementById('loadingProgressText').textContent = safeTotal === 0 ? '投稿はありません' : `${safeDone} / ${safeTotal} 件（${percent}%）`;
+}
+
+function finishLoading(msg="読み込み完了"){
+  const popup = document.getElementById('loadingPopup');
+  if (popup.style.display !== 'block' || popup.classList.contains('is-error')) return;
+  if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; }
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingProgressBar').style.width = '100%';
+  document.getElementById('loadingProgressText').textContent = '完了';
+  // 完了表示を短時間だけ見せてから閉じる
+  const token = loadingProgressToken;
+  setTimeout(() => { if (token === loadingProgressToken) hideLoading(); }, 350);
 }
 
 function hideLoading(){
+  loadingProgressToken++;
   if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; }
-  document.getElementById('loadingPopup').style.display = 'none';
+  const popup = document.getElementById('loadingPopup');
+  popup.style.display = 'none';
+  popup.classList.remove('is-error');
   document.getElementById('forceReloadBtn').style.display = 'none';
+  document.getElementById('loadingOkBtn').style.display = 'none';
+  document.getElementById('loadingProgressWrap').style.display = 'none';
+  document.getElementById('loadingProgressText').style.display = 'none';
 }
 
-document.getElementById('forceReloadBtn').onclick = async () => {
-  showLoading("キャッシュをクリアして再読み込み中...");
-  try { await clearIndexedDbPersistence(db); } catch (e) {}
-  threadsData = [];
-  knownPostIds.clear();
+async function reloadAfterLoadError(){
+  const btn = document.getElementById('forceReloadBtn');
+  btn.disabled = true;
+  btn.textContent = '再読み込み中...';
+  document.getElementById('loadingText').textContent = '再読み込み中...';
+  try { if (typeof clearIndexedDbPersistence === 'function' && typeof db !== 'undefined') await clearIndexedDbPersistence(db); } catch (e) { console.warn('キャッシュのクリアをスキップしました', e); }
+  try { if (typeof threadsData !== 'undefined') threadsData = []; } catch (e) {}
+  try { if (typeof knownPostIds !== 'undefined' && knownPostIds.clear) knownPostIds.clear(); } catch (e) {}
   window.location.reload();
-};
+}
+document.getElementById('forceReloadBtn').onclick = reloadAfterLoadError;
 
-function showAlert(msg){ document.getElementById('loadingText').textContent=msg; document.getElementById('loadingOkBtn').style.display='inline-block'; document.getElementById('loadingPopup').style.display='block'; }
+function showLoadError(msg="エラーが発生しました"){
+  loadingProgressToken++;
+  if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; }
+  const popup = document.getElementById('loadingPopup');
+  popup.classList.add('is-error');
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingProgressWrap').style.display = 'none';
+  document.getElementById('loadingProgressText').style.display = 'none';
+  document.getElementById('loadingOkBtn').style.display = 'inline-block';
+  const reloadBtn = document.getElementById('forceReloadBtn');
+  reloadBtn.disabled = false;
+  reloadBtn.textContent = '再読み込み';
+  reloadBtn.style.display = 'inline-block';
+  popup.style.display = 'block';
+}
+function showAlert(msg){
+  loadingProgressToken++;
+  if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; }
+  const popup = document.getElementById('loadingPopup');
+  popup.classList.remove('is-error');
+  document.getElementById('loadingText').textContent = msg;
+  document.querySelector('#loadingPopup .spinner').style.display = 'none';
+  document.getElementById('loadingProgressWrap').style.display = 'none';
+  document.getElementById('loadingProgressText').style.display = 'none';
+  document.getElementById('loadingOkBtn').style.display = 'inline-block';
+  document.getElementById('forceReloadBtn').style.display = 'none';
+  popup.style.display = 'block';
+}
 document.getElementById('loadingOkBtn').onclick = hideLoading;
 
 function showTopNotification(text) {
@@ -3901,7 +4020,7 @@ function clearFormFields(fieldId){
     input.value = activeName; 
     if (currentAccount) { input.disabled = true; input.style.background = "#e9ecef"; } 
     else { input.disabled = false; input.style.background = "#fff"; }
-    ['postIconInput','postBodyInput','postImageInput'].forEach(id=>document.getElementById(id).value=""); document.getElementById('postColorInput').selectedIndex=0; 
+    ['postIconInput','postBodyInput','postImageInput'].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";}); document.getElementById('postColorInput').selectedIndex=0; 
     document.getElementById('postHighlightChk').checked = false;
   }
   else if(fieldId==="passwordFields"){ document.getElementById('threadPasswordCheckInput').value=""; }
@@ -4055,7 +4174,7 @@ async function listenThreads(){
     pinnedUnsub = onSnapshot(qPinned, snap => {
       pinnedThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
       mergeAndRender();
-    }, (error) => {});
+    }, (error) => { console.error("ピン留めスレッドの読み込みに失敗しました", error); showLoadError(); });
 
     const qNormal = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(pageSize));
     threadsUnsub = onSnapshot(qNormal, snap => {
@@ -4063,7 +4182,7 @@ async function listenThreads(){
       isInitialLoad = false; 
       normalThreads = snap.docs.map(d => ({ id: d.id, data: () => d.data() })); 
       mergeAndRender();
-    }, (error) => {});
+    }, (error) => { console.error("スレッド一覧の読み込みに失敗しました", error); showLoadError(); });
   };
 
   const listenSearch = (word) => {
@@ -4086,7 +4205,7 @@ async function listenThreads(){
       isAllLoaded = true; 
       pageByRoom[currentRoom] = 1; 
       renderThreadsPage(); 
-    }, (error) => {});
+    }, (error) => { console.error("検索結果の読み込みに失敗しました", error); showLoadError(); });
   };
 
   listenNormal();
@@ -4198,20 +4317,31 @@ function renderDeletedPost(li, data) {
 }
 async function loadPosts(threadId) {
   const postList = document.getElementById("postList");
-  postList.innerHTML = ""; knownPostIds.clear(); 
+  postList.innerHTML = ""; knownPostIds.clear();
+  let firstSnapshot = true;
+  let renderFailed = false;
 
   if (postsUnsub) postsUnsub();
+  showLoading("投稿を読み込み中...");
   const q = query(collection(db, currentRoom, threadId, "posts"), orderBy("created_at", "asc"));
 
   postsUnsub = onSnapshot(q, async (snapshot) => {
+    const isInitialSnapshot = firstSnapshot;
+    firstSnapshot = false;
     try {
       const iconIds = [...new Set(snapshot.docs.map(d => d.data().icon).filter(Boolean))];
       const missingIcons = iconIds.filter(id => !iconCache[id]);
       if (missingIcons.length) Promise.all(missingIcons.map(id => getIconSrc(id))).then(fillPostIcons);
 
       const changes = snapshot.docChanges();
-      const chunkSize = 20; 
+      const chunkSize = 20;
       let currentIndex = 0;
+      const progressTotal = isInitialSnapshot ? changes.length : 0;
+      if (isInitialSnapshot && changes.length === 0) {
+        const tocContainer = document.getElementById("threadToc");
+        if (tocContainer) { tocContainer.innerHTML = ""; tocContainer.style.display = "flex"; }
+        finishLoading("投稿の読み込み完了");
+      }
 
       function renderChunk() {
         try {
@@ -4285,6 +4415,7 @@ async function loadPosts(threadId) {
               }
               const delBtn = li.querySelector('.del-btn');
               if (delBtn) delBtn.onclick = (e) => { e.stopPropagation(); deleteOwnPost(change.doc.id); };
+
               li.querySelector('.info-btn').onclick = (e) => {
                 e.stopPropagation();
                 showInfoDialog(e.target.dataset.info);
@@ -4303,7 +4434,7 @@ async function loadPosts(threadId) {
           }
           currentIndex = end;
           if (currentIndex < changes.length) {
-            requestAnimationFrame(renderChunk); 
+            requestAnimationFrame(renderChunk);
           } else {
             const tocContainer = document.getElementById("threadToc");
             if(tocContainer) {
@@ -4321,12 +4452,22 @@ async function loadPosts(threadId) {
                 tocContainer.appendChild(latestBtn);
               }
             }
+            if (isInitialSnapshot) finishLoading("投稿の読み込み完了");
           }
-        } catch (renderError) {}
+        } catch (renderError) {
+          console.error("投稿の描画に失敗しました", renderError);
+          if (!renderFailed) { renderFailed = true; showLoadError(); }
+        }
       }
-      if(changes.length > 0) requestAnimationFrame(renderChunk);
-    } catch (e) {}
-  }, (error) => {});
+      if (changes.length > 0) requestAnimationFrame(renderChunk);
+    } catch (e) {
+      console.error("投稿データの処理に失敗しました", e);
+      if (isInitialSnapshot) showLoadError();
+    }
+  }, (error) => {
+    console.error("投稿の読み込みに失敗しました", error);
+    showLoadError("エラーが発生しました");
+  });
 }
 
 window.showImagePopup = function(src){
@@ -4378,6 +4519,7 @@ document.getElementById('createThreadBtn').onclick=async()=>{
       const newDoc = await addDoc(collection(db, currentRoom) ,{ memberId:nickName, isAccountUser: isAccountUser, nameDup: isDupName, icon:iconId||null, title, detail, image:imageBase64, password:password||null, color, postCount: 1, pinned: false, boosted: false, latestPostTime: Timestamp.now(), created_at:Timestamp.now(), ip: clientIP, created_ip: clientIP, locked:false, ...getBoardWriteMeta() });
       await addDoc(collection(db, currentRoom, newDoc.id, "posts"), { memberId: nickName, isAccountUser: isAccountUser, nameDup: isDupName, icon: iconId || null, body: `【${title}】${detail ? `\n${detail}` : ''}`, image: imageBase64, color: color, created_at: Timestamp.now(), ip: clientIP, index: 1, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
       await saveLog("create_thread", { threadId: newDoc.id, title: title, hasPassword: !!password });
+      if(currentAccount) bfTrackAction("thread").catch(e=>console.warn("mission tracking skipped",e));
     }catch(e){
       showAlert("作成に失敗しました"); tempLi.remove();
     } finally { isFormSending = false; tempLi.remove(); } 
@@ -4647,25 +4789,55 @@ document.getElementById('createCoinCodeBtn').onclick = async () => {
 };
 
 document.getElementById('adminUpdateStockBtn').onclick = async () => {
-  const priceStr = document.getElementById('adminStockPriceInput').value.trim();
+  const btn = document.getElementById('adminUpdateStockBtn');
+  const priceInput = document.getElementById('adminStockPriceInput');
+  const priceStr = priceInput.value.trim();
   if (priceStr === "") return alert("変更後の株価を入力してください");
-  const newPrice = parseInt(priceStr, 10);
-  if (isNaN(newPrice) || newPrice < 1) return alert("有効な株価を入力してください");
-  const sid = document.getElementById('adminStockSelect').value, d = STOCK_MAP[sid];
+
+  const newPrice = Number(priceStr);
+  if (!Number.isSafeInteger(newPrice) || newPrice < 1) {
+    return alert("株価は1以上の整数で入力してください");
+  }
+
+  const sid = document.getElementById('adminStockSelect').value;
+  const d = STOCK_MAP[sid];
+  if (!d) return alert("銘柄を選択してください");
+  if (btn.disabled) return;
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "変更中...";
+  btn.style.opacity = "0.7";
+
   try {
-    await runTransaction(db, async tx => {
-      const snap = await tx.get(marketRef), data = snap.exists() ? snap.data() : {}, now = Date.now();
-      const m = alignMarket(data, now);
-      m.ts.push(now);
-      m.overrides[sid] = { base: newPrice, at: now };
-      STOCKS.forEach(x => { const s = m.stocks[x.id]; if (x.id === sid) s.p = newPrice; s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
-      writeMarket(tx, m, typeof data.tickAt === "number" ? data.tickAt : now);
+    const now = Date.now();
+    // 全履歴を含む市場データ全体をトランザクションで再保存せず、
+    // 対象銘柄の現在値と基準価格だけを更新して処理を軽量化する。
+    await updateDoc(marketRef, {
+      [`stocks.${sid}.p`]: newPrice,
+      [`overrides.${sid}`]: { base: newPrice, at: now },
+      updated_at: Timestamp.now()
     });
-    await saveLog("admin_edit_stock_price", { stock: sid, newPrice });
+
+    // 監査ログは株価更新の成功判定から切り離し、ログ側の遅延で操作を失敗扱いにしない。
+    Promise.resolve()
+      .then(() => saveLog("admin_edit_stock_price", { stock: sid, newPrice }))
+      .catch(err => console.warn("株価変更ログの保存に失敗しました:", err));
+
+    priceInput.value = "";
     alert(`${d.name}の株価を ${newPrice} コインに変更しました。`);
-    document.getElementById('adminStockPriceInput').value = "";
-  } catch(e) {
-    alert("株価の変更に失敗しました。");
+  } catch (e) {
+    console.error("管理者の株価強制変更に失敗:", e);
+    const detail = e && e.code === "permission-denied"
+      ? "権限がありません。Firestoreのセキュリティルールを確認してください。"
+      : e && e.code === "unavailable"
+        ? "通信に失敗しました。ネットワークを確認して再試行してください。"
+        : `保存に失敗しました${e && e.code ? `（${e.code}）` : ""}。時間をおいて再試行してください。`;
+    alert(detail);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    btn.style.opacity = "";
   }
 };
 
@@ -4985,16 +5157,8 @@ async function deleteOwnPost(pid) {
     if (!snap.exists()) return;
     const d = snap.data();
     if (!d.isAccountUser || d.memberId !== currentAccount) return showAlert("自分の投稿のみ取り消せます");
-
-    // 👑 プレミアム会員なら「表示なし送信取り消し」（跡形もなく完全削除）
-    if (isPremium()) {
-      await deleteDoc(ref);
-      saveLog("delete_own_post_silent", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
-    } else {
-      // 通常会員はこれまで通り「削除されました」の跡を残す
-      await updateDoc(ref, { deleted: true, deleted_at: Timestamp.now(), deleted_by: currentAccount, body: "", image: null, highlighted: false, ...getBoardWriteMeta() });
-      saveLog("delete_own_post", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
-    }
+    await updateDoc(ref, { deleted: true, deleted_at: Timestamp.now(), deleted_by: currentAccount, body: "", image: null, highlighted: false, ...getBoardWriteMeta() });
+    saveLog("delete_own_post", { threadId: currentThreadId, postId: pid, index: d.index ?? null });
   } catch (e) { showAlert("取り消しに失敗しました"); }
 }
 // 自分のスレッドの削除（ログイン中の作成者本人のみ）
@@ -5021,6 +5185,19 @@ async function commitPost(postData) {
   batch.set(postRef, postData);
   batch.update(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
   await batch.commit();
+  try {
+    if (currentAccount) {
+      const bodyText = String(postData.body || "").trim();
+      if (bodyText.startsWith(">")) {
+        bfTrackAction("reply").catch(e => console.warn("mission tracking skipped", e));
+        if (currentThreadCreatorName && currentThreadCreatorName !== currentAccount) {
+          bfNotifyUser(currentThreadCreatorName, "↩️ 返信が届きました", `${currentAccount}さんがスレッド「${currentThreadTitle || ""}」で引用返信しました。`, { threadId: currentThreadId, room: currentRoom });
+        }
+      } else if (!bodyText.startsWith("[STAMP:")) {
+        bfTrackAction("post").catch(e => console.warn("mission tracking skipped", e));
+      }
+    }
+  } catch (featureError) { console.warn("Bord feature tracking skipped", featureError); }
   return postRef.id;
 }
 function addTempPost(inner, index, name) {
@@ -5174,6 +5351,206 @@ document.getElementById("adminSendNoticeBtn").onclick = async () => {
     alert(to === "*" ? "全員に通知を送信しました" : `「${to}」に通知を送信しました`);
   } catch (e) { alert("通知の送信に失敗しました（Firestoreルールで notifications が許可されているか確認してください）"); }
 };
+
+// ============================================================
+// Bord大型アップデート: 返信/引用・レベル/実績/称号・トレンド
+// 通知センター・デイリーミッション・高機能検索
+// ============================================================
+
+let bfPanel = document.getElementById("bfPanel-progress");
+let bfContent = document.getElementById("bfContent-progress");
+let bfCurrentTab = "progress";
+let bfNotificationsCache = [];
+const BF_MISSIONS = [
+  {id:"post", title:"投稿を2回する", desc:"スレッド内で投稿", target:2, reward:40},
+  {id:"reply", title:"返信・引用を1回する", desc:"引用返信を送信", target:1, reward:30},
+  {id:"thread", title:"スレッドを1つ作る", desc:"新しい話題を作成", target:1, reward:50}
+];
+function bfLevelFromXp(xp){ return Math.max(1, Math.floor(Math.sqrt(Math.max(0, Number(xp)||0) / 100)) + 1); }
+function bfNextXp(level){ return Math.pow(Math.max(1, Number(level)||1), 2) * 100; }
+function bfTitleFor(level, achievements){
+  if (level >= 30) return "👑 Bord伝説";
+  if (level >= 20) return "🐉 レジェンド";
+  if (level >= 10) return "💎 常連";
+  if (level >= 5) return "🔥 盛り上げ隊";
+  if (level >= 3) return "🌱 中堅メンバー";
+  return "🆕 新入り";
+}
+function bfEscape(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function bfThreadData(t){ return t && typeof t.data === "function" ? t.data() : (t && t.data ? t.data : (t || {})); }
+function bfLoadThreadPool(){ return getDocs(query(collection(db,currentRoom),orderBy("created_at","desc"),limit(300))).then(s=>s.docs.map(d=>({id:d.id,data:()=>d.data()}))); }
+function bfTimestampMs(v){ if(!v) return 0; if(typeof v.toMillis === "function") return v.toMillis(); if(typeof v.toDate === "function") return v.toDate().getTime(); const n = new Date(v).getTime(); return Number.isFinite(n) ? n : 0; }
+function bfOpen(tab="progress"){
+  const validTabs=["progress","rank","trend","notify","search"];
+  if(!validTabs.includes(tab)) tab="progress";
+  // 機能ごとに独立したポップアップを表示し、他機能のタブは同じ画面に混在させません。
+  document.querySelectorAll(".bord-feature-panel").forEach(panel=>panel.style.display="none");
+  bfCurrentTab = tab;
+  bfPanel = document.getElementById("bfPanel-"+tab);
+  bfContent = document.getElementById("bfContent-"+tab);
+  if(!bfPanel||!bfContent)return;
+  bfPanel.style.display = "block";
+  renderBfTab();
+  if(currentAccount) bfClaimDailyLogin().then(()=>{ if(bfCurrentTab==="progress" || bfCurrentTab==="rank") renderBfTab(); }).catch(()=>{});
+}
+document.querySelectorAll("[data-bf-open]").forEach(b=>b.addEventListener("click",()=>bfOpen(b.dataset.bfOpen)));
+document.querySelectorAll(".bf-panel-header").forEach(header=>{
+  header.style.cssText="display:flex;align-items:center;gap:8px;justify-content:space-between;position:sticky;top:-16px;background:#fff;padding:7px 0;z-index:2";
+});
+document.querySelectorAll(".bf-close").forEach(button=>button.addEventListener("click",()=>{
+  const panel=button.closest(".bord-feature-panel");if(panel)panel.style.display="none";
+}));
+// 追加機能は、既存の右上「…」メニュー内から開きます。別の固定ボタンは表示しません。
+[
+  ["menuBfMissionsBtn","progress"],
+  ["menuBfRankBtn","rank"],
+  ["menuBfTrendBtn","trend"],
+  ["menuBfNotifyBtn","notify"],
+  ["menuBfSearchBtn","search"]
+].forEach(([id,tab])=>{
+  document.getElementById(id)?.addEventListener("click",()=>{
+    headerMenuContent.style.display="none";
+    bfOpen(tab);
+  });
+});
+document.getElementById("openDetailedSearchBtn")?.addEventListener("click",()=>bfOpen("search"));
+
+function bfNeedLogin(){ if(!currentAccount){bfContent.innerHTML='<div class="bf-card">この機能を保存して使うにはアカウントへのログインが必要です。上部のアカウントメニューからログインしてください。</div>';return false;} return true; }
+async function bfGetAccount(){ if(!currentAccount)return null; const s=await getDoc(doc(db,"accounts",currentAccount));return s.exists()?s.data():null; }
+async function bfClaimDailyLogin(){
+  if(!currentAccount)return false;
+  const accountName=currentAccount, ref=doc(db,"accounts",accountName), day=todayKey();
+  let claimed=false, bonus=0;
+  await runTransaction(db,async tx=>{
+    const s=await tx.get(ref); if(!s.exists()) throw new Error("アカウントが見つかりません");
+    const a=s.data(); if(a.bfDailyLoginDate===day)return;
+    const streakDate=a.bfDailyLoginDate||"", yesterday=new Date(Date.now()-DAY_MS);
+    const yesterdayKey=`${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,"0")}-${String(yesterday.getDate()).padStart(2,"0")}`;
+    const streak=streakDate===yesterdayKey?(Number(a.bfLoginStreak)||0)+1:1;
+    bonus=Math.min(100,30+Math.min(streak-1,7)*10);
+    tx.update(ref,{bfDailyLoginDate:day,bfLoginStreak:streak,coins:Math.max(0,Number(a.coins)||0)+bonus,bfXp:Math.max(0,Number(a.bfXp)||0)+10,bfUpdatedAt:serverTimestamp()});
+    claimed=true;
+  });
+  if(claimed){showTopNotification(`🎁 ログインボーナス +${bonus}コイン / XP +10`);}
+  return claimed;
+}
+async function bfTrackAction(type, extra={}){
+  if(!currentAccount)return;
+  const accountName=currentAccount, ref=doc(db,"accounts",accountName), day=todayKey();
+  let xpGain=0, rewards=[];
+  await runTransaction(db,async tx=>{
+    const s=await tx.get(ref); if(!s.exists())return;
+    const a=s.data(), progress=a.bfMissionDate===day?({...a.bfMissionProgress||{}}):{};
+    const claimed=a.bfMissionDate===day?([...a.bfMissionClaimed||[]]):[];
+    const achievements=[...(a.bfAchievements||[])];
+    const totalPosts=Number(a.bfTotalPosts)||0, totalThreads=Number(a.bfTotalThreads)||0;
+    xpGain= type==="thread"?25:type==="reply"?15:10;
+    const xp=(Number(a.bfXp)||0)+xpGain;
+    if(type==="post"||type==="reply")progress.post=(Number(progress.post)||0)+1;
+    if(type==="reply")progress.reply=(Number(progress.reply)||0)+1;
+    if(type==="thread")progress.thread=(Number(progress.thread)||0)+1;
+    let coinGain=0;
+    for(const m of BF_MISSIONS){
+      if((Number(progress[m.id])||0)>=m.target&&!claimed.includes(m.id)){claimed.push(m.id);coinGain+=m.reward;rewards.push({title:m.title,coins:m.reward});}
+    }
+    const updatedPosts=totalPosts+((type==="post"||type==="reply")?1:0);
+    const updatedThreads=totalThreads+(type==="thread"?1:0);
+    if(updatedPosts>=1&&!achievements.includes("first_post"))achievements.push("first_post");
+    if(updatedPosts>=50&&!achievements.includes("posts_50"))achievements.push("posts_50");
+    if(updatedThreads>=1&&!achievements.includes("first_thread"))achievements.push("first_thread");
+    tx.update(ref,{bfXp:xp,bfMissionDate:day,bfMissionProgress:progress,bfMissionClaimed:claimed,bfAchievements:achievements,bfTotalPosts:updatedPosts,bfTotalThreads:updatedThreads,coins:Math.max(0,Number(a.coins)||0)+coinGain,bfUpdatedAt:serverTimestamp()});
+    if(coinGain)extra.coinGain=coinGain;
+  });
+  /* Firestore account listener updates the local coin display after the transaction. */
+  if(xpGain)showTopNotification(`✨ XP +${xpGain}${rewards.length? " / ミッション達成！":""}`);
+  if(rewards.length)showTopNotification("🎁 "+rewards.map(x=>`${x.title} +${x.coins}コイン`).join("、"));
+  if(bfPanel && bfPanel.style.display==="block"&&(bfCurrentTab==="progress"||bfCurrentTab==="rank"))renderBfTab();
+}
+function bfMissionProgressHtml(a){
+  const day=a.bfMissionDate===todayKey()?a.bfMissionProgress||{}:{}, claimed=a.bfMissionDate===todayKey()?a.bfMissionClaimed||[]:[];
+  return BF_MISSIONS.map(m=>{
+    const n=Math.min(m.target,Number(day[m.id])||0),done=n>=m.target&&claimed.includes(m.id);
+    return `<div class="bf-card"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${done?"✅":"🎯"} ${m.title}</strong><b>+${m.reward}🪙</b></div><div class="bf-muted">${m.desc} · ${n}/${m.target}</div><div class="bf-progress"><span style="width:${Math.min(100,n/m.target*100)}%"></span></div></div>`;
+  }).join("");
+}
+async function renderBfTab(){
+  document.querySelectorAll("[data-bf-tab]").forEach(x=>x.classList.toggle("active",x.dataset.bfTab===bfCurrentTab));
+  if(!bfContent)return;
+  if(bfCurrentTab==="progress"){
+    if(!bfNeedLogin())return;
+    bfContent.innerHTML='<div class="bf-card">デイリーミッションを読み込み中...</div>';
+    try{const a=await bfGetAccount();if(!a)return;const xp=Number(a.bfXp)||0,level=bfLevelFromXp(xp),next=bfNextXp(level);
+      bfContent.innerHTML=`<div class="bf-card"><strong>🎁 今日のログインボーナス</strong><p>毎日ログインすると30〜100コイン＋10XP。連続ログインで報酬アップします。</p><div>連続ログイン：${Number(a.bfLoginStreak)||0}日</div></div><h3>今日のミッション</h3>${bfMissionProgressHtml(a)}<div class="bf-card">現在の所持コイン：<b>${getMyCoins().toLocaleString()} 🪙</b><br>レベル ${level} · XP ${xp.toLocaleString()} / 次レベル ${next.toLocaleString()} XP</div>`;
+    }catch(e){bfContent.innerHTML='<div class="bf-card">ミッションを読み込めませんでした。Firestoreのアクセス権限を確認してください。</div>';}
+  }else if(bfCurrentTab==="rank"){
+    if(!bfNeedLogin())return;
+    bfContent.innerHTML='<div class="bf-card">プロフィールを読み込み中...</div>';
+    try{const a=await bfGetAccount();if(!a)return;const xp=Number(a.bfXp)||0,level=bfLevelFromXp(xp),next=bfNextXp(level),ach=a.bfAchievements||[],title=bfTitleFor(level,ach),progress=Math.min(100,(xp-(level-1)**2*100)/(next-(level-1)**2*100)*100);
+      const achievementRows=[["first_post","🌱 はじめの一歩","最初の投稿を送信"],["first_thread","🧵 スレッドメーカー","スレッドを作成"],["posts_50","✍️ 50投稿達成","投稿・返信を50回"]];
+      bfContent.innerHTML=`<div class="bf-card"><div class="bf-muted">現在の称号</div><h2>${bfEscape(title)}</h2><div style="font-size:30px;font-weight:800">Lv.${level}</div><div>累計XP：${xp.toLocaleString()} · 次レベルまで ${Math.max(0,next-xp).toLocaleString()} XP</div><div class="bf-progress"><span style="width:${progress}%"></span></div></div><h3>🏅 実績</h3>${achievementRows.map(([id,n,d])=>`<div class="bf-card">${ach.includes(id)?"🏆":"🔒"} <strong>${n}</strong><div class="bf-muted">${d}</div></div>`).join("")}<div class="bf-card"><b>累計</b><p>投稿・返信：${Number(a.bfTotalPosts)||0} 回<br>スレッド作成：${Number(a.bfTotalThreads)||0} 件</p></div><p class="bf-muted">レベル・実績はログイン中のアカウントに保存されます。</p>`;
+    }catch(e){bfContent.innerHTML='<div class="bf-card">レベル情報を読み込めませんでした。</div>';}
+  }else if(bfCurrentTab==="trend"){
+    bfContent.innerHTML='<div class="bf-card">現在の部屋のスレッドからトレンドを計算しています...</div>';
+    let pool=[]; try{pool=await bfLoadThreadPool();}catch(e){pool=Array.isArray(threadsData)?threadsData:[];}
+    const rows=pool.map(t=>{const d=bfThreadData(t);const id=t.id||d.id||"";const age=Math.max(0,(Date.now()-bfTimestampMs(d.latestPostTime||d.created_at))/3600000);const count=Number(d.postCount)||0;const score=Math.round((count*3+1)*Math.exp(-age/36));return{id,d,score,count,age};}).sort((a,b)=>b.score-a.score).slice(0,20);
+    bfContent.innerHTML=`<div class="bf-card"><strong>🔥 ${bfEscape(currentRoom)} のトレンド</strong><div class="bf-muted">投稿数と最終更新時刻から算出。表示中の部屋のデータを利用しています。</div></div>`+(rows.length?rows.map((r,i)=>`<div class="bf-result" data-bf-thread="${bfEscape(r.id)}"><b>${i+1}. ${bfEscape(r.d.title||"無題")}</b><div class="bf-muted">投稿 ${r.count} 件 · ${Math.floor(r.age)} 時間前に更新 · スコア ${r.score}</div></div>`).join(""):'<div class="bf-card">スレッドがありません。部屋を開くとランキングが表示されます。</div>');
+    bfContent.querySelectorAll("[data-bf-thread]").forEach(el=>el.onclick=async()=>{const id=el.dataset.bfThread;let t=threadsData.find(x=>x.id===id);let data=t?bfThreadData(t):null;if(!data){try{const snap=await getDoc(doc(db,currentRoom,id));if(snap.exists())data=snap.data();}catch(e){}}if(data){bfPanel.style.display="none";openThread(id,data);}});
+  }else if(bfCurrentTab==="notify"){
+    if(!bfNeedLogin())return;
+    bfContent.innerHTML='<div class="bf-card">通知を読み込み中...</div>';
+    try{
+      const accountName=currentAccount;
+      const [own, all, direct]=await Promise.all([
+        getDocs(query(collection(db,"accounts",accountName,"appNotifications"),orderBy("created_at","desc"),limit(50))).catch(()=>null),
+        getDocs(query(collection(db,"notifications"),where("to","==","*"),limit(30))).catch(()=>null),
+        getDocs(query(collection(db,"notifications"),where("to","==",accountName),limit(30))).catch(()=>null)
+      ]);
+      const arr=[];
+      for(const s of [own,all,direct])if(s)s.docs.forEach(d=>arr.push({id:d.id,...d.data(),_src:s===own?"own":"admin"}));
+      arr.sort((a,b)=>bfTimestampMs(b.created_at)-bfTimestampMs(a.created_at));
+      bfNotificationsCache=arr;
+      bfContent.innerHTML=`<div class="bf-card"><strong>🔔 通知センター</strong><div class="bf-muted">返信・システム通知・管理者のお知らせをまとめて表示します。</div></div>`+(arr.length?arr.map(n=>`<div class="bf-card"><b>${bfEscape(n.title|| (n._src==="admin"?"📢 管理者のお知らせ":"🔔 通知"))}</b><div style="white-space:pre-wrap;margin-top:5px">${bfEscape(n.text||n.message||"通知")}</div><div class="bf-muted">${bfEscape(n.from||"Bord")} · ${bfEscape(formatDate(n.created_at))}</div></div>`).join(""):'<div class="bf-card">通知はありません。</div>');
+    }catch(e){bfContent.innerHTML='<div class="bf-card">通知を読み込めませんでした。Firestoreルールを確認してください。</div>';}
+  }else if(bfCurrentTab==="search"){
+    bfContent.innerHTML=`<div class="bf-card"><strong>🔎 高機能検索</strong><div class="bf-muted">タイトル・本文・投稿者を対象に、現在の部屋で読み込めるスレッドを検索します。</div><input id="bfSearchQuery" placeholder="キーワードを入力"><select id="bfSearchScope"><option value="all">タイトル・詳細・投稿者</option><option value="title">タイトルのみ</option><option value="user">投稿者のみ</option></select><select id="bfSearchSort"><option value="new">新着順</option><option value="posts">投稿数順</option><option value="old">古い順</option></select><button id="bfSearchRun" class="bf-primary">検索</button></div><div id="bfSearchResults"></div>`;
+    document.getElementById("bfSearchRun").onclick=bfRunSearch;
+    document.getElementById("bfSearchQuery").addEventListener("keydown",e=>{if(e.key==="Enter")bfRunSearch();});
+    bfRunSearch();
+  }
+}
+
+async function bfRunSearch(){
+  const q=(document.getElementById("bfSearchQuery")?.value||"").trim().toLocaleLowerCase();
+  const scope=document.getElementById("bfSearchScope")?.value||"all",sort=document.getElementById("bfSearchSort")?.value||"new",out=document.getElementById("bfSearchResults");if(!out)return;
+  let pool=[];try{pool=await bfLoadThreadPool();}catch(e){pool=Array.isArray(threadsData)?threadsData:[];}
+  let rows=pool.map(t=>({id:t.id,d:bfThreadData(t)})).filter(x=>{
+    const d=x.d, title=String(d.title||"").toLocaleLowerCase(),detail=String(d.detail||"").toLocaleLowerCase(),user=String(d.memberId||"").toLocaleLowerCase();
+    return !q||(scope==="title"?title.includes(q):scope==="user"?user.includes(q):(title+" "+detail+" "+user).includes(q));
+  });
+  if(sort==="posts")rows.sort((a,b)=>(Number(b.d.postCount)||0)-(Number(a.d.postCount)||0));
+  else if(sort==="old")rows.sort((a,b)=>bfTimestampMs(a.d.created_at)-bfTimestampMs(b.d.created_at));
+  else rows.sort((a,b)=>bfTimestampMs(b.d.latestPostTime||b.d.created_at)-bfTimestampMs(a.d.latestPostTime||a.d.created_at));
+  out.innerHTML=rows.length?rows.slice(0,100).map(x=>`<div class="bf-result" data-bf-thread="${bfEscape(x.id)}"><b>${bfEscape(x.d.title||"無題")}</b><div>${bfEscape(String(x.d.detail||"").slice(0,180))}</div><div class="bf-muted">作成者：${bfEscape(x.d.memberId||"匿名")} · 投稿数：${Number(x.d.postCount)||0} · ${bfEscape(formatDate(x.d.created_at))}</div></div>`).join(""):'<div class="bf-card">一致するスレッドがありません。キーワードを変えて検索してください。</div>';
+  out.querySelectorAll("[data-bf-thread]").forEach(el=>el.onclick=async()=>{const id=el.dataset.bfThread;let t=threadsData.find(x=>x.id===id);let data=t?bfThreadData(t):null;if(!data){try{const snap=await getDoc(doc(db,currentRoom,id));if(snap.exists())data=snap.data();}catch(e){}}if(data){bfPanel.style.display="none";openThread(id,data);}});
+}
+async function bfNotifyUser(to,title,text,meta={}){
+  if(!to||to===currentAccount)return;
+  try{await addDoc(collection(db,"accounts",to,"appNotifications"),{title,text,from:currentAccount||nickName,created_at:serverTimestamp(),...meta});}catch(e){/* 通知保存は本体操作を失敗させない */ }
+}
+// 返信ボタンは既存表示の「→」を維持し、本文への挿入は既存の >番号 形式を使用します。
+// 既存の投稿作成・返信処理を拡張。書き込み後のXP処理は補助機能として失敗を本体へ伝播させない。
+// commitPostの成功後にXP・ミッションを反映するため、送信失敗時に誤加算しません。
+// 新規スレッド作成後にミッション・実績へ反映するため、Firestore上の追加を検出する小さな補助処理。
+const bfOriginalCreatePostClick=document.getElementById("createPostBtn").onclick;
+document.getElementById("createPostBtn").onclick=async function(...args){
+  return await bfOriginalCreatePostClick.apply(this,args);
+};
+// スレッド一覧を監視し、作成者が自分のスレッドである場合は既存データから追加情報を取得しない。
+const bfOriginalListenThreads=listenThreads;
+listenThreads=async function(...args){const r=await bfOriginalListenThreads.apply(this,args);return r;};
+// 検索やトレンド画面は最新の一覧データを参照するため、必要時に再描画できるようにする。
+document.querySelectorAll(".roomBtn").forEach(b=>b.addEventListener("click",()=>{if(bfPanel.style.display==="block"&&(bfCurrentTab==="trend"||bfCurrentTab==="search"))setTimeout(renderBfTab,500);}));
+
 </script>
 </body>
 </html>
