@@ -382,6 +382,7 @@ li img, li video { max-width: 100%; height: auto; }
     
     <div id="menuAccountBtn" class="menu-grid-item">👤<br>アカウント管理</div>
     <div id="menuProfileBtn" class="menu-grid-item">📖<br>マイプロフィール</div>
+    <div id="menuAccountListBtn" class="menu-grid-item">👥<br>アカウント一覧</div>
     <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
     <div id="menuStockBtn" class="menu-grid-item">📈<br>株式投資</div>
     <div id="menuDepositBtn" class="menu-grid-item">🏦<br>預金</div>
@@ -480,6 +481,7 @@ li img, li video { max-width: 100%; height: auto; }
     </div>
     
     <div style="background:#f7f9fc; padding:16px 20px; border-radius:12px; margin-bottom:16px;">
+      <div id="myProfileLevel" style="font-weight:bold;color:#2c3e50;margin-bottom:6px;">🏆 レベル: 読み込み中...</div>
       <div style="font-weight:bold;color:#2c3e50;margin-bottom:6px;">💰 所持金: <span class="sharedCoinCount">0</span> コイン</div>
       <div style="font-weight:bold;color:#2c3e50;">📈 保有株</div>
       <div id="myProfileHoldings" style="margin-top:4px;line-height:1.7;"></div>
@@ -541,6 +543,19 @@ li img, li video { max-width: 100%; height: auto; }
       <div id="dmImagePreviewText" style="font-size:11px; color:#555; margin-top:4px;"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- アカウント一覧画面 -->
+<div id="accountListSection" class="full-screen-section">
+  <div class="store-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+      <h3 style="margin:0; font-size: 24px; color: #2c3e50;">👥 アカウント一覧</h3>
+      <div id="accountListCount" style="color:#555; font-size:14px;"></div>
+    </div>
+    <input id="accountListSearch" placeholder="アカウント名で検索..." style="margin-bottom:12px;">
+    <ul id="accountListUl" style="margin-bottom:25px;"></ul>
+    <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
   </div>
 </div>
 
@@ -998,6 +1013,7 @@ li img, li video { max-width: 100%; height: auto; }
     <p id="modalProfileBio" style="background:#f9f9f9; padding:8px; border-radius:6px; min-height:50px; font-size:14px; margin:4px 0 0; white-space:pre-wrap;">(未設定)</p>
   </div>
   <div style="font-size:13px; color:#555; margin-bottom:12px;">
+    <div id="modalProfileLevel" style="margin-bottom:6px;">🏆 レベル: -</div>
     <div>所持金: <strong id="modalProfileCoins" style="color:#e67e22;">0 コイン</strong></div>
     <div style="margin-top:6px;">保有株:</div>
     <div id="modalProfileHoldings" style="margin-top:4px;line-height:1.6;max-height:150px;overflow-y:auto;"></div>
@@ -1447,7 +1463,7 @@ document.getElementById("menuAccountBtn").onclick = () => {
 let marketUnsub = null, tickTimer = null;
 function hideAllSections() {
   headerMenuContent.style.display = "none";
-  ["threadListSection","threadDetailSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection"]
+  ["threadListSection","threadDetailSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection","accountListSection"]
     .forEach(id => { document.getElementById(id).style.display = "none"; });
   stopMarket();
   stopDepositUI();
@@ -1500,6 +1516,10 @@ document.getElementById("menuEmojiShopBtn").onclick = () => {
   renderEmojiShop();
 };
 
+function profileLevelHtml(acc) {
+  const xp = Math.max(0, Number(acc && acc.bfXp) || 0), lv = bfLevelFromXp(xp);
+  return `🏆 レベル: <strong style="color:#e67e22;">Lv.${lv}</strong>（XP ${xp.toLocaleString()}）　🎖️ 称号: <strong>${bfEscape(bfTitleFor(lv, (acc && acc.bfAchievements) || []))}</strong>`;
+}
 document.getElementById("menuProfileBtn").onclick = () => {
   if (!currentAccount) return alert("プロフィール機能を利用するにはアカウントが必要です。");
   hideAllSections();
@@ -1507,6 +1527,43 @@ document.getElementById("menuProfileBtn").onclick = () => {
   document.querySelectorAll(".sharedCoinCount").forEach(el => el.textContent = getMyCoins());
   document.getElementById("myBioInput").value = localStorage.getItem("myBio") || "";
   document.getElementById("myProfileHoldings").innerHTML = holdingsListHtml({ holdings: getHoldings() });
+  const lvEl = document.getElementById("myProfileLevel");
+  lvEl.textContent = "🏆 レベル: 読み込み中...";
+  getAccountData(currentAccount).then(acc => { if (acc) lvEl.innerHTML = profileLevelHtml(acc); else lvEl.textContent = "🏆 レベル: 取得できませんでした"; });
+};
+
+let accountListCache = [];
+function renderAccountList() {
+  const ul = document.getElementById("accountListUl"), word = document.getElementById("accountListSearch").value.trim().toLowerCase();
+  const rows = accountListCache.filter(a => !word || a.name.toLowerCase().includes(word));
+  document.getElementById("accountListCount").textContent = `${rows.length} / ${accountListCache.length} 件`;
+  ul.innerHTML = "";
+  if (!rows.length) { ul.innerHTML = "<li style='background:#95a5a6; text-align:center;'>該当するアカウントはありません</li>"; return; }
+  rows.forEach(a => {
+    const li = document.createElement("li");
+    li.style.backgroundColor = "#3498db";
+    li.innerHTML = `<strong>👤 ${escHtmlD(a.name)}${a.premium ? " 👑" : ""}${a.name === currentAccount ? "（あなた）" : ""}</strong><small>Lv.${a.level} ・ ${escHtmlD(a.title)}</small>`;
+    li.onclick = () => openUserProfile(a.name);
+    ul.appendChild(li);
+  });
+}
+document.getElementById("accountListSearch").oninput = renderAccountList;
+document.getElementById("menuAccountListBtn").onclick = async () => {
+  if (!currentAccount) return alert("アカウント一覧を見るにはログインが必要です。");
+  hideAllSections();
+  document.getElementById("accountListSection").style.display = "block";
+  document.getElementById("accountListSearch").value = "";
+  document.getElementById("accountListUl").innerHTML = "<li style='background:#95a5a6; text-align:center;'>読み込み中...</li>";
+  try {
+    const snap = await getDocs(collection(db, "accounts"));
+    accountListCache = snap.docs.map(d => {
+      const x = d.data(), lv = bfLevelFromXp(Math.max(0, Number(x.bfXp) || 0));
+      return { name: d.id, level: lv, title: bfTitleFor(lv, x.bfAchievements || []), premium: (x.premiumUntil || 0) > Date.now() };
+    }).sort((a, b) => b.level - a.level || a.name.localeCompare(b.name, "ja"));
+    renderAccountList();
+  } catch (e) {
+    document.getElementById("accountListUl").innerHTML = "<li style='background:#c0392b; text-align:center;'>アカウント一覧を読み込めませんでした</li>";
+  }
 };
 
 document.getElementById("menuFavoritesBtn").onclick = () => {
@@ -1883,6 +1940,7 @@ async function openUserProfile(accountName) {
     document.getElementById("modalProfileBio").textContent = accData.bio || "(自己紹介はありません)";
     document.getElementById("modalProfileCoins").textContent = `${accData.coins !== undefined ? accData.coins : 1000} コイン`;
     document.getElementById("modalProfileHoldings").innerHTML = holdingsListHtml(accData);
+    document.getElementById("modalProfileLevel").innerHTML = profileLevelHtml(accData);
     currentProfileTarget = accountName;
     document.getElementById("modalCoinSendBox").style.display = (accountName === currentAccount) ? "none" : "block";
     document.getElementById("modalCoinAmountInput").value = "";
@@ -3894,6 +3952,7 @@ function setSectionsHeight(){
   document.getElementById('dmSection').style.height = sectionHeight;
   document.getElementById('depositSection').style.height = sectionHeight;
   document.getElementById('premiumSection').style.height = sectionHeight;
+  document.getElementById('accountListSection').style.height = sectionHeight;
 }
 window.addEventListener('resize',setSectionsHeight); window.addEventListener('orientationchange',setSectionsHeight);
 
