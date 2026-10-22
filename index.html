@@ -402,7 +402,7 @@ li img, li video { max-width: 100%; height: auto; }
     <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
     <div id="menuStockBtn" class="menu-grid-item">📈<br>株式投資</div>
     <div id="menuDepositBtn" class="menu-grid-item">🏦<br>預金</div>
-    <div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
+<div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
     <div id="menuPremiumBtn" class="menu-grid-item" style="display:none">👑<br>プレミアム</div>
     <!-- 各機能の既存イベントを維持するため、個別ボタンは非表示で残します -->
     <div id="menuDiceBtn" class="menu-grid-item" style="display:none">🎲<br>サイコロ勝負</div>
@@ -903,7 +903,6 @@ li img, li video { max-width: 100%; height: auto; }
     <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
   </div>
 </div>
-
 <!-- 預金画面 -->
 <div id="depositSection" class="full-screen-section">
   <div class="store-container">
@@ -1741,6 +1740,7 @@ function getMyCoins() {
 }
 
 function setMyCoins(amount) {
+  const previous = coinBigInt(getMyCoins());
   const exact = coinBigInt(amount);
   if (exact < 0n) {
     console.warn("コイン残高が負数になるため0に補正しました");
@@ -1770,6 +1770,10 @@ function setMyCoins(amount) {
       activeNameEffect: localStorage.getItem("activeNameEffect") || "",
       bio: localStorage.getItem("myBio") || ""
     });
+    if (exact !== previous) {
+      const delta = exact - previous;
+      const label = delta < 0n ? "コイン支出（ゲーム・購入など）" : "コイン獲得（ゲーム・報酬など）";
+    }
   }
 }
 
@@ -1886,8 +1890,13 @@ document.getElementById("menuStoreBtn").onclick = () => {
 // 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
 // 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
 // ============================================================
-const CURRENT_APP_VERSION = "1.3";
+const CURRENT_APP_VERSION = "1.6";
 const VERSION_HISTORY = [
+  { version: "1.6", date: "2026-10-22", title: "株売買修正・通帳削除", changes: ["コイン通帳の表示と記録処理を削除", "株の購入・売却修正を維持"] },
+  
+  { version: "1.5", date: "2026-10-22", title: "株売買エラー修正", changes: ["株の購入・売却をBigIntとcoinsExactに対応", "売買のFirebase保存と通帳記録を修正"] },
+  
+  { version: "1.4", date: "2026-10-22", title: "無制限コイン・通帳機能の改善", changes: ["送金と預金の金額入力を大きな整数に対応", "コイン通帳を追加し、送金・預け入れ・引き出し・ゲーム等の変動を記録"] },
   { version: "1.3", date: "2026-10-22", title: "オセロ掛け金入力とスロット説明を改善", changes: [
     "オセロの掛け金を選択式から直接入力式に変更",
     "スロットに絵柄ごとの配当倍率と具体例を表示",
@@ -2482,9 +2491,10 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
   if (!currentAccount) return alert("コインを送るにはアカウントにログインしてください。");
   if (!target || target === currentAccount) return alert("自分自身にコインを送ることはできません。");
   const raw = document.getElementById("modalCoinAmountInput").value.trim();
-  const amount = Number(raw);
-  if (!raw || !Number.isSafeInteger(amount) || amount <= 0) return alert("送る金額は1以上の整数で入力してください。");
-  if (getMyCoins() < coinBigInt(amount)) return alert(`コインが足りません (所持: ${coinText(getMyCoins())})`);
+  const normalizedAmount = raw.replace(/[,_\s]/g, "");
+  const amount = coinBigInt(normalizedAmount);
+  if (!/^\d+$/.test(normalizedAmount) || amount <= 0n) return alert("送る金額は1以上の整数で入力してください。");
+  if (getMyCoins() < amount) return alert(`コインが足りません (所持: ${coinText(getMyCoins())})`);
   if (!confirm(`「${target}」さんに ${coinText(amount)} を送りますか？`)) return;
   isSendingCoin = true; showLoading("コインを送金中...");
   try {
@@ -2506,7 +2516,7 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
     }), 20000);
     localStorage.setItem("myCoinsExact", fromAfter.toString()); localStorage.setItem("myCoins", fromAfter.toString());   // 自分の表示もすぐ更新
     syncCoinViews();
-    saveLog("send_coin", { from: currentAccount, to: target, amount, coinsAfter: fromAfter, fromAfter, toAfter });
+    saveLog("send_coin", { from: currentAccount, to: target, amount: amount.toString(), coinsAfter: fromAfter, fromAfter, toAfter });
     hideLoading(); isSendingCoin = false;
     document.getElementById("modalCoinAmountInput").value = "";
     alert(`「${target}」さんに ${coinText(amount)} を送りました！`);
@@ -2971,56 +2981,75 @@ async function resyncFromServer() {   // 保存待ちが無くなったら、サ
 }
 function tradeStock(kind) {
   if (!currentAccount) return alert("株の取引を行うにはアカウントにログインしてください。");
-  const qty = parseInt(stkEl("tradeShareInput").value, 10), d = STOCK_MAP[selectedStockId], msg = stkEl("stockMsg");
-  if (isNaN(qty) || qty <= 0) { msg.textContent = "有効な数量を入力してください。"; return; }
+  const qtyRaw = stkEl("tradeShareInput").value.trim();
+  const qty = Number(qtyRaw), d = STOCK_MAP[selectedStockId], msg = stkEl("stockMsg");
+  if (!/^\d+$/.test(qtyRaw) || !Number.isSafeInteger(qty) || qty <= 0) {
+    msg.textContent = "有効な株数（1以上の整数）を入力してください。"; return;
+  }
   const s = marketData && marketData[d.id];
-  if (!s) { msg.textContent = "株価を取得できませんでした。"; return; }
+  if (!s || !Number.isSafeInteger(Number(s.p)) || Number(s.p) <= 0) {
+    msg.textContent = "株価を取得できないか、株価が正しくありません。"; return;
+  }
 
-  const price = s.p, total = price * qty;
-  const coins0 = getMyCoins(), hold = { ...getHoldings() }, have = hold[d.id] || 0;
+  // コインはBigIntで扱い、Firebaseの正確な残高はcoinsExact（10進文字列）へ保存する。
+  const price = BigInt(s.p), total = price * BigInt(qty);
+  const coins0 = coinBigInt(getMyCoins()), hold = { ...getHoldings() }, have = Number(hold[d.id] || 0);
   if (kind === "buy") {
-    if (coins0 < total) { msg.textContent = `コインが足りません（必要: ${total} コイン）`; return; }
+    if (coins0 < total) { msg.textContent = `コインが足りません（必要: ${coinText(total)}）`; return; }
   } else if (have < qty) {
     msg.textContent = `保有している株が足りません（現在: ${have} 株）`; return;
   }
 
-  // ① その場で反映（待ち時間なし）
+  // ① 画面を先に更新
   const coins1 = kind === "buy" ? coins0 - total : coins0 + total;
   hold[d.id] = kind === "buy" ? have + qty : have - qty;
   if (!hold[d.id]) delete hold[d.id];
   setLocalAccountState(coins1, hold);
   syncCoinViews(); renderStockUI();
-  msg.textContent = `✅ ${d.name}を ${qty} 株${kind === "buy" ? "購入" : "売却"}しました（${price}コイン × ${qty} = ${total}コイン）　${fmtClock(Date.now())}`;
+  msg.textContent = `⏳ ${d.name} ${qty}株の${kind === "buy" ? "購入" : "売却"}を保存中…（${coinText(total)}）`;
 
-  // ② 保存は裏で順番に実行
+  // ② Firestore取引を直列化し、残高・保有株をトランザクションで更新
   pendingTrades++;
-  const account = currentAccount;
+  const account = currentAccount, stockId = d.id, tradeQty = qty, tradePrice = price.toString();
   tradeChain = tradeChain.then(async () => {
     try {
       const accRef = doc(db, "accounts", account);
-      let after = null;
+      let after = 0n, finalHoldings = {};
       await runTransaction(db, async tx => {
         const aSnap = await tx.get(accRef);
         if (!aSnap.exists()) throw new Error("アカウントが見つかりません。");
-        const acc = aSnap.data(), h = { ...normalizeHoldings(acc) }, cur = h[d.id] || 0;
-        let coins = acc.coins !== undefined ? acc.coins : 1000;
+        const acc = aSnap.data();
+        const h = { ...normalizeHoldings(acc) }, cur = Number(h[stockId] || 0);
+        let coins = coinBigInt(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000));
+        const amount = BigInt(tradePrice) * BigInt(tradeQty);
         if (kind === "buy") {
-          if (coins < total) throw new Error(`コインが足りません（必要: ${total} コイン）`);
-          coins -= total; h[d.id] = cur + qty;
+          if (coins < amount) throw new Error(`コインが足りません（必要: ${coinText(amount)}）`);
+          coins -= amount; h[stockId] = cur + tradeQty;
         } else {
-          if (cur < qty) throw new Error(`保有している株が足りません（現在: ${cur} 株）`);
-          coins += total; h[d.id] = cur - qty; if (!h[d.id]) delete h[d.id];
+          if (cur < tradeQty) throw new Error(`保有している株が足りません（現在: ${cur} 株）`);
+          coins += amount; h[stockId] = cur - tradeQty;
+          if (!h[stockId]) delete h[stockId];
         }
-        tx.update(accRef, { coins, holdings: h, shares: sumHoldings(h), updated_at: Timestamp.now() });
+        tx.update(accRef, {
+          coinsExact: coins.toString(),
+          // 従来の画面・旧バージョンとの互換用フィールド。正確な値はcoinsExactが優先。
+          coins: coins <= 999999999999999n ? Number(coins) : 999999999999999,
+          holdings: h,
+          shares: sumHoldings(h),
+          updated_at: Timestamp.now()
+        });
         after = coins;
+        finalHoldings = h;
       });
       pendingTrades--;
-      saveLog(kind === "buy" ? "stock_buy" : "stock_sell", { stock: d.id, qty, price, total, coinsAfter: after });
-      if (!pendingTrades) await resyncFromServer();
+      if (!pendingTrades) {
+        await resyncFromServer();
+        msg.textContent = `✅ ${d.name}を ${tradeQty} 株${kind === "buy" ? "購入" : "売却"}しました（${coinText(BigInt(tradePrice) * BigInt(tradeQty))}）`;
+      }
     } catch (e) {
-      pendingTrades--;
-      await resyncFromServer();   // 失敗した取引を取り消して、正しい値に戻す
-      stkEl("stockMsg").textContent = "⚠️ " + ((e && e.message) || "取引を保存できませんでした。") + "（この取引は取り消されました）";
+      pendingTrades = Math.max(0, pendingTrades - 1);
+      await resyncFromServer();
+      msg.textContent = "⚠️ " + ((e && e.message) || "取引を保存できませんでした。") + "（サーバー保存を確認してください）";
     }
   });
 }
@@ -3099,8 +3128,12 @@ async function depositOp(kind) {
   const msg = $id("depMsg");
   if (!currentAccount) return alert("預金を利用するにはアカウントにログインしてください。");
   if (depBusy) return;
-  const rawAmt = $id("depAmountInput").value.trim(), amt = Number(rawAmt);   // parseInt だと「1e13」が 1 になってしまうため Number で読む
-  if (kind !== "all" && (!rawAmt || !Number.isSafeInteger(amt) || amt <= 0)) { msg.textContent = "有効な金額（1以上の整数）を入力してください。"; return; }
+  const rawAmt = $id("depAmountInput").value.trim().replace(/[,_\s]/g, "");
+  const amtBig = coinBigInt(rawAmt);
+  if (kind !== "all" && (!/^\d+$/.test(rawAmt) || amtBig <= 0n)) { msg.textContent = "有効な金額（1以上の整数）を入力してください。"; return; }
+  // 預金計算は既存実装の Number 型を使用するため、非常に大きな金額では預金側に丸め誤差が出る可能性があります。
+  // コイン残高は coinsExact の文字列で正確に計算します。
+  const amt = Number(amtBig);
   depBusy = true; msg.textContent = "処理中...";
   try {
     const ref = doc(db, "accounts", currentAccount);
@@ -3108,20 +3141,20 @@ async function depositOp(kind) {
       const snap = await tx.get(ref);
       if (!snap.exists()) throw new Error("アカウントが見つかりません。");
       const acc = snap.data(), now = Date.now();
-      let coins = acc.coins !== undefined ? acc.coins : 1000;
+      let coins = coinBigInt(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000));
       let bal = calcDeposit(acc.deposit || 0, acc.depositAt, now, acc.premiumUntil || 0);
-      let moved = amt;
+      let moved = amtBig;
       if (kind === "in") {
         if (moved > coins) throw new Error(`コインが足りません（所持: ${coinText(coins)}）`);
-        coins -= moved; bal += moved;
+        coins -= moved; bal += amt;
       } else {
-        if (kind === "all") moved = Math.floor(bal);
-        if (moved <= 0) throw new Error("引き出せる預金がありません。");
-        if (moved > Math.floor(bal)) throw new Error(`預金が足りません（引き出せる額: ${coinText(Math.floor(bal))}）`);
-        coins += moved; bal -= moved;
+        if (kind === "all") moved = BigInt(Math.max(0, Math.floor(bal)));
+        if (moved <= 0n) throw new Error("引き出せる預金がありません。");
+        if (moved > BigInt(Math.max(0, Math.floor(bal)))) throw new Error(`預金が足りません（引き出せる額: ${coinText(Math.floor(bal))}）`);
+        coins += moved; bal -= Number(moved);
       }
-      tx.update(ref, { coins, deposit: bal, depositAt: now, updated_at: Timestamp.now() });
-      return { coins, bal, now, moved };
+      tx.update(ref, { coinsExact: coins.toString(), coins: coins <= 999999999999999n ? Number(coins) : 999999999999999, deposit: bal, depositAt: now, updated_at: Timestamp.now() });
+      return { coins: coins.toString(), bal, now, moved: moved.toString() };
     });
     localStorage.setItem("myCoinsExact", coinDecimal(r.coins)); localStorage.setItem("myCoins", coinDecimal(r.coins));
     localStorage.setItem("myDeposit", String(r.bal));
@@ -3138,7 +3171,6 @@ async function depositOp(kind) {
 $id("depInBtn").onclick = () => depositOp("in");
 $id("depOutBtn").onclick = () => depositOp("out");
 $id("depOutAllBtn").onclick = () => depositOp("all");
-
 $id("menuDepositBtn").onclick = () => {
   if (!currentAccount) return alert("預金を利用するにはアカウントが必要です。");
   hideAllSections();
@@ -4143,7 +4175,6 @@ function formatNameWithEffect(name, effectId) {
   return name;
 }
 
-const MONEY_LOG_ACTIONS = new Set(["send_coin", "coin_rain", "deposit_in", "deposit_out", "stock_buy", "stock_sell", "premium_buy", "gacha", "dice_win", "dice_lose", "roulette", "coin_redeem", "shop_buy"]);
 function saveLog(action, detail = {}) {
   if (currentAccount && MONEY_LOG_ACTIONS.has(action)) {   // お金の動きには、操作後の残高も一緒に記録する
     detail = { ...detail };
