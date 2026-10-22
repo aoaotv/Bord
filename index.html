@@ -1488,6 +1488,18 @@ function fmtClock(ms) { const d = new Date(ms); return `${String(d.getHours()).p
 // アカウント管理＆リアルタイム同期システム
 let currentAccount = localStorage.getItem("currentAccountName") || null;
 let accountUnsub = null;
+let depositCoinWriteAt = 0; // 互換用
+let coinBalanceWriteAt = 0; // コイン残高変更直後の古いスナップショットによる巻き戻りを防ぐ
+let expectedLocalCoinBalance = null;
+function applyLocalCoinBalance(amount) {
+  const exact = coinDecimal(amount);
+  localStorage.setItem("myCoinsExact", exact);
+  localStorage.setItem("myCoins", exact);
+  coinBalanceWriteAt = Date.now();
+  expectedLocalCoinBalance = exact;
+  updateCoinButtonDisplay();
+  setCoinCountViews(exact);
+}
 let myAccLatest = null;   // { name, data } 自分のアカウントの最新データ（リアルタイム購読で更新 → プロフィールを即表示できる）
 // コイン送金の受信通知（相手が送ると自分のアカウントの pendingTransfers に入る → 表示したら消す）
 const shownTransferIds = new Set();
@@ -1535,9 +1547,21 @@ function setupAccountListener() {
 
     const acc = snap.data();
     myAccLatest = { name: currentAccount, data: acc };
-    if (!pendingTrades) {   // 株取引の保存待ち中は、画面の値を古いサーバー値で上書きしない
-      localStorage.setItem("myCoinsExact", coinDecimal(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000)));
-      localStorage.setItem("myCoins", localStorage.getItem("myCoinsExact"));
+    const serverCoins = coinDecimal(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000));
+    const localCoins = coinDecimal(localStorage.getItem("myCoinsExact") || localStorage.getItem("myCoins") || "0");
+    const hasRecentLocalWrite = coinBalanceWriteAt && Date.now() - coinBalanceWriteAt < 10000;
+    // 取引・購入・預金・引き出し・送金後、古いスナップショットなら残高だけを上書きしない。
+    if (hasRecentLocalWrite && expectedLocalCoinBalance !== null && serverCoins !== expectedLocalCoinBalance) {
+      // 古い残高スナップショットなので、画面の残高を維持する。
+    } else {
+      localStorage.setItem("myCoinsExact", serverCoins);
+      localStorage.setItem("myCoins", serverCoins);
+      if (serverCoins === expectedLocalCoinBalance || !hasRecentLocalWrite) {
+        coinBalanceWriteAt = 0;
+        expectedLocalCoinBalance = null;
+      }
+    }
+    if (!pendingTrades) {
       localStorage.setItem("myShares", acc.shares || 0);
       localStorage.setItem("myHoldings", JSON.stringify(acc.holdings || {}));
     }
@@ -1754,6 +1778,7 @@ function setMyCoins(amount) {
   localStorage.setItem("myCoinsExact", decimal);
   // Legacy key kept for older UI/plugins; exact value is never read from this key when available.
   localStorage.setItem("myCoins", decimal);
+  coinBalanceWriteAt = Date.now(); expectedLocalCoinBalance = decimal;
   updateCoinButtonDisplay();
   setCoinCountViews(exact);
   if (currentAccount) {
@@ -1890,8 +1915,12 @@ document.getElementById("menuStoreBtn").onclick = () => {
 // 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
 // 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
 // ============================================================
-const CURRENT_APP_VERSION = "1.6";
+const CURRENT_APP_VERSION = "1.9";
 const VERSION_HISTORY = [
+  { version: "1.9", date: "2026-10-23", title: "コイン残高の即時同期を統一", changes: ["支払い・預金・引き出し・送金・株取引後の残高を即時反映", "古いリアルタイム同期データによる残高表示の巻き戻りを防止"] },
+  { version: "1.10", date: "2026-10-23", title: "MONEY_LOG_ACTIONS 未定義エラーを修正", changes: ["お金の動きのログ種別を saveLog より前に定義", "預金・引き出しが成功した後に ReferenceError が出る問題を修正"] },
+  { version: "1.8", date: "2026-10-23", title: "株の売買反映を高速化", changes: ["売買成功後の追加サーバー読み直しを削減し、取引結果をそのまま画面へ反映", "売買中の表示を即時反映・サーバー同期中の案内に変更"] },
+  { version: "1.7", date: "2026-10-22", title: "送信・管理者操作の安定性改善", changes: ["送信先の部屋・スレッドを固定し、画面切替中の誤送信を防止", "送信前にスレッドの存在・削除状態・ロック状態を再確認", "クイック送信失敗時に入力内容を復元し、原因をコンソールへ記録"] },
   { version: "1.6", date: "2026-10-22", title: "株売買修正・通帳削除", changes: ["コイン通帳の表示と記録処理を削除", "株の購入・売却修正を維持"] },
   
   { version: "1.5", date: "2026-10-22", title: "株売買エラー修正", changes: ["株の購入・売却をBigIntとcoinsExactに対応", "売買のFirebase保存と通帳記録を修正"] },
@@ -2514,7 +2543,7 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
       // increment() だと coins が未設定の相手が「1000＋送金額」でなく「送金額だけ」になってしまうため、計算した値をそのまま書く
       tx.update(toRef, { coinsExact: toAfter.toString(), coins: toAfter <= 999999999999999n ? Number(toAfter) : 999999999999999, pendingTransfers: arrayUnion({...item, amount: amount.toString()}), updated_at: Timestamp.now() });
     }), 20000);
-    localStorage.setItem("myCoinsExact", fromAfter.toString()); localStorage.setItem("myCoins", fromAfter.toString());   // 自分の表示もすぐ更新
+    applyLocalCoinBalance(fromAfter);   // 送金後の残高を即時反映し、古い同期値による巻き戻りを防止
     syncCoinViews();
     saveLog("send_coin", { from: currentAccount, to: target, amount: amount.toString(), coinsAfter: fromAfter, fromAfter, toAfter });
     hideLoading(); isSendingCoin = false;
@@ -2966,7 +2995,7 @@ stkEl("tradeShareInput").oninput = updateEstimate;
 //   「取引中...」で待たされない。保存に失敗した場合だけ、サーバーの最新値に戻してお知らせする。
 let tradeChain = Promise.resolve();
 function setLocalAccountState(coins, hold) {
-  localStorage.setItem("myCoinsExact", coinDecimal(coins)); localStorage.setItem("myCoins", coinDecimal(coins));
+  applyLocalCoinBalance(coins);
   localStorage.setItem("myHoldings", JSON.stringify(hold));
   localStorage.setItem("myShares", sumHoldings(hold));
 }
@@ -3006,7 +3035,7 @@ function tradeStock(kind) {
   if (!hold[d.id]) delete hold[d.id];
   setLocalAccountState(coins1, hold);
   syncCoinViews(); renderStockUI();
-  msg.textContent = `⏳ ${d.name} ${qty}株の${kind === "buy" ? "購入" : "売却"}を保存中…（${coinText(total)}）`;
+  msg.textContent = `⚡ ${d.name} ${qty}株を画面に即時反映しました。サーバーに同期中…（${coinText(total)}）`;
 
   // ② Firestore取引を直列化し、残高・保有株をトランザクションで更新
   pendingTrades++;
@@ -3043,7 +3072,11 @@ function tradeStock(kind) {
       });
       pendingTrades--;
       if (!pendingTrades) {
-        await resyncFromServer();
+        // runTransactionで確定した結果をそのまま採用し、成功直後の追加getAccountData通信を省く。
+        // これにより成功時の余分な読み込み待ちを減らす。失敗時は従来どおりサーバーから再同期する。
+        setLocalAccountState(after, finalHoldings);
+        syncCoinViews();
+        renderStockUI();
         msg.textContent = `✅ ${d.name}を ${tradeQty} 株${kind === "buy" ? "購入" : "売却"}しました（${coinText(BigInt(tradePrice) * BigInt(tradeQty))}）`;
       }
     } catch (e) {
@@ -3156,7 +3189,8 @@ async function depositOp(kind) {
       tx.update(ref, { coinsExact: coins.toString(), coins: coins <= 999999999999999n ? Number(coins) : 999999999999999, deposit: bal, depositAt: now, updated_at: Timestamp.now() });
       return { coins: coins.toString(), bal, now, moved: moved.toString() };
     });
-    localStorage.setItem("myCoinsExact", coinDecimal(r.coins)); localStorage.setItem("myCoins", coinDecimal(r.coins));
+    depositCoinWriteAt = Date.now();
+    applyLocalCoinBalance(r.coins);
     localStorage.setItem("myDeposit", String(r.bal));
     localStorage.setItem("myDepositAt", String(r.now));
     saveLog(kind === "in" ? "deposit_in" : "deposit_out", { amount: r.moved, coinsAfter: r.coins, depAfter: Math.round(r.bal * 100) / 100 });
@@ -3246,7 +3280,7 @@ async function spinRoulette() {
     rlRot = Math.ceil(rlRot / 360) * 360 + 360 * 6 + (360 - center) + jitter;
     $id("rlWheel").style.transform = `rotate(${rlRot}deg)`;
     setTimeout(() => {
-      localStorage.setItem("myCoinsExact", coinDecimal(res.coins)); localStorage.setItem("myCoins", coinDecimal(res.coins));
+      applyLocalCoinBalance(res.coins);
       syncCoinViews();
       msg.textContent = prize > 0 ? `🎉 ${prize.toLocaleString()} コイン獲得！（${fmtClock(Date.now())}）` : "😢 ハズレ… また明日挑戦しよう！";
       rlSpinning = false; updateRouletteUI();
@@ -3350,7 +3384,7 @@ async function buyPremium() {
       tx.update(ref, upd);
       return { coins: upd.coins, until, deposit: upd.deposit, depositAt: upd.depositAt };
     });
-    localStorage.setItem("myCoinsExact", coinDecimal(r.coins)); localStorage.setItem("myCoins", coinDecimal(r.coins));
+    applyLocalCoinBalance(r.coins);
     localStorage.setItem("premiumUntil", String(r.until));
     if (r.deposit !== undefined) { localStorage.setItem("myDeposit", String(r.deposit)); localStorage.setItem("myDepositAt", String(r.depositAt)); }
     saveLog("premium_buy", { days, cost });
@@ -4174,6 +4208,16 @@ function formatNameWithEffect(name, effectId) {
   }
   return name;
 }
+
+// お金の増減を記録するログ種別。saveLog() より前に必ず定義する。
+// 未定義だと預金・引き出しなどの処理自体は成功しても、ログ記録時に ReferenceError になる。
+const MONEY_LOG_ACTIONS = new Set([
+  "deposit_in", "deposit_out", "send_coin", "coin_rain", "coin_redeem",
+  "dice_win", "dice_lose", "roulette", "roulette_win", "roulette_lose",
+  "slots_win", "slots_lose", "rps_draw", "rps_win", "rps_lose",
+  "premium_buy", "gacha", "shop_buy", "boost_thread",
+  "admin_edit_account_coins"
+]);
 
 function saveLog(action, detail = {}) {
   if (currentAccount && MONEY_LOG_ACTIONS.has(action)) {   // お金の動きには、操作後の残高も一緒に記録する
@@ -5181,9 +5225,23 @@ document.getElementById('adminBtn').onclick = async () => {
   }
 };
 
+let adminLoginFailures = 0;
+let adminLoginBlockedUntil = 0;
 document.getElementById('adminLoginSubmitBtn').onclick = async () => {
+  const now = Date.now();
+  if (now < adminLoginBlockedUntil) {
+    const seconds = Math.ceil((adminLoginBlockedUntil - now) / 1000);
+    return alert(`連続失敗のため、${seconds}秒後にもう一度試してください`);
+  }
   const pass = document.getElementById('adminPasswordInput').value.trim();
-  if (pass !== ADMIN_PASSWORD) return alert("パスワードが違います");
+  if (pass !== ADMIN_PASSWORD) {
+    adminLoginFailures++;
+    if (adminLoginFailures >= 5) { adminLoginBlockedUntil = Date.now() + 30000; adminLoginFailures = 0; }
+    document.getElementById('adminPasswordInput').value = "";
+    return alert("パスワードが違います");
+  }
+  adminLoginFailures = 0;
+  adminLoginBlockedUntil = 0;
   adminLoggedIn = true;
   saveLog("admin_login_success");
   document.getElementById('adminLoginPanel').style.display = 'none';
@@ -5851,10 +5909,19 @@ document.getElementById("deleteOwnThreadBtn").onclick = async () => {
 };
 // 投稿＋スレッド更新を1回の通信(バッチ)で送る
 async function commitPost(postData) {
-  const postRef = doc(collection(db, currentRoom, currentThreadId, "posts"));
+  // 送信開始時点の部屋・スレッドを固定し、画面遷移中に別スレッドへ誤送信しない
+  const targetRoom = currentRoom;
+  const targetThreadId = currentThreadId;
+  if (!targetRoom || !targetThreadId) throw new Error("送信先のスレッドが選択されていません");
+  if (currentThreadLocked) throw new Error("このスレッドはロックされています");
+  const threadRef = doc(db, targetRoom, targetThreadId);
+  const threadSnap = await getDoc(threadRef);
+  if (!threadSnap.exists() || threadSnap.data().deleted) throw new Error("スレッドが存在しないか削除されています");
+  if (threadSnap.data().locked) throw new Error("このスレッドはロックされています");
+  const postRef = doc(collection(db, targetRoom, targetThreadId, "posts"));
   const batch = writeBatch(db);
   batch.set(postRef, postData);
-  batch.update(doc(db, currentRoom, currentThreadId), { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
+  batch.update(threadRef, { postCount: increment(1), latestPostTime: serverTimestamp(), ...getBoardWriteMeta() });
   await batch.commit();
   try {
     if (currentAccount) {
@@ -5879,16 +5946,35 @@ function addTempPost(inner, index, name) {
   return li;
 }
 async function quickPost(body, inner, logAction, logDetail, onBanned) {
+  if (isQuickSending) return;
+  if (!currentThreadId || currentThreadLocked) {
+    if (onBanned) onBanned();
+    else showAlert(currentThreadLocked ? "このスレッドはロックされています" : "先にスレッドを開いてください");
+    return;
+  }
   isQuickSending = true;
+  const sendRoom = currentRoom, sendThreadId = currentThreadId;
   const index = document.getElementById("postList").children.length + 1, name = currentAccount || nickName;
   const tempLi = addTempPost(inner, index, name);      // 先に画面へ表示
   try {
     if (await stopIfBanned()) { tempLi.remove(); if (onBanned) onBanned(); return; }
     const clientIP = await getClientIP();
     const isDupName = !currentAccount && !!(await isRegisteredName(name));
+    if (currentRoom !== sendRoom || currentThreadId !== sendThreadId) {
+      throw new Error("送信中に画面が切り替わりました。もう一度送信してください");
+    }
     const postId = await commitPost({ memberId: name, isAccountUser: !!currentAccount, nameDup: isDupName, body, color: "#3498db", icon: getCookie("iconId") || null, created_at: Timestamp.now(), ip: clientIP, index, ...getPostBadgeData(), ...getCustomTagData(), ...getBoardWriteMeta() });
     saveLog(logAction, { threadId: currentThreadId, threadTitle: currentThreadTitle, postId, index, ...logDetail });
-  } catch (e) { showAlert("送信に失敗しました"); tempLi.remove(); }
+  } catch (e) {
+    console.error("Bord quick post failed:", e);
+    showAlert(e?.message && /ロック|削除|存在|切り替わ|選択/.test(e.message) ? e.message : "送信に失敗しました。通信状態とFirestoreの書き込み権限を確認してください");
+    tempLi.remove();
+    if (onBanned) onBanned();
+    else if (logAction === "quick_send_post") {
+      const input = document.getElementById("quickPostInput");
+      if (input && !input.value.trim()) input.value = String(body || "");
+    }
+  }
   finally { isQuickSending = false; }
 }
 async function sendStamp(stampText) {
@@ -5898,7 +5984,10 @@ async function sendStamp(stampText) {
 document.getElementById("quickSendBtn").onclick = async () => {
   if (currentThreadLocked || isQuickSending) return;
   const input = document.getElementById("quickPostInput"), text = input.value.trim();
-  if (!text) return; if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
+  if (!text) return;
+  if (!currentThreadId) return showAlert("先にスレッドを開いてください");
+  if (containsNGWord(text)) return showAlert("本文に使えない言葉が含まれています");
+  // 送信開始時に入力欄を空にし、失敗した場合は quickPost 側で復元する
   input.value = "";
   await quickPost(text, `<span style="display: inline-block; padding-right: 95px;">${convertText(text)}</span>`, "quick_send_post", { text }, () => { input.value = text; });
 };
