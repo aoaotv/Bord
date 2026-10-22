@@ -133,11 +133,12 @@ textarea { min-height:60px; resize: vertical; }
 #lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
 #lineInputBar button { height: 40px; border-radius: 20px; border: none; padding: 0 14px; font-size: 14px; cursor: pointer; }
 #quickSendBtn { background: #27ae60; color: white; }
-/* 簡易送信バーの下に余分な空白を作らない */
-#postList { padding-bottom: 0 !important; margin-bottom: 0 !important; box-sizing: border-box; }
+/* クイック送信バー・固定ボタンに投稿が隠れないよう、一覧の末尾だけスクロール余地を確保 */
+#postList { padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px)) !important; margin-bottom: 0 !important; box-sizing: border-box; scroll-padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px)); }
 #lineInputBar { bottom: 0; padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); height: calc(56px + env(safe-area-inset-bottom, 0px)); }
+#threadDetailSection { scroll-padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px)); }
 @media (max-width: 600px) {
-  #postList { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+  #postList { padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px)) !important; margin-bottom: 0 !important; }
 }
 
 .adminTwoColumns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
