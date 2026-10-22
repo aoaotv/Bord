@@ -17,7 +17,7 @@ AI / 開発者向け重要メモ：Bordのバージョン情報は必ず維持�
 <meta name="robots" content="index, follow">
 <meta name="apple-mobile-web-app-title" content="Bord">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="canonical" href="https://sinzo.site/">
@@ -298,7 +298,7 @@ textarea { min-height:60px; resize: vertical; }
 
 /* ▼ アイコンの枠（プレミアム） */
 /* アイコン枠を通常アイコンと同じ24px内に収め、投稿カード下部の余白増加を防ぐ */
-.pfr{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;min-height:24px;border-radius:50%;padding:2px;vertical-align:middle;box-sizing:border-box;line-height:0;flex-shrink:0}
+.pfr{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;min-height:24px;border-radius:50%;padding:2px;vertical-align:middle;box-sizing:border-box;line-height:0;flex-shrink:0;margin:0;transform:translateY(-1px)}
 .pfr img,.pfr .pfr-ph{width:100% !important;height:100% !important;max-width:100%;max-height:100%;border-radius:50%;display:block;object-fit:cover;box-sizing:border-box}
 .pfr-gold{background:linear-gradient(135deg,#fbe38e,#c9a227 50%,#fbe38e)}
 .pfr-silver{background:linear-gradient(135deg,#f4f6f7,#9aa5ad 50%,#f4f6f7)}
@@ -345,6 +345,8 @@ textarea { min-height:60px; resize: vertical; }
 html, body { max-width: 100%; overflow-x: hidden; }
 #threadListSection, #threadDetailSection { max-width: 100vw; box-sizing: border-box; overflow-x: hidden; }
 #threadListSection ul, #threadDetailSection ul, #threadListSection ol, #threadDetailSection ol { max-width: 100%; }
+#postList > li { margin-bottom: 6px; }
+#postList > li small { line-height: 1.25; }
 li { box-sizing: border-box; max-width: 100%; min-width: 0; overflow: hidden; overflow-wrap: anywhere; word-break: break-word; }
 li > div { max-width: 100%; min-width: 0; }
 li > div > span { max-width: 100%; box-sizing: border-box; overflow-wrap: anywhere; word-break: break-word; }
@@ -549,12 +551,12 @@ li img, li video { max-width: 100%; height: auto; }
   </div>
 
   <div id="postLoadProgress" style="display:none;margin:8px 0 10px;padding:9px 12px;background:#f4f7fb;border:1px solid #dce5ef;border-radius:9px;color:#34495e;font-size:13px;">
-    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px"><span>投稿を読み込み中…</span><strong id="postLoadCount">取得済み 0 / 0 件</strong></div>
-    <div style="height:5px;background:#dfe6ed;border-radius:99px;overflow:hidden"><div id="postLoadBar" style="height:100%;width:0%;background:#3498db;border-radius:99px;transition:width .08s linear"></div></div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span id="postLoadMessage">投稿を読み込み中…</span><strong id="postLoadCount">取得済み 0 / 0 件（0%）</strong></div>
+    <button id="postLoadRetryBtn" type="button" class="greenBtn" style="display:none;margin-top:8px;background:#c0392b;padding:6px 12px">再読み込み</button>
   </div>
   <ol id="postList"></ol>
-  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:80px; right:20px; z-index: 1100;">📝投稿</button>
-  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:80px; left:20px; z-index: 1100;">戻る</button>
+  <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:calc(88px + env(safe-area-inset-bottom, 0px)); right:20px; z-index: 1100;">📝投稿</button>
+  <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:calc(88px + env(safe-area-inset-bottom, 0px)); left:20px; z-index: 1100;">戻る</button>
 </div>
 
 <!-- マイプロフィール画面 -->
@@ -1794,9 +1796,21 @@ document.getElementById("menuStoreBtn").onclick = () => {
 // 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
 // 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
 // ============================================================
-const CURRENT_APP_VERSION = "1";
+const CURRENT_APP_VERSION = "1.1";
 const VERSION_HISTORY = [
-  { version: "1", date: "2026-10-22", title: "バージョン機能を追加", changes: ["バージョン機能を追加"] }
+  { version: "1.1", date: "2026-10-22", title: "これまでの改善を統合", changes: [
+    "全スレッドを読み込んだ後も新規スレッドをリアルタイム反映",
+    "スレッド一覧の表示順をピン留め → 急上昇 → ブースト中 → 新しい順に整理",
+    "投稿読み込みの件数・進捗率を表示し、完了時の表示は自動で閉じる仕様を維持",
+    "投稿読み込み失敗時にエラー表示と再読み込み操作を追加",
+    "投稿・戻るボタンをクイック送信バーから離して配置",
+    "DMを右上の「…」メニューに集約し、メニュー見出し横にコイン残高を表示",
+    "バージョン情報を自動表示し、現在のバージョンと過去の履歴を分けて表示",
+    "株価強制変更の更新処理を軽量化し、監査ログの遅延で失敗扱いにならないよう改善",
+    "オセロにボット対戦・オンライン友達対戦・掛け金・制限時間・合法手表示を追加",
+    "預金利子・プレミアム特典、詳細検索、通知、実績、トレンドなどの既存機能を統合"
+  ]},
+  { version: "1.0", date: "2026-10-22", title: "整理版：バージョン機能を追加", changes: ["バージョン情報と更新履歴の自動表示を追加（過去の公開番号は未確認のため整理版として記録）"] }
 ];
 
 function renderVersionHistory(filterText = "") {
@@ -4736,9 +4750,24 @@ async function loadPosts(threadId) {
 
   // 一括保存済みのスレッドなら、サーバー応答を待たずに先に表示
   const myGen = ++loadPostsGen; let gotFirstSnap = false;
-  const loadUi = document.getElementById("postLoadProgress"), loadCount = document.getElementById("postLoadCount"), loadBar = document.getElementById("postLoadBar");
-  function setPostLoadProgress(done,total){ if(!loadUi)return; loadUi.style.display="block"; loadCount.textContent=`取得済み ${Math.min(done,total)} / ${total} 件`; loadBar.style.width=(total?Math.min(100,done/total*100):100)+"%"; }
+  const loadUi = document.getElementById("postLoadProgress"), loadCount = document.getElementById("postLoadCount"), loadMessage = document.getElementById("postLoadMessage"), retryBtn = document.getElementById("postLoadRetryBtn");
+  function setPostLoadProgress(done,total){
+    if(!loadUi)return;
+    const safeTotal=Math.max(0,Number(total)||0), safeDone=Math.min(Math.max(0,Number(done)||0),safeTotal);
+    const percent=safeTotal?Math.min(100,Math.round(safeDone/safeTotal*100)):100;
+    loadUi.style.display="block"; loadUi.style.background="#f4f7fb"; loadUi.style.borderColor="#dce5ef";
+    if(loadMessage)loadMessage.textContent="投稿を読み込み中…";
+    if(loadCount)loadCount.textContent=`取得済み ${safeDone} / ${safeTotal} 件（${percent}%）`;
+    if(retryBtn)retryBtn.style.display="none";
+  }
   function finishPostLoad(){ if(loadUi)loadUi.style.display="none"; }
+  function showPostLoadError(){
+    if(!loadUi)return;
+    loadUi.style.display="block"; loadUi.style.background="#fff1f0"; loadUi.style.borderColor="#e7a7a3";
+    if(loadMessage)loadMessage.textContent="エラーが発生しました";
+    if(loadCount)loadCount.textContent="投稿を読み込めませんでした";
+    if(retryBtn){retryBtn.style.display="inline-block";retryBtn.onclick=()=>{if(currentThreadId)loadPosts(currentThreadId);};}
+  }
   setPostLoadProgress(0,1);
   bulkCacheGet(currentRoom + "/" + threadId).then(entry => {
     if (entry && !gotFirstSnap && myGen === loadPostsGen) renderCachedPosts(entry, postList);
@@ -4883,6 +4912,7 @@ async function loadPosts(threadId) {
           }
         } catch (renderError) {
           console.error("投稿の描画に失敗しました", renderError);
+          if(isFirstSnap && myGen === loadPostsGen) { showPostLoadError(); return; }
         }
         if(isFirstSnap && myGen === loadPostsGen) finishPostLoad();
       })();
@@ -4891,8 +4921,8 @@ async function loadPosts(threadId) {
       console.error("投稿データの処理に失敗しました", e);
     }
   }, (error) => {
-    const ui=document.getElementById("postLoadProgress"); if(ui)ui.style.display="none";
     console.error("投稿の読み込みに失敗しました", error);
+    if(myGen === loadPostsGen) showPostLoadError();
   });
 }
 
@@ -5583,7 +5613,28 @@ async function loadAllThreads(){
       const bTime = bData.created_at?.toMillis ? bData.created_at.toMillis() : 0;
       return bTime - aTime;
     });
-    threadsData = allDocs; isAllLoaded = true; renderThreadsPage();
+    threadsData = allDocs; isAllLoaded = true; pageByRoom[currentRoom] = 1; renderThreadsPage();
+    // 全件取得後も購読を継続し、新規作成・編集・削除を一覧へ反映する。
+    let initialRealtimeSnapshot = true;
+    const liveAllQuery = query(collection(db, currentRoom), orderBy("created_at", "desc"));
+    threadsUnsub = onSnapshot(liveAllQuery, snap => {
+      if (!initialRealtimeSnapshot) {
+        snap.docChanges().forEach(change => {
+          if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title || "無題"}」が作成されました`);
+        });
+      }
+      initialRealtimeSnapshot = false;
+      const liveDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
+      liveDocs.sort((a, b) => {
+        const aData=a.data(), bData=b.data();
+        const aPinned=aData.pinned?1:0, bPinned=bData.pinned?1:0; if(aPinned!==bPinned)return bPinned-aPinned;
+        const aTrending=isTrendingThread(aData)?1:0, bTrending=isTrendingThread(bData)?1:0; if(aTrending!==bTrending)return bTrending-aTrending;
+        const aBoosted=isThreadBoostedValid(aData)?1:0, bBoosted=isThreadBoostedValid(bData)?1:0; if(aBoosted!==bBoosted)return bBoosted-aBoosted;
+        const aTime=aData.created_at?.toMillis?aData.created_at.toMillis():0, bTime=bData.created_at?.toMillis?bData.created_at.toMillis():0;
+        return bTime-aTime;
+      });
+      threadsData=liveDocs; isAllLoaded=true; renderThreadsPage();
+    }, error => { console.error("全スレッドのリアルタイム更新に失敗しました", error); showLoadError("スレッドの読み込みに失敗しました"); });
     hideLoading(); // 完了表示は出さず、進捗表示ごと即座に閉じる
   } catch (error) {
     console.error("全スレッドの読み込みに失敗しました", error);
