@@ -130,6 +130,11 @@
     .act-admin { background-color: #f59e0b; }         /* オレンジ */
     .act-rate { background-color: #8b5cf6; }          /* 紫 (評価用に追加) */
     .act-default { background-color: #64748b; }       /* グレー */
+    .act-dm { background-color: #0891b2; }            /* DM */
+    .act-money { background-color: #0ea5e9; }         /* コイン・送金 */
+    .act-deposit { background-color: #14b8a6; }       /* 預金 */
+    .act-stock { background-color: #7c3aed; }         /* 株 */
+    .act-game { background-color: #f97316; }          /* ゲーム */
     
     .detail-box {
       background-color: #f8fafc;
@@ -236,19 +241,18 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
-  authDomain: "sinzo-3f972.firebaseapp.com",
-  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
-  projectId: "sinzo-3f972",
-  storageBucket: "sinzo-3f972.firebasestorage.app",
-  messagingSenderId: "1058985227031",
-  appId: "1:1058985227031:web:6b152911e917903910bd52"
+  apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
+  authDomain: "sinzobord.firebaseapp.com",
+  projectId: "sinzobord",
+  storageBucket: "sinzobord.firebasestorage.app",
+  messagingSenderId: "326229251487",
+  appId: "1:326229251487:web:d5a32cb2a9023d862819aa"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const ADMIN_PASS = "2059";
+const ADMIN_PASS = "2026";   // index.html の ADMIN_PASSWORD と同じ値
 let lastVisibleDoc = null; // 最後に読み込んだドキュメント（ページング用）
 let totalLoadedCount = 0;  // 読み込み済み件数
 
@@ -258,91 +262,116 @@ function formatDate(ts) {
   return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 }
 
+// ---- index.html が実際に記録している操作名 ----
+const ACTION_MAP = {
+  // 掲示板
+  create_thread: ["スレッド作成", "act-create_thread"],
+  create_post: ["投稿", "act-create_post"],
+  quick_send_post: ["クイック投稿", "act-quick_send_post"],
+  report_content: ["通報通知", "act-report_content"],
+  rate_thread: ["評価", "act-rate"],
+  send_dm: ["DM送信", "act-dm"],
+  create_room: ["部屋作成", "act-create_thread"],
+  delete_own_thread: ["自分のスレッド削除", "act-default"],
+  delete_own_post: ["自分の投稿削除", "act-default"],
+  boost_thread: ["スレッド注目固定", "act-money"],
+  // コイン・預金・株・ゲーム
+  send_coin: ["コイン送金", "act-money"],
+  coin_rain: ["コインの雨", "act-money"],
+  coin_redeem: ["コインコード使用", "act-money"],
+  premium_buy: ["プレミアム購入", "act-money"],
+  shop_buy: ["ショップ購入", "act-money"],
+  deposit_in: ["預金に預入", "act-deposit"],
+  deposit_out: ["預金から引出", "act-deposit"],
+  stock_buy: ["株を購入", "act-stock"],
+  stock_sell: ["株を売却", "act-stock"],
+  gacha: ["ガチャ", "act-game"],
+  dice_win: ["サイコロ（勝ち）", "act-game"],
+  dice_lose: ["サイコロ（負け）", "act-game"],
+  roulette: ["ルーレット", "act-game"],
+  // 管理者操作
+  admin_login_success: ["管理者ログイン", "act-admin"],
+  admin_delete_thread: ["スレッド削除(管理者)", "act-admin"],
+  admin_delete_post: ["投稿削除(管理者)", "act-admin"],
+  admin_delete_room: ["部屋削除(管理者)", "act-admin"],
+  admin_update_thread_flags: ["スレッド設定変更(管理者)", "act-admin"],
+  admin_ip_ban: ["IP制限(管理者)", "act-admin"],
+  admin_ip_unban: ["IP制限解除(管理者)", "act-admin"],
+  admin_account_ban: ["アカウント凍結(管理者)", "act-admin"],
+  admin_account_unban: ["凍結解除(管理者)", "act-admin"],
+  admin_account_delete: ["アカウント削除(管理者)", "act-admin"],
+  admin_edit_account_coins: ["コイン数の変更(管理者)", "act-admin"],
+  admin_edit_account_shares: ["保有株数の変更(管理者)", "act-admin"],
+  admin_edit_account_store_items: ["所持アイテムの変更(管理者)", "act-admin"],
+  admin_edit_stock_price: ["株価の強制変更(管理者)", "act-admin"],
+  admin_create_coin_code: ["コインコード作成(管理者)", "act-admin"],
+  admin_toggle_badge: ["公式バッジ切替(管理者)", "act-admin"],
+  admin_change_badge_text: ["バッジ文字変更(管理者)", "act-admin"],
+  admin_send_notice: ["お知らせ送信(管理者)", "act-admin"],
+  admin_delete_stock_history: ["株価履歴の削除(管理者)", "act-admin"],
+  admin_delete_stock_points: ["株価データの削除(管理者)", "act-admin"],
+  // 旧ログ（互換のため残す）
+  admin_lock_thread: ["スレッドロック(管理者)", "act-admin"],
+  admin_unlock_thread: ["ロック解除(管理者)", "act-admin"],
+  admin_ban_user: ["アクセス禁止(管理者)", "act-admin"],
+  admin_unban_user: ["禁止解除(管理者)", "act-admin"],
+  admin_hide_post: ["投稿非表示(管理者)", "act-admin"]
+};
+
 function getActionInfo(action) {
-  switch (action) {
-    case "create_thread":
-      return { text: "スレッド作成", class: "act-create_thread" };
-    case "create_post":
-      return { text: "投稿", class: "act-create_post" };
-    case "quick_send_post":
-      return { text: "クイック投稿", class: "act-quick_send_post" };
-    case "report_content":
-      return { text: "通報通知", class: "act-report_content" };
-    case "rate_thread": // 評価用のログ追加
-      return { text: "評価", class: "act-rate" };
-    case "admin_delete_thread":
-      return { text: "スレッド削除(管理者)", class: "act-admin" };
-    case "admin_delete_post":
-      return { text: "投稿削除(管理者)", class: "act-admin" };
-    case "admin_lock_thread":
-      return { text: "スレッドロック(管理者)", class: "act-admin" };
-    case "admin_unlock_thread":
-      return { text: "ロック解除(管理者)", class: "act-admin" };
-    case "admin_ban_user":
-      return { text: "アクセス禁止(管理者)", class: "act-admin" };
-    case "admin_unban_user":
-      return { text: "禁止解除(管理者)", class: "act-admin" };
-    case "admin_hide_post":
-      return { text: "投稿非表示(管理者)", class: "act-admin" };
-    default:
-      if (action && action.startsWith("admin_")) {
-        return { text: "管理者操作", class: "act-admin" };
-      }
-      return { text: action || "その他操作", class: "act-default" };
-  }
+  const hit = ACTION_MAP[action];
+  if (hit) return { text: hit[0], class: hit[1] };
+  if (action && action.startsWith("admin_")) return { text: "管理者操作", class: "act-admin" };
+  return { text: action || "その他操作", class: "act-default" };
+}
+
+// 株の銘柄ID → 名前（index.html の STOCKS と同じ）
+const STOCK_NAMES = { snz: "sinzo株式会社", snzb: "sinzobord", frbs: "firebase株式会社", mrbs: "丸菱商事", bepn: "別班", szmt: "sinzomart", szdk: "sinzo電力", szsh: "sinzo高校", szwt: "sinzowater", szgs: "sinzoガス" };
+
+const LABEL_MAP = {
+  index: "番号", textSnippet: "投稿の本文", text: "本文", title: "タイトル",
+  threadId: "スレッドID", threadTitle: "スレッド名", targetThreadId: "対象スレッドID", targetThreadTitle: "スレッド名",
+  postId: "投稿ID", targetPostId: "対象投稿ID", userId: "ユーザーID", targetUserId: "対象ユーザーID",
+  bannedIp: "制限したIP", targetIp: "対象IP", hasImage: "画像の有無", hasPassword: "パスワード設定",
+  highlighted: "強調表示", reason: "理由", target: "対象データ", type: "種別",
+  roomName: "部屋名", targetRoomId: "対象の部屋ID", locked: "ロック", pinned: "固定",
+  to: "宛先", from: "送信者", amount: "金額（コイン）", recipientsCount: "分配した人数",
+  coinsAfter: "操作後の所持コイン", fromAfter: "送信者の操作後コイン", toAfter: "受取人の操作後コイン", depAfter: "操作後の預金",
+  stock: "銘柄", stocks: "銘柄", qty: "数量（株）", price: "価格（コイン）", total: "合計（コイン）",
+  bet: "賭け金", reward: "払い戻し", diceVal: "出目", prize: "獲得コイン", days: "日数", cost: "費用（コイン）",
+  code: "コード", kind: "種類", name: "名前",
+  targetAccount: "対象アカウント", newCoins: "設定したコイン", newShares: "設定した株数", newPrice: "設定した株価",
+  tagsCount: "タグ数", emojisCount: "スタンプ数", badgeText: "バッジ文字", enabled: "公式バッジ",
+  archiveDocsUpdated: "更新した履歴ファイル数", resetLoHi: "最安・最高値をリセット", recalcLoHi: "最安・最高値を再計算", count: "削除した点数"
+};
+const ID_KEYS = new Set(["threadId", "postId", "targetThreadId", "targetPostId", "targetRoomId"]);
+const NUM_KEYS = new Set(["amount", "coinsAfter", "fromAfter", "toAfter", "depAfter", "price", "total", "bet", "reward", "prize", "cost", "newCoins", "newShares", "newPrice", "qty"]);
+
+function formatValue(key, value) {
+  if (value === null || value === undefined) return "-";
+  if (key === "hasImage") return value ? "あり 📷" : "なし";
+  if (key === "enabled") return value ? "ON" : "OFF";
+  if (key === "type") return value === "like" ? "高評価" : value === "dislike" ? "低評価" : escapeHtml(String(value));
+  if (key === "stock") return escapeHtml(STOCK_NAMES[value] || String(value));
+  if (key === "stocks" && Array.isArray(value)) return escapeHtml(value.map(v => STOCK_NAMES[v] || v).join("、"));
+  if (ID_KEYS.has(key)) return `<span class="id-code">${escapeHtml(String(value))}</span>`;
+  if (typeof value === "boolean") return value ? "はい" : "いいえ";
+  if (typeof value === "number" && NUM_KEYS.has(key)) return value.toLocaleString("ja-JP");
+  if (Array.isArray(value)) return escapeHtml(value.join("、"));
+  if (typeof value === "object") return escapeHtml(JSON.stringify(value));
+  return escapeHtml(String(value));
 }
 
 function renderJapaneseDetail(detail) {
   if (!detail || typeof detail !== 'object' || Object.keys(detail).length === 0) {
     return '<span style="color:#94a3b8;">（詳細データなし）</span>';
   }
-
-  const labelMap = {
-    "index": "番号",
-    "textSnippet": "投稿の本文",
-    "text": "投稿本文",
-    "title": "タイトル",
-    "threadId": "スレッドID",
-    "threadTitle": "スレッド名",
-    "targetThreadId": "対象スレッドID",
-    "targetThreadTitle": "スレッド名",
-    "postId": "投稿ID",
-    "targetPostId": "対象投稿ID",
-    "userId": "ユーザーID",
-    "targetUserId": "対象ユーザーID",
-    "bannedIp": "制限したIP",
-    "hasImage": "画像の有無",
-    "reason": "理由",
-    "target": "対象データ",
-    "type": "種別"
-  };
-
   let html = '<div class="detail-box">';
   for (const [key, value] of Object.entries(detail)) {
-    const japaneseLabel = labelMap[key] || key;
-    let displayValue = value;
-
-    if (key === "threadId" || key === "postId") {
-      displayValue = `<span class="id-code">${escapeHtml(String(value))}</span>`;
-    } else if (key === "hasImage") {
-      displayValue = value ? "あり 📷" : "なし";
-    } else if (key === "type") {
-      // 種別が like/dislike の場合は日本語に変換
-      if (value === "like") {
-        displayValue = "高評価";
-      } else if (value === "dislike") {
-        displayValue = "低評価";
-      } else {
-        displayValue = escapeHtml(String(value));
-      }
-    } else {
-      displayValue = escapeHtml(String(value));
-    }
-
     html += `
       <div class="detail-item">
-        <span class="detail-label">・${japaneseLabel}:</span>
-        <span class="detail-value">${displayValue}</span>
+        <span class="detail-label">・${escapeHtml(LABEL_MAP[key] || key)}:</span>
+        <span class="detail-value">${formatValue(key, value)}</span>
       </div>
     `;
   }
