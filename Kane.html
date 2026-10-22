@@ -156,7 +156,12 @@ function calcDeposit(principal, since, now, premiumUntil) {
 const ACTIONS = ["send_coin", "coin_rain", "deposit_in", "deposit_out", "stock_buy", "stock_sell", "premium_buy", "gacha", "dice_win", "dice_lose", "roulette", "coin_redeem", "shop_buy", "boost_thread", "admin_edit_account_coins", "admin_edit_account_shares", "admin_edit_stock_price"];
 const CATS = { transfer: "送金", deposit: "預金", stock: "株", game: "ゲーム", other: "その他", admin: "管理者" };
 
-const fmt = n => Math.round(n).toLocaleString("ja-JP");
+const fmt = n => {
+  if (typeof n === "bigint") return n.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");
+  if (typeof n === "string" && /^-?\\d+$/.test(n)) return n.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");
+  if (!Number.isFinite(Number(n))) return "計算上限超過";
+  return Math.round(Number(n)).toLocaleString("ja-JP");
+};
 const fmtSigned = n => (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n));
 const cls = n => n > 0 ? "pos" : n < 0 ? "neg" : "";
 const tsMs = t => !t ? 0 : t.toMillis ? t.toMillis() : t.toDate ? t.toDate().getTime() : new Date(t).getTime() || 0;
@@ -227,8 +232,8 @@ function recompute() {
   accounts = accDocs.map(({ name, data: a }) => {
     const hold = a.holdings && Object.keys(a.holdings).length ? a.holdings : (a.shares > 0 ? { frbs: a.shares } : {});
     let stockVal = 0, shares = 0; Object.keys(hold).forEach(k => { shares += hold[k]; stockVal += hold[k] * (prices[k] || 0); });
-    const coins = a.coins !== undefined ? a.coins : 1000;
-    return { name, coins, raw: a, hold, stockVal, shares, premium: (a.premiumUntil || 0) > now };
+    const coins = a.coinsExact !== undefined ? BigInt(String(a.coinsExact)) : BigInt(String(a.coins !== undefined ? a.coins : 1000));
+    return { name, coins, coinsDisplay: coins, coinsNumber: Number(coins), raw: a, hold, stockVal, shares, premium: (a.premiumUntil || 0) > now };
   });
   events = logDocs.map(normalize).filter(Boolean).sort((a, b) => b.at - a.at);
   stats = {}; const get = n => stats[n] || (stats[n] = { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 });
@@ -264,7 +269,7 @@ function renderKpis() {
   const transfers = events.filter(e => e.label === "送金"), tsum = transfers.reduce((a, e) => a + e.amount, 0);
   const depIn = Object.values(stats).reduce((a, s) => a + s.depIn, 0), depOut = Object.values(stats).reduce((a, s) => a + s.depOut, 0);
   const items = [
-    ["アカウント数", fmt(accounts.length) + " 人"], ["所持コイン合計", fmt(sum("coins"))], ["預金残高合計", fmt(sum("dep"))],
+    ["アカウント数", fmt(accounts.length) + " 人"], ["所持コイン合計", fmt(accounts.reduce((v,a)=>v+a.coinsDisplay,0n))], ["預金残高合計", fmt(sum("dep"))],
     ["株の評価額合計", fmt(sum("stockVal"))], ["総資産", fmt(sum("total"))],
     ["送金（回数 / 合計）", `${fmt(transfers.length)} 回 / ${fmt(tsum)}`], ["預入累計 / 引出累計", `${fmt(depIn)} / ${fmt(depOut)}`]
   ];
@@ -275,7 +280,7 @@ const COLS = [
   ["name", "アカウント"], ["coins", "所持コイン"], ["dep", "預金残高"], ["stockVal", "株評価額"], ["total", "合計資産"],
   ["sent", "送った計"], ["recv", "受け取った計"], ["depIn", "預入累計"], ["depOut", "引出累計"], ["net", "記録上の増減"]
 ];
-function liveCalc(a) { const r = a.raw || {}; a.dep = calcDeposit(r.deposit || 0, r.depositAt, Date.now(), r.premiumUntil || 0); a.total = a.coins + a.dep + a.stockVal; }
+function liveCalc(a) { const r = a.raw || {}; a.dep = calcDeposit(r.deposit || 0, r.depositAt, Date.now(), r.premiumUntil || 0); a.total = a.coinsNumber + a.dep + a.stockVal; }
 function rowVal(a, k) { return k in a ? a[k] : (stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 })[k]; }
 function renderAccounts() {
   accounts.forEach(liveCalc);
@@ -288,7 +293,7 @@ function renderAccounts() {
   $("accTable").innerHTML = `<thead><tr>${COLS.map(([k, l]) => `<th data-k="${k}">${l}${k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : ""}</th>`).join("")}</tr></thead><tbody>` +
     rows.map(a => {
       const s = stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 };
-      return `<tr class="clickable${sel === a.name ? " sel" : ""}" data-n="${esc(a.name)}"><td data-label="アカウント"><b>${esc(a.name)}</b>${a.premium ? " 👑" : ""}</td><td data-label="所持コイン">${fmt(a.coins)}</td><td data-label="預金残高">${fmt(a.dep)}</td><td data-label="株評価額">${fmt(a.stockVal)}</td><td data-label="合計資産"><span class="bar" style="width:${Math.max(2, a.total / max * 60)}px"></span>${fmt(a.total)}</td><td data-label="送った計">${fmt(s.sent)}</td><td data-label="受け取った計">${fmt(s.recv)}</td><td data-label="預入累計">${fmt(s.depIn)}</td><td data-label="引出累計">${fmt(s.depOut)}</td><td data-label="記録上の増減" class="${cls(s.net)}">${fmtSigned(s.net)}</td></tr>`;
+      return `<tr class="clickable${sel === a.name ? " sel" : ""}" data-n="${esc(a.name)}"><td data-label="アカウント"><b>${esc(a.name)}</b>${a.premium ? " 👑" : ""}</td><td data-label="所持コイン">${fmt(a.coinsDisplay)}</td><td data-label="預金残高">${fmt(a.dep)}</td><td data-label="株評価額">${fmt(a.stockVal)}</td><td data-label="合計資産"><span class="bar" style="width:${Math.max(2, a.total / max * 60)}px"></span>${fmt(a.total)}</td><td data-label="送った計">${fmt(s.sent)}</td><td data-label="受け取った計">${fmt(s.recv)}</td><td data-label="預入累計">${fmt(s.depIn)}</td><td data-label="引出累計">${fmt(s.depOut)}</td><td data-label="記録上の増減" class="${cls(s.net)}">${fmtSigned(s.net)}</td></tr>`;
     }).join("") + "</tbody>";
   const ss = $("sortSel");
   ss.innerHTML = COLS.map(([k, l]) => `<option value="${k}">並び替え：${l}</option>`).join(""); ss.value = sortKey;
