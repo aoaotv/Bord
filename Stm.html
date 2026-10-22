@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1769aa">
-<title>Bord 使い方大全｜完全ガイド</title>
+<title>Bord 使い方大全｜最新版対応｜最新版対応・完全ガイド</title>
 <style>
 :root{--blue:#1769aa;--navy:#102b46;--sky:#eaf4ff;--ink:#243447;--muted:#64748b;--line:#dbe5ef;--paper:#fff;--bg:#f3f7fb;--green:#147d52;--orange:#a85b08;--red:#b42318}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:88px}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;line-height:1.85}
@@ -20,15 +20,24 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <div class="top"><div class="topin"><div class="brand">BORD <small>使い方大全 / COMPLETE MANUAL</small></div><input class="search" id="manualSearch" type="search" placeholder="🔎 このガイド内を検索（例：株を売る、DM、通知）" aria-label="ガイド内検索"><span class="result" id="searchResult">全章を表示中</span><button onclick="clearSearch()">検索解除</button><button onclick="window.print()">PDF / 印刷</button></div><div class="progressline"><span id="readProgress"></span></div></div>
 <div class="layout">
 <aside class="side"><h2>📚 目次（クリックで移動）</h2><nav class="toc" id="toc">
-<a href="#start">00. はじめに</a><a href="#map">01. 画面全体の見方</a><a href="#account">02. アカウント管理</a><a href="#profile">03. プロフィール</a><a href="#rooms">04. 部屋・掲示板</a><a href="#threads">05. スレッドを読む</a><a href="#create">06. スレッドを作る</a><a href="#posts">07. 投稿・返信・引用</a><a href="#quick">08. クイック送信・スタンプ</a><a href="#search">09. 検索・一括読み込み</a><a href="#favorite">10. お気に入り・固定</a><a href="#dm">11. DM・画像</a><a href="#accounts">12. アカウント一覧</a><a href="#coins">13. コインの基本</a><a href="#redeem">14. コードでチャージ</a><a href="#deposit">15. 預金・利息</a><a href="#stocks">16. 株式投資</a><a href="#premium">17. プレミアム</a><a href="#gacha">18. コインガチャ</a><a href="#dice">19. サイコロ勝負</a><a href="#rain">20. コインの雨</a><a href="#cosmetics">21. 名前エフェクト</a><a href="#tags">22. タグ・絵文字</a><a href="#missions">23. ログインボーナス・ミッション</a><a href="#rank">24. レベル・実績・称号</a><a href="#trend">25. トレンド・ランキング</a><a href="#notify">26. 通知センター</a><a href="#admin">27. 管理者操作</a><a href="#privacy">28. 匿名性・プライバシー</a><a href="#safety">29. 安全・マナー</a><a href="#trouble">30. 困ったとき</a><a href="#pro">31. 上級者向け活用</a><a href="#glossary">32. 用語集</a><a href="#faq">33. よくある質問</a><a href="#checklist">34. 習熟チェックリスト</a>
+<a href="#updates">更新内容・最新版の変更点</a><a href="#start">00. はじめに</a><a href="#map">01. 画面全体の見方</a><a href="#account">02. アカウント管理</a><a href="#profile">03. プロフィール</a><a href="#rooms">04. 部屋・掲示板</a><a href="#threads">05. スレッドを読む</a><a href="#create">06. スレッドを作る</a><a href="#posts">07. 投稿・返信・引用</a><a href="#quick">08. クイック送信・スタンプ</a><a href="#search">09. 検索・一括読み込み</a><a href="#favorite">10. お気に入り・固定</a><a href="#dm">11. DM・画像</a><a href="#accounts">12. アカウント一覧</a><a href="#coins">13. コインの基本</a><a href="#redeem">14. コードでチャージ</a><a href="#deposit">15. 預金・利息</a><a href="#stocks">16. 株式投資</a><a href="#premium">17. プレミアム</a><a href="#gacha">18. コインガチャ</a><a href="#dice">19. サイコロ勝負</a><a href="#rain">20. コインの雨</a><a href="#cosmetics">21. 名前エフェクト</a><a href="#tags">22. タグ・絵文字</a><a href="#missions">23. ログインボーナス・ミッション</a><a href="#rank">24. レベル・実績・称号</a><a href="#trend">25. トレンド・ランキング</a><a href="#notify">26. 通知センター</a><a href="#admin">27. 管理者操作</a><a href="#privacy">28. 匿名性・プライバシー</a><a href="#safety">29. 安全・マナー</a><a href="#othello">オセロの遊び方</a><a href="#trouble">30. 困ったとき</a><a href="#pro">31. 上級者向け活用</a><a href="#glossary">32. 用語集</a><a href="#faq">33. よくある質問</a><a href="#checklist">34. 習熟チェックリスト</a>
 </nav><p class="mini">検索すると該当する章だけ表示されます。目次は章へのショートカットです。</p></aside>
 <main class="main">
 <header class="hero" id="top">
-<div class="eyebrow">THE COMPLETE BORD GUIDE</div><h1>Bord 使い方大全</h1><p>はじめて使う人から、掲示板の運用・コイン経済・検索・通知・管理者機能まで。画面に表示されるメニューを手がかりに、操作の順番・注意点・失敗したときの確認方法をまとめた大規模ガイドです。</p><div class="pills"><span class="pill">初心者向け</span><span class="pill">全機能ナビ</span><span class="pill">注意点・トラブル対応</span><span class="pill">上級者向け</span><span class="pill">印刷・PDF対応</span></div><div class="note" style="background:#ffffff16;border-color:#ffffff45;color:white"><strong style="color:white">最初に大切なこと：</strong>画面や機能は更新される場合があります。このガイドは提供されたHTMLに存在する機能をもとに作成しています。コード内に料金・仕様が明示されていない機能は、実際の画面表示を優先してください。管理者専用機能や、ログインが必要な機能もあります。</div>
+<div class="eyebrow">THE COMPLETE BORD GUIDE</div><h1>Bord 使い方大全｜最新版対応</h1><p>はじめて使う人から、掲示板の運用・コイン経済・検索・通知・管理者機能まで。画面に表示されるメニューを手がかりに、操作の順番・注意点・失敗したときの確認方法をまとめた大規模ガイドです。</p><div class="pills"><span class="pill">初心者向け</span><span class="pill">全機能ナビ</span><span class="pill">注意点・トラブル対応</span><span class="pill">上級者向け</span><span class="pill">印刷・PDF対応</span></div><div class="note" style="background:#ffffff16;border-color:#ffffff45;color:white"><strong style="color:white">最初に大切なこと：</strong>画面や機能は更新される場合があります。このガイドは提供されたHTMLに存在する機能をもとに作成しています。コード内に料金・仕様が明示されていない機能は、実際の画面表示を優先してください。管理者専用機能や、ログインが必要な機能もあります。</div>
 </header>
 <div class="quickgrid">
-<a class="qcard" href="#start"><b>🚀 まず使ってみる</b><span>最初の5分で覚える基本操作</span></a><a class="qcard" href="#posts"><b>💬 投稿・返信を覚える</b><span>スレッド内で会話する方法</span></a><a class="qcard" href="#search"><b>🔎 欲しい話題を探す</b><span>検索範囲と並び順の使い分け</span></a><a class="qcard" href="#coins"><b>🪙 コインを理解する</b><span>残高・使い道・注意点</span></a><a class="qcard" href="#stocks"><b>📈 株・預金を使う</b><span>仮想的なコイン運用の操作</span></a><a class="qcard" href="#trouble"><b>🧰 不具合を解決する</b><span>読み込み・送信・表示トラブル</span></a>
+<a class="qcard" href="#start"><b>🚀 まず使ってみる</b><span>最初の5分で覚える基本操作</span></a><a class="qcard" href="#posts"><b>💬 投稿・返信を覚える</b><span>スレッド内で会話する方法</span></a><a class="qcard" href="#search"><b>🔎 欲しい話題を探す</b><span>検索範囲と並び順の使い分け</span></a><a class="qcard" href="#coins"><b>🪙 コインを理解する</b><span>残高・使い道・注意点</span></a><a class="qcard" href="#stocks"><b>📈 株・預金を使う</b><span>仮想的なコイン運用の操作</span></a><a class="qcard" href="#othello"><b>⚫ オセロを遊ぶ</b><span>対戦・合法手・制限時間の基本</span></a><a class="qcard" href="#trouble"><b>🧰 不具合を解決する</b><span>読み込み・送信・表示トラブル</span></a>
 </div>
+<section class="chapter" id="updates"><div class="chapterhead"><div class="num">NEW</div><div><h2>最新版の変更点・新しい操作の案内</h2><p>最近の画面調整と、変更後に知っておきたい操作をまとめています。</p></div></div>
+<h3>スレッド一覧は自動更新を基本にする</h3><p>スレッド一覧は、最初に表示された分を読み込んだあとでも新しいスレッドが追加されることがあります。最新の実装では、一覧の初回読み込みが終わったことを理由に新規スレッドの監視・反映を止めない設計を目指しています。新しいスレッドが見えない場合は、現在の部屋、検索語、並び順を確認し、通信が回復してから画面を開き直してください。手動の「読み込み」ボタンを押さないと新規スレッドが出ない状態は正常な想定ではありません。</p>
+<h3>読み込み表示とエラー</h3><ul><li>読み込み中は、可能な画面では進捗や取得状況を確認します。</li><li>投稿・一覧の読み込み完了時に、操作を邪魔する完了ポップアップを常に出す設計ではありません。</li><li>読み込みに失敗した場合は、エラー表示と再読み込み操作があればそれを使います。</li><li>送信が遅いときは連打せず、投稿一覧を確認して重複送信を防ぎます。</li></ul>
+<h3>スレッド詳細画面のボタン位置</h3><p>スレッドを開いているときは、投稿ボタン・戻るボタンとクイック送信バーが重ならないことが重要です。画面が重なって見える場合は、ブラウザの表示倍率や画面サイズを確認してください。アイコン枠や投稿カードの下に不自然な余白が出る場合も、最新の画面調整が適用されているファイルか確認します。</p>
+<h3>「…」メニュー、DM、コイン</h3><p>DMへの入口は画面上の「…」メニューにまとめられています。コイン残高がメニュー上部の表示領域に出る場合は、そこで残高を確認してからコイン消費機能を使ってください。表示位置やアイコン装飾は端末幅によって多少変わることがあります。</p>
+<h3>トレンド・急上昇スレッド</h3><p>急上昇スレッドは、ピン留めされたスレッドのすぐ下など、一覧上部の見つけやすい位置に配置される構成です。ピン留めや急上昇の表示は、内容の正確さや安全性を保証するものではありません。</p>
+<h3>バージョン情報の確認</h3><p>アプリ内の「…」→「バージョン情報」から、現在のバージョンと過去の変更履歴を確認します。現在のバージョンを大きく、過去の履歴をその下に並べる表示を想定しています。実際の番号はアプリ本体に表示されている値を優先し、このガイドだけで公開バージョンを断定しないでください。</p>
+<div class="note warn"><strong>重要：</strong>このガイドは操作方法を整理したものです。アカウント権限、Firestoreのルール、ネットワーク、サーバー側処理によって利用できる機能は異なる場合があります。</div></section>
+
 <section class="chapter" id="start"><div class="chapterhead"><div class="num">00</div><div><h2>はじめに：Bordを安全に使い始める</h2><p>初めてアクセスしたら、この章から順番に確認します。</p></div></div>
 <h3>このガイドの読み方</h3><ol class="steps"><li>「画面全体の見方」でボタンの場所を確認します。</li><li>アカウントを使う場合は「アカウント管理」を開き、画面の案内に従います。</li><li>部屋を選び、スレッドを開いて投稿や返信を試します。</li><li>慣れたら検索・お気に入り・DMを使い、必要に応じてコイン機能を確認します。</li></ol>
 <div class="note good"><strong>おすすめ：</strong>最初は閲覧、検索、短い投稿の3つを試すだけで十分です。コインを使う機能は、料金と結果を読んでから操作してください。</div>
@@ -36,8 +45,8 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <div class="note warn"><strong>仕様について：</strong>HTMLにボタンがあることと、サーバー側で常に利用可能であることは同じではありません。アクセス権限、通信状態、Firestore側のルール、アカウント状態によって失敗することがあります。画面に表示される説明やエラーを優先してください。</div></section>
 
 <section class="chapter" id="map"><div class="chapterhead"><div class="num">01</div><div><h2>画面全体の見方・メニュー案内</h2><p>どこに何があるかを最初に把握しましょう。</p></div></div>
-<h3>掲示板の基本画面</h3><div class="tablewrap"><table><tr><th>場所・ボタン</th><th>役割</th><th>使う場面</th></tr><tr><td>bordロゴ</td><td>サイト上部のロゴ。画面遷移の挙動は実装状態によります。</td><td>トップへ戻りたいとき</td></tr><tr><td>管理者操作</td><td>管理者向け操作パネルへの入口</td><td>許可された管理者のみ</td></tr><tr><td>同接表示</td><td>画面上に同時接続人数を表示</td><td>現在の利用状況の目安</td></tr><tr><td>「…」</td><td>各種機能をまとめた全画面メニュー</td><td>プロフィール、DM、コイン等を開く</td></tr><tr><td>現在の部屋</td><td>閲覧・投稿対象の部屋名</td><td>投稿前に場所を確認</td></tr><tr><td>スレッド検索</td><td>一覧からスレッド名を検索</td><td>特定の話題を探す</td></tr><tr><td>新規スレッド作成</td><td>新しい話題を立てる</td><td>既存スレッドに合う話題がないとき</td></tr></table></div>
-<h3>「…」メニューにある機能</h3><p>HTMLで確認できる主なメニューは、アカウント管理、マイプロフィール、アカウント一覧、DM、お気に入りスレッド、株式投資、預金、プレミアム、サイコロ勝負、コインガチャ、コインの雨、名前エフェクト購入、コインチャージ、タグ購入、絵文字購入、部屋選択、ログインボーナス・ミッション、レベル・実績・称号、トレンド・ランキング、通知センター、詳細検索、一括読み込みです。</p>
+<h3>掲示板の基本画面</h3><div class="tablewrap"><table><tr><th>場所・ボタン</th><th>役割</th><th>使う場面</th></tr><tr><td>bordロゴ</td><td>サイト上部のロゴ。画面遷移の挙動は実装状態によります。</td><td>トップへ戻りたいとき</td></tr><tr><td>管理者操作</td><td>管理者向け操作パネルへの入口</td><td>許可された管理者のみ</td></tr><tr><td>同接表示</td><td>画面上に同時接続人数を表示</td><td>現在の利用状況の目安</td></tr><tr><td>「…」</td><td>各種機能をまとめたメニュー。DMやバージョン情報などを開く</td><td>プロフィール、DM、コイン等を開く</td></tr><tr><td>現在の部屋</td><td>閲覧・投稿対象の部屋名</td><td>投稿前に場所を確認</td></tr><tr><td>スレッド検索</td><td>一覧からスレッド名を検索</td><td>特定の話題を探す</td></tr><tr><td>新規スレッド作成</td><td>新しい話題を立てる</td><td>既存スレッドに合う話題がないとき</td></tr></table></div>
+<h3>「…」メニューにある機能</h3><p>DMへの入口やバージョン情報は「…」メニュー内から確認します。コイン残高がメニュー上部に表示される場合は、コイン消費前に残高を確認してください。HTMLで確認できる主なメニューは、アカウント管理、マイプロフィール、アカウント一覧、DM、お気に入りスレッド、株式投資、預金、プレミアム、サイコロ勝負、コインガチャ、コインの雨、名前エフェクト購入、コインチャージ、タグ購入、絵文字購入、部屋選択、ログインボーナス・ミッション、レベル・実績・称号、トレンド・ランキング、通知センター、詳細検索、一括読み込みです。</p>
 <h3>メニュー画面を開閉する</h3><ol class="steps"><li>画面右上の「…」を押します。</li><li>機能一覧から使いたい項目を選択します。</li><li>専用画面が開いたら、画面内の操作を行います。</li><li>「ボードに戻る」「閉じる」などのボタンで戻ります。</li></ol>
 <div class="note warn"><strong>誤操作を防ぐ：</strong>コインの消費、投稿削除、株の売買、管理者操作などは、実行前に内容・対象・金額を確認してください。</div></section>
 
@@ -79,7 +88,7 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <div class="note danger"><strong>連打しない：</strong>送信ボタンを連続で押すと重複投稿になる場合があります。反応が遅いときは少し待って、投稿一覧を確認してください。</div></section>
 
 <section class="chapter" id="quick"><div class="chapterhead"><div class="num">08</div><div><h2>クイック送信バー・定型文・スタンプ</h2><p>短い返信をすばやく送る。</p></div></div>
-<h3>クイック送信バー</h3><p>スレッド詳細画面の下部には、メッセージ入力欄と「送信」ボタンがあります。短い返事なら、投稿フォームを別に開かずに入力・送信できます。</p>
+<h3>クイック送信バー</h3><p>スレッド詳細画面の下部には、メッセージ入力欄と「送信」ボタンがあります。短い返事なら、投稿フォームを別に開かずに入力・送信できます。投稿ボタンや戻るボタンと重なる場合は、最新版の画面レイアウトが適用されているか確認してください。</p>
 <h3>定型文メニュー</h3><p>「···」ボタンから、HTML上では「うん」「はい」「いいえ」「おけ」「いいね」「むり」などの定型文が用意されています。</p><ol class="steps"><li>クイック送信バーの「···」を押します。</li><li>使いたい定型文を選びます。</li><li>入力欄に入った文面を必要に応じて直します。</li><li>送信前に宛先となるスレッドと文章を確認します。</li></ol>
 <h3>スタンプ・絵文字</h3><p>掲示板のクイック欄には絵文字・スタンプの選択メニューがあります。画面に表示された候補を選び、必要に応じて文章と一緒に送信します。購入した絵文字などは、利用可能な場合にショップ・メニューから確認します。</p>
 <div class="note warn"><strong>注意：</strong>短い定型文やスタンプは文脈によって誤解されます。重要な説明や謝罪、質問には、意図が伝わる文章を添えてください。</div></section>
@@ -98,7 +107,7 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <div class="note warn"><strong>購入前に確認：</strong>固定は一時的な注目表示の機能です。固定されても、投稿内容が正しい・安全・公式であると保証されるわけではありません。価格、時間、対象スレッドを確認してから実行します。</div></section>
 
 <section class="chapter" id="dm"><div class="chapterhead"><div class="num">11</div><div><h2>DM（個人メッセージ）・画像送信</h2><p>ユーザー同士で個別に会話する。</p></div></div>
-<h3>新しいトークを始める</h3><ol class="steps"><li>ログインしていることを確認します。</li><li>「…」→「DM（個人メッセージ）」を開きます。</li><li>相手のアカウント名を入力します。</li><li>「トーク開始」を押し、会話一覧または個別チャットを開きます。</li></ol>
+<h3>新しいトークを始める</h3><ol class="steps"><li>ログインしていることを確認します。</li><li>画面右上の「…」を開き、メニュー内のDM（個人メッセージ）を選びます。</li><li>相手のアカウント名を入力します。</li><li>「トーク開始」を押し、会話一覧または個別チャットを開きます。</li></ol>
 <h3>メッセージを送る</h3><ol class="steps"><li>会話一覧から相手を選びます。</li><li>メッセージ欄に文章を入力します。</li><li>「送信」を押します。</li><li>吹き出し形式の会話欄に表示されたことを確認します。</li></ol>
 <h3>画像・スタンプを送る</h3><p>DM画面には「画像」選択ボタン、画像プレビュー表示、スタンプ・絵文字メニューがあります。画像を選ぶときは、共有してよい画像か、個人情報や位置情報が写っていないかを確認してから送信してください。</p>
 <div class="note danger"><strong>DMの注意：</strong>「個人メッセージ」という名前でも、絶対的な秘密保持やエンドツーエンド暗号化が保証されるとは、このHTMLだけから判断できません。住所・パスワード・認証コード・金融情報などを送らないでください。相手からのリンクやコードの要求にも注意します。</div>
@@ -201,6 +210,14 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <h3>管理者操作の注意点</h3><ul><li>コインコードは機密情報として管理し、公開場所に残さない。</li><li>株価の強制変更は、利用者の保有評価に影響する可能性があるため、理由・時刻・変更前後を記録する。</li><li>IP制限は複数利用者や共有ネットワークに影響する可能性を考える。</li><li>削除や一括操作は、対象を誤ると広い範囲に影響するため、実行直前に再確認する。</li><li>管理者認証情報をコードや公開リポジトリ、共有端末に置かない。</li></ul>
 <div class="note warn"><strong>セキュリティ補足：</strong>ブラウザ上のUIだけでアクセス制御が十分とは限りません。実際の権限管理はサーバー側・Firestoreセキュリティルール等でも適切に制限されている必要があります。このガイドは設定の安全性を監査したものではありません。</div></section>
 
+<section class="chapter" id="othello"><div class="chapterhead"><div class="num">GAME</div><div><h2>オセロの遊び方</h2><p>対戦を始める前に、基本ルールと画面表示を確認します。</p></div></div>
+<h3>基本ルール</h3><p>オセロは、相手の石を自分の石ではさむことで裏返し、最後に自分の石が多い方を目指すゲームです。石を置けるのは、相手の石を縦・横・斜めのいずれかで挟めるマスです。</p>
+<h3>対戦モード</h3><ul><li><b>ボット対戦：</b>コンピューターを相手に遊びます。難易度や設定が表示される場合は、開始前に選択します。</li><li><b>オンライン対戦：</b>他の利用者との対戦機能が表示される場合に利用します。通信状態や相手の参加状況により開始できないことがあります。</li><li><b>合法手の表示：</b>石を置ける場所を示す表示が用意されている場合は、候補マスを確認して操作します。</li></ul>
+<h3>制限時間・掛け金</h3><p>制限時間やコインの掛け金が表示される対戦では、開始前に時間・金額・勝敗時の扱いを確認してください。掛け金がある場合、対戦を開始する操作がコイン消費につながる可能性があります。画面に示された最新の説明と金額を優先し、内容が分からないまま開始しないでください。</p>
+<h3>操作の流れ</h3><ol class="steps"><li>オセロ画面を開き、対戦モードを選びます。</li><li>制限時間や掛け金などの設定があれば確認します。</li><li>盤面の合法手を確認し、置きたいマスを選びます。</li><li>相手の手を待ち、勝敗が表示されたら結果を確認します。</li><li>再戦する場合は、前の対戦が終了していることを確認してから開始します。</li></ol>
+<h3>うまく遊べないとき</h3><ul><li>マスを選べない場合は、そこが合法手か確認します。</li><li>オンライン対戦が始まらない場合は、通信状態と相手の参加状態を確認します。</li><li>盤面や結果の表示が止まった場合は、連続操作を避け、画面の案内に従ってください。</li><li>掛け金や残高の表示が不明な場合は、対戦を開始せず、表示内容を確認します。</li></ul>
+<div class="note warn"><strong>注意：</strong>ゲームの勝敗やコインの処理は、画面表示とサーバー側の処理に依存します。結果が反映されないときに、同じ対戦を何度も開始しないでください。</div></section>
+
 <section class="chapter" id="privacy"><div class="chapterhead"><div class="num">28</div><div><h2>匿名性・プライバシーを正しく理解する</h2><p>「匿名」と表示されていても、情報の扱いには注意が必要。</p></div></div>
 <h3>匿名利用で気をつけること</h3><ul><li>投稿文の中に自分を特定できる情報を書かない。</li><li>写真・スクリーンショットに住所、氏名、通知、アカウントIDなどが写っていないか確認する。</li><li>同じユーザー名を他サイトで使っていると、他の活動と結び付けられる可能性がある。</li><li>DMで個人情報や認証情報を送らない。</li></ul>
 <h3>このHTMLだけでは確認できないこと</h3><p>完全な匿名性、IPアドレスの収集・保存方針、データ保持期間、DMの暗号化方式、削除後のバックアップ、運営者が閲覧できるデータの範囲などは、提供されたHTMLだけでは断定できません。必要な場合は、サイトのプライバシーポリシーや運営者の説明を確認してください。</p>
@@ -213,7 +230,7 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 
 <section class="chapter" id="trouble"><div class="chapterhead"><div class="num">30</div><div><h2>トラブルシューティング大全</h2><p>画面が動かない、読み込めない、残高が変わらないとき。</p></div></div>
 <div class="faq">
-<details open><summary>スレッドや投稿が読み込めない</summary><p>ネット接続を確認し、少し待ってから再読み込みします。エラーが表示された場合は文言を控えます。特定の部屋だけ失敗するなら部屋やデータの問題、すべて失敗するなら接続・権限・サービス側の問題の可能性があります。</p></details>
+<details open><summary>スレッドや投稿が読み込めない／新規スレッドが出ない</summary><p>ネット接続、現在の部屋、検索欄、並び順を確認します。自動更新が働く構成では、初回の読み込み完了後も新しいスレッドが反映される想定です。表示されない場合は画面を開き直し、エラーが出た場合は文言を控えてください。特定の部屋だけ失敗するなら部屋やデータの問題、すべて失敗するなら接続・権限・サービス側の問題の可能性があります。</p></details>
 <details><summary>送信ボタンを押したのに投稿が見えない</summary><p>すぐに連打せず、スレッドを開き直して投稿済みか確認します。投稿がないと確認できてから再送信してください。連続送信は重複投稿の原因になります。</p></details>
 <details><summary>コイン残高が更新されない</summary><p>操作結果のメッセージを確認し、画面を開き直して残高を再確認します。処理が失敗した場合は残高が変わらないことがあります。成功したか不明なときは、同じ購入や売買をすぐ繰り返さないでください。</p></details>
 <details><summary>株の購入・売却が失敗する</summary><p>銘柄、数量、最新価格、必要コイン、保有数量を確認します。通信エラーや同時更新によって失敗する可能性があります。残高・保有数と結果メッセージを確認してから次の操作を行います。</p></details>
@@ -221,7 +238,7 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <details><summary>DMを始められない</summary><p>ログイン状態と相手のアカウント名を確認します。相手が一覧に見つからない場合は入力ミスの可能性があります。エラーが続く場合は時間をおいて試します。</p></details>
 <details><summary>通知センターが空、またはエラーになる</summary><p>通知が本当にない場合と、読み込みに失敗した場合を区別します。画面に「読み込めませんでした」などが出る場合、Firestoreのアクセス権限や通信状態の影響が考えられます。</p></details>
 <details><summary>プレミアム特典が反映されない</summary><p>プレミアム画面で有効状態と期限を確認します。購入結果の表示と残高を見直し、画面を開き直します。価格・適用条件はその時点の画面表示を優先します。</p></details>
-<details><summary>ボタンを押しても反応しない</summary><p>入力必須項目、ログイン条件、操作対象の選択、画面上のエラーを確認します。連続クリックは避け、少し待ってから再確認します。ブラウザの再読み込みで未送信入力が失われる可能性にも注意します。</p></details>
+<details><summary>投稿ボタンや戻るボタンが送信バーと重なる</summary><p>最新版のHTMLが読み込まれているか確認します。ブラウザの表示倍率や画面サイズを確認し、ページを開き直してください。ホーム画面に追加したアプリの場合、古いキャッシュが残ることがあります。</p></details><details><summary>ボタンを押しても反応しない</summary><p>入力必須項目、ログイン条件、操作対象の選択、画面上のエラーを確認します。連続クリックは避け、少し待ってから再確認します。ブラウザの再読み込みで未送信入力が失われる可能性にも注意します。</p></details>
 <details><summary>画面がスマートフォンで崩れる</summary><p>ブラウザの表示倍率や画面回転を戻し、ページを再読み込みします。横スクロールや入力欄の重なりが続く場合は、OS・ブラウザ・発生画面を記録して運営者に報告します。</p></details>
 </div>
 <h3>不具合を報告するときにまとめる情報</h3><ul><li>発生日時とタイムゾーン</li><li>使っている端末・OS・ブラウザ</li><li>どの画面で、どの順番で操作したか</li><li>表示されたエラーメッセージ</li><li>残高や投稿が変化したか（パスワードなどの秘密情報は含めない）</li></ul>
@@ -257,7 +274,7 @@ a{color:#1266a5;text-underline-offset:3px}button,input{font:inherit}.top{positio
 <h3>目的別ショートカット</h3><div class="tablewrap"><table><tr><th>やりたいこと</th><th>読む章</th></tr><tr><td>初めて投稿する</td><td>00 → 01 → 04 → 06 → 07</td></tr><tr><td>返信を正しく送る</td><td>07 → 08</td></tr><tr><td>過去の話題を探す</td><td>09 → 10</td></tr><tr><td>友達と個別に話す</td><td>02 → 11 → 28</td></tr><tr><td>コインを使う前に確認</td><td>13 → 利用したい機能の章</td></tr><tr><td>株価や取引の問題を解決</td><td>16 → 30</td></tr><tr><td>管理者として運用する</td><td>27 → 30 → 31</td></tr></table></div>
 <div class="note good"><strong>最後に：</strong>機能を全部一度に覚える必要はありません。必要になった章だけ読み、操作前には金額・対象・公開範囲を確認してください。</div>
 <div class="endlinks"><a href="#top">↑ ページ先頭へ</a><a href="#map">画面の見方</a><a href="#trouble">トラブル対応</a><a href="#faq">FAQ</a></div></section>
-<div class="footer">Bord 使い方大全 · 提供されたサイトHTMLをもとに作成 · サイトの仕様変更時は画面上の最新表示を優先してください。</div>
+<div class="footer">Bord 使い方大全｜最新版対応 · 提供されたサイトHTMLをもとに作成 · サイトの仕様変更時は画面上の最新表示を優先してください。</div>
 </main></div>
 <script>
 const search=document.getElementById('manualSearch'), chapters=[...document.querySelectorAll('.chapter')], toc=[...document.querySelectorAll('.toc a')], result=document.getElementById('searchResult');
