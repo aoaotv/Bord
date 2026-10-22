@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Firestore コピー(軽量)</title>
+<style>
+body{margin:0;padding:14px;font:14px/1.5 -apple-system,"Hiragino Sans",Meiryo,sans-serif;background:#eef3fb;color:#222}
+@media(prefers-color-scheme:dark){body{background:#14181f;color:#e6e9ef}textarea{color:#e6e9ef}}
+.w{max-width:760px;margin:auto}h1{font-size:18px;margin:0 0 8px}
+textarea{width:100%;box-sizing:border-box;font:12px ui-monospace,Consolas,monospace;padding:6px;border:1px solid #9ab;border-radius:6px;background:transparent;margin:2px 0 8px}
+button{padding:9px 20px;border:0;border-radius:18px;background:#27ae60;color:#fff;font-size:14px;cursor:pointer;margin-right:6px}
+button.s{background:#c0392b}button:disabled{opacity:.4}
+#st{margin:8px 0;font-size:13px}
+#log{height:200px;overflow:auto;background:#0e1116;color:#cfe3cf;font:12px/1.5 ui-monospace,Consolas,monospace;padding:8px;border-radius:6px;white-space:pre-wrap}
+.e{color:#ff8b80}
+</style></head><body><div class="w">
+<h1>🔥 Firestore コピー（軽量・高速版）</h1>
+<small>コピー先の同一IDは上書きされます。コピー元は読み取りのみ。</small><br>
+コピー元 config<textarea id="a" rows="6"></textarea>
+コピー先 config<textarea id="b" rows="6" placeholder="firebaseConfig を貼り付け"></textarea>
+コピー対象（1行1つ「コレクション | サブコレクション」。rooms の部屋は自動追加）<textarea id="t" rows="8"></textarea>
+<button id="go">コピー開始</button><button id="stop" class="s" disabled>中止</button>
+<div id="st">待機中</div><div id="log"></div>
+</div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import{getFirestore,collection,collectionGroup,doc,getDocs,query,orderBy,limit,startAfter,documentId,writeBatch}from"https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+const $=i=>document.getElementById(i);
+$("a").value=`{
+  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
+  authDomain: "sinzo-3f972.firebaseapp.com",
+  projectId: "sinzo-3f972",
+  storageBucket: "sinzo-3f972.firebasestorage.app",
+  messagingSenderId: "1058985227031",
+  appId: "1:1058985227031:web:6b152911e917903910bd52"
+}`;
+$("t").value=["threads | posts","accounts | appNotifications","dm_conversations | messages","rooms","notifications","market","coinCodes","icons","ipBans","accountBans"].join("\n");
+const log=(m,c)=>{const d=document.createElement("div");if(c)d.className=c;d.textContent=m;$("log").append(d);$("log").scrollTop=1e9};
+const cfg=(t,n)=>{const o={};for(const m of t.matchAll(/["']?(\w+)["']?\s*:\s*["']([^"']*)["']/g))o[m[1]]=m[2];if(!o.apiKey||!o.projectId)throw Error(n+"の config が不正です");return o};
+const isRef=v=>v&&typeof v=="object"&&v.type=="document"&&typeof v.path=="string"&&v.firestore;
+const isPlain=v=>v&&typeof v=="object"&&[Object.prototype,null].includes(Object.getPrototypeOf(v));
+const conv=(v,d)=>Array.isArray(v)?v.map(x=>conv(x,d)):isRef(v)?doc(d,v.path):isPlain(v)?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,conv(x,d)])):v;
+
+let S;
+const stat=x=>$("st").textContent=`読み取り ${S.r} / 書き込み ${S.w} / エラー ${S.e}  ${x||""}`;
+
+// 書き込み：最大5バッチを並列でコミット
+async function commit(items){
+  for(let n=0;n<2;n++){
+    try{const b=writeBatch(S.dst);for(const[p,d]of items)b.set(doc(S.dst,p),d);await b.commit();S.w+=items.length;return}
+    catch(e){if(n){S.e+=items.length;log("書き込み失敗: "+e.message,"e")}}
+  }
+}
+async function put(p,d){
+  const sz=JSON.stringify(d).length;
+  if(S.q.length&&(S.q.length>=400||S.bytes+sz>5e6))await flush();
+  S.q.push([p,d]);S.bytes+=sz;
+}
+async function flush(){
+  if(!S.q.length)return;
+  const items=S.q;S.q=[];S.bytes=0;
+  while(S.inflight.size>=5)await Promise.race(S.inflight);
+  const pr=commit(items).finally(()=>S.inflight.delete(pr));
+  S.inflight.add(pr);
+}
+// クエリを全ページ読む
+async function stream(base,each){
+  let last=null;
+  while(!S.stop){
+    const s=await getDocs(last?query(base,orderBy(documentId()),startAfter(last),limit(500)):query(base,orderBy(documentId()),limit(500)));
+    for(const d of s.docs){S.r++;await each(d)}
+    stat();
+    if(s.size<500)break;last=s.docs[s.size-1];
+  }
+}
+
+$("go").onclick=async()=>{
+  try{
+    const sc=cfg($("a").value,"コピー元"),dc=cfg($("b").value,"コピー先");
+    if(sc.projectId==dc.projectId)throw Error("コピー元とコピー先が同じです");
+    if(!confirm(`${sc.projectId} → ${dc.projectId}\n同一IDのデータは上書きされます。実行しますか？`))return;
+    S={src:getFirestore(initializeApp(sc,"s"+Date.now())),dst:getFirestore(initializeApp(dc,"d"+Date.now())),r:0,w:0,e:0,q:[],bytes:0,inflight:new Set(),stop:false};
+    $("go").disabled=true;$("stop").disabled=false;$("log").innerHTML="";
+
+    // 対象解析 + rooms から部屋を自動追加
+    const T=new Map();
+    for(const l of $("t").value.split("\n")){const[n,s=""]=l.split("|");if(n.trim())T.set(n.trim(),s.split(",").map(x=>x.trim()).filter(Boolean))}
+    try{(await getDocs(collection(S.src,"rooms"))).forEach(d=>{if(!T.has(d.id))T.set(d.id,["posts"])});log("部屋を自動検出しました")}catch(e){log("rooms の自動検出に失敗: "+e.message,"e")}
+
+    // 1) 本体コレクション
+    for(const[n]of T){
+      if(S.stop)break;log("▶ "+n);
+      try{await stream(collection(S.src,n),d=>put(d.ref.path,conv(d.data(),S.dst)))}
+      catch(e){S.e++;log(n+" 失敗: "+e.message,"e")}
+    }
+    await flush();
+
+    // 2) サブコレクション：collectionGroup で一括取得（親ごとの読み取り不要）
+    const subs=new Map();
+    for(const[n,ss]of T)for(const s of ss){if(!subs.has(s))subs.set(s,new Set());subs.get(s).add(n)}
+    for(const[s,parents]of subs){
+      if(S.stop)break;log("▶ サブ "+s);
+      try{
+        await stream(collectionGroup(S.src,s),d=>{const p=d.ref.path;if(parents.has(p.split("/")[0]))return put(p,conv(d.data(),S.dst))});
+      }catch(e){
+        // ルールが collectionGroup を許可していない場合：親ごとに並列10で取得
+        log(`一括取得不可(${e.code||e.message}) → 親ごとに取得`,"e");
+        for(const n of parents){
+          const ids=[];await stream(collection(S.src,n),d=>{ids.push(d.id)});
+          let i=0;
+          await Promise.all(Array.from({length:10},async()=>{
+            while(!S.stop&&i<ids.length){
+              const id=ids[i++];
+              try{await stream(collection(S.src,n,id,s),d=>put(d.ref.path,conv(d.data(),S.dst)))}
+              catch(e2){S.e++;log(`${n}/${id}/${s}: ${e2.message}`,"e")}
+            }
+          }));
+        }
+      }
+    }
+    await flush();await Promise.all(S.inflight);
+    stat(S.stop?"（中止）":"（完了）");log(S.stop?"中止しました":"完了しました");
+  }catch(e){log(e.message,"e")}
+  finally{$("go").disabled=false;$("stop").disabled=true}
+};
+$("stop").onclick=()=>{if(S)S.stop=true};
+</script></body></html>
