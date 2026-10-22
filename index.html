@@ -133,11 +133,11 @@ textarea { min-height:60px; resize: vertical; }
 #lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
 #lineInputBar button { height: 40px; border-radius: 20px; border: none; padding: 0 14px; font-size: 14px; cursor: pointer; }
 #quickSendBtn { background: #27ae60; color: white; }
-/* 簡易送信バーと画面下部の固定ボタンが投稿一覧に重ならないよう、一覧の末尾に操作領域分の余白を確保 */
-#postList { padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px)) !important; margin-bottom: 0 !important; box-sizing: border-box; }
+/* 簡易送信バーの下に余分な空白を作らない */
+#postList { padding-bottom: 0 !important; margin-bottom: 0 !important; box-sizing: border-box; }
 #lineInputBar { bottom: 0; padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); height: calc(56px + env(safe-area-inset-bottom, 0px)); }
 @media (max-width: 600px) {
-  #postList { padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important; }
+  #postList { padding-bottom: 0 !important; margin-bottom: 0 !important; }
 }
 
 .adminTwoColumns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
@@ -288,8 +288,9 @@ textarea { min-height:60px; resize: vertical; }
 .rl-rates td:last-child{text-align:right}
 
 /* ▼ アイコンの枠（プレミアム） */
-.pfr{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:3px;vertical-align:middle;box-sizing:content-box;line-height:0}
-.pfr img,.pfr .pfr-ph{border-radius:50%;display:block}
+/* アイコン枠を通常アイコンと同じ24px内に収め、投稿カード下部の余白増加を防ぐ */
+.pfr{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;min-width:24px;min-height:24px;border-radius:50%;padding:2px;vertical-align:middle;box-sizing:border-box;line-height:0;flex-shrink:0}
+.pfr img,.pfr .pfr-ph{width:100% !important;height:100% !important;max-width:100%;max-height:100%;border-radius:50%;display:block;object-fit:cover;box-sizing:border-box}
 .pfr-gold{background:linear-gradient(135deg,#fbe38e,#c9a227 50%,#fbe38e)}
 .pfr-silver{background:linear-gradient(135deg,#f4f6f7,#9aa5ad 50%,#f4f6f7)}
 .pfr-rainbow{background:conic-gradient(#e74c3c,#f39c12,#f1c40f,#2ecc71,#1abc9c,#3498db,#9b59b6,#e74c3c)}
@@ -4212,16 +4213,22 @@ async function listenThreads(){
 
       const allArray = Array.from(map.values());
       allArray.sort((a, b) => {
-        const aPinned = a.data().pinned ? 1 : 0;
-        const bPinned = b.data().pinned ? 1 : 0;
+        const aData = a.data(), bData = b.data();
+        // 表示順：ピン留め → 急上昇スレ → ブースト中 → 新しい順
+        const aPinned = aData.pinned ? 1 : 0;
+        const bPinned = bData.pinned ? 1 : 0;
         if (aPinned !== bPinned) return bPinned - aPinned;
 
-        const aBoosted = isThreadBoostedValid(a.data()) ? 1 : 0;
-        const bBoosted = isThreadBoostedValid(b.data()) ? 1 : 0;
+        const aTrending = isTrendingThread(aData) ? 1 : 0;
+        const bTrending = isTrendingThread(bData) ? 1 : 0;
+        if (aTrending !== bTrending) return bTrending - aTrending;
+
+        const aBoosted = isThreadBoostedValid(aData) ? 1 : 0;
+        const bBoosted = isThreadBoostedValid(bData) ? 1 : 0;
         if (aBoosted !== bBoosted) return bBoosted - aBoosted;
 
-        const aTime = a.data().created_at?.toMillis ? a.data().created_at.toMillis() : 0;
-        const bTime = b.data().created_at?.toMillis ? b.data().created_at.toMillis() : 0;
+        const aTime = aData.created_at?.toMillis ? aData.created_at.toMillis() : 0;
+        const bTime = bData.created_at?.toMillis ? bData.created_at.toMillis() : 0;
         return bTime - aTime;
       });
 
@@ -4255,12 +4262,15 @@ async function listenThreads(){
       const allDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
       const filtered = allDocs.filter(item => (item.data().title || "").includes(word));
       filtered.sort((a, b) => {
-        const aPinned = a.data().pinned ? 1 : 0;
-        const bPinned = b.data().pinned ? 1 : 0;
+        const aData = a.data(), bData = b.data();
+        const aPinned = aData.pinned ? 1 : 0;
+        const bPinned = bData.pinned ? 1 : 0;
         if (aPinned !== bPinned) return bPinned - aPinned;
-
-        const aBoosted = isThreadBoostedValid(a.data()) ? 1 : 0;
-        const bBoosted = isThreadBoostedValid(b.data()) ? 1 : 0;
+        const aTrending = isTrendingThread(aData) ? 1 : 0;
+        const bTrending = isTrendingThread(bData) ? 1 : 0;
+        if (aTrending !== bTrending) return bTrending - aTrending;
+        const aBoosted = isThreadBoostedValid(aData) ? 1 : 0;
+        const bBoosted = isThreadBoostedValid(bData) ? 1 : 0;
         if (aBoosted !== bBoosted) return bBoosted - aBoosted;
         return 0;
       });
@@ -5261,16 +5271,18 @@ function loadAllThreads(){
     if (gen !== loadAllThreads.gen) return;
     const allDocs = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() }));
     allDocs.sort((a, b) => {
-      const aPinned = a.data().pinned ? 1 : 0;
-      const bPinned = b.data().pinned ? 1 : 0;
+      const aData = a.data(), bData = b.data();
+      const aPinned = aData.pinned ? 1 : 0;
+      const bPinned = bData.pinned ? 1 : 0;
       if (aPinned !== bPinned) return bPinned - aPinned;
-
-      const aBoosted = isThreadBoostedValid(a.data()) ? 1 : 0;
-      const bBoosted = isThreadBoostedValid(b.data()) ? 1 : 0;
+      const aTrending = isTrendingThread(aData) ? 1 : 0;
+      const bTrending = isTrendingThread(bData) ? 1 : 0;
+      if (aTrending !== bTrending) return bTrending - aTrending;
+      const aBoosted = isThreadBoostedValid(aData) ? 1 : 0;
+      const bBoosted = isThreadBoostedValid(bData) ? 1 : 0;
       if (aBoosted !== bBoosted) return bBoosted - aBoosted;
-
-      const aTime = a.data().created_at?.toMillis ? a.data().created_at.toMillis() : 0;
-      const bTime = b.data().created_at?.toMillis ? b.data().created_at.toMillis() : 0;
+      const aTime = aData.created_at?.toMillis ? aData.created_at.toMillis() : 0;
+      const bTime = bData.created_at?.toMillis ? bData.created_at.toMillis() : 0;
       return bTime - aTime;
     });
     threadsData = allDocs; isAllLoaded = true; renderThreadsPage(); hideLoading();
