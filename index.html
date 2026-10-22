@@ -314,17 +314,10 @@ textarea { min-height:60px; resize: vertical; }
 .stk-detail{background:#f7f9fc;padding:14px;border-radius:12px;margin-bottom:16px}
 .stk-dtitle{font-weight:bold;margin-bottom:8px;color:#2c3e50}
 .stk-hold{background:#fff8ef;border:1px solid #f0d9b5;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:14px;color:#2c3e50}
-.stk-range{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
-.stk-range button{margin:0;padding:5px 12px;border-radius:14px;border:1px solid #cfd8dc;background:#fff;color:#2c3e50;font-size:12px;cursor:pointer}
-.stk-range button.on{background:#e67e22;color:#fff;border-color:#e67e22}
 .stk-tipbar{background:#eef6ff;border:1px solid #cfe3f7;border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:13px;color:#2c3e50;min-height:1.3em}
 .stk-tiprow{display:flex;gap:6px;align-items:stretch;margin-bottom:8px}
 .stk-tiprow .stk-tipbar{flex:1;margin-bottom:0}
-#stockClearSelBtn{margin:0;padding:4px 12px;border-radius:8px;background:#e67e22;color:#fff;font-size:12px;white-space:nowrap}
-.stk-chart{position:relative;height:220px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;cursor:crosshair}
-.stk-inner{position:relative;height:220px}
-.stk-view{position:sticky;left:0;height:220px;overflow:hidden}
-.stk-view svg{display:block;height:220px}
+.stk-chart{position:relative;height:220px;background:#fff;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:10px;overflow:hidden;cursor:crosshair}
 .stk-trade{display:flex;align-items:center;gap:10px;background:#fff;padding:10px;border:1px solid #dfe6e9;border-radius:8px;margin-bottom:8px}
 .stk-est{font-size:13px;color:#555;margin-bottom:10px;min-height:1.2em}
 .stk-msg{font-size:13px;margin-top:10px;min-height:1.2em;color:#2c3e50}
@@ -621,10 +614,8 @@ li img, li video { max-width: 100%; height: auto; }
     <div class="stk-detail">
       <div id="stockDetailTitle" class="stk-dtitle"></div>
       <div id="stockHoldInfo" class="stk-hold"></div>
-      <div id="stockRangeBar" class="stk-range"></div>
-      <div class="stk-tiprow"><div id="stockTip" class="stk-tipbar"></div><button id="stockClearSelBtn" type="button" style="display:none;">✖ 線を消す</button></div>
+      <div class="stk-tiprow"><div id="stockTip" class="stk-tipbar"></div></div>
       <div id="stockChartBox" class="stk-chart"></div>
-      <div id="stockHistStatus" class="stk-sub" style="margin-bottom:10px;"></div>
       <div class="stk-trade">
         <label for="tradeShareInput" style="font-weight:bold;font-size:14px;white-space:nowrap;">取引数量:</label>
         <input type="number" id="tradeShareInput" value="1" min="1" max="10000" style="margin:0; height:38px; text-align:center; font-weight:bold; font-size:16px;">
@@ -1188,13 +1179,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
-  authDomain: "sinzo-3f972.firebaseapp.com",
-  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
-  projectId: "sinzo-3f972",
-  storageBucket: "sinzo-3f972.firebasestorage.app",
-  messagingSenderId: "1058985227031",
-  appId: "1:1058985227031:web:6b152911e917903910bd52"
+  apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
+  authDomain: "sinzobord.firebaseapp.com",
+  projectId: "sinzobord",
+  storageBucket: "sinzobord.firebasestorage.app",
+  messagingSenderId: "326229251487",
+  appId: "1:326229251487:web:d5a32cb2a9023d862819aa",
+  measurementId: "G-12GGPD0H2H"
 };
 const app = initializeApp(firebaseConfig);
 
@@ -1564,11 +1555,12 @@ document.getElementById("menuAccountListBtn").onclick = async () => {
   document.getElementById("accountListSearch").value = "";
   document.getElementById("accountListUl").innerHTML = "<li style='background:#95a5a6; text-align:center;'>読み込み中...</li>";
   try {
-    const snap = await getDocs(collection(db, "accounts"));
+    if (!accountListCache || !accountListCache.length || Date.now() - (window.__accListAt || 0) > 300000) {   // 5分以内は再取得しない
+    const snap = await getDocs(collection(db, "accounts")); window.__accListAt = Date.now();
     accountListCache = snap.docs.map(d => {
       const x = d.data(), lv = bfLevelFromXp(Math.max(0, Number(x.bfXp) || 0));
       return { name: d.id, level: lv, title: bfTitleFor(lv, x.bfAchievements || []), premium: (x.premiumUntil || 0) > Date.now() };
-    }).sort((a, b) => b.level - a.level || a.name.localeCompare(b.name, "ja"));
+    }).sort((a, b) => b.level - a.level || a.name.localeCompare(b.name, "ja")); }
     renderAccountList();
   } catch (e) {
     document.getElementById("accountListUl").innerHTML = "<li style='background:#c0392b; text-align:center;'>アカウント一覧を読み込めませんでした</li>";
@@ -2234,7 +2226,7 @@ const STOCKS = [
 ];
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.id, s]));
 const LEGACY_STOCK_ID = "frbs";   // 旧「単一株」の保有分はこの銘柄に引き継ぐ
-const TICK_MS = 1000, MAIN_MAX = 240, ARCH = 120, MAX_CATCHUP = 30;   // 本体に240点まで持ち、超えたら古い120点を履歴ドキュメントへ退避
+const TICK_MS = 5000, HIST_MAX = 60, MAX_CATCHUP = 12, TK = TICK_MS / 1000;   // 5秒に1回だけ更新・履歴は直近60点のみ（長期保存なし）
 const marketRef = doc(db, "market", "global");
 let marketData = null, selectedStockId = STOCKS[0].id, tradeBusy = false, statusTimer = null;
 const stkEl = id => document.getElementById(id);
@@ -2257,9 +2249,9 @@ function stockParams(d, ov) {
 }
 function nextPrice(d, price) {
   let lp = Math.log(Math.max(1, price));
-  let shock = d.vol * randn();
-  if (d.jump && Math.random() < d.jump.p) shock += (Math.random() < 0.5 ? -1 : 1) * d.jump.size * (0.5 + Math.random() * 0.5);
-  lp += d.drift + d.revert * (Math.log(d.base) - lp) + shock;
+  let shock = d.vol * Math.sqrt(TK) * randn();
+  if (d.jump && Math.random() < Math.min(1, d.jump.p * TK)) shock += (Math.random() < 0.5 ? -1 : 1) * d.jump.size * (0.5 + Math.random() * 0.5);
+  lp += (d.drift + d.revert * (Math.log(d.base) - lp)) * TK + shock;
   return Math.min(d.max, Math.max(d.min, Math.round(Math.exp(lp))));
 }
 function freshStock(d) { return { p: d.base, h: [d.base], lo: d.base, hi: d.base }; }
@@ -2277,54 +2269,47 @@ function getHoldings() {
   return normalizeHoldings({ holdings: h, shares: getMyShares() });
 }
 
-// 価格更新: トランザクションで「前回更新から一定時間たっていれば1人だけ更新」。全員が毎回書き込む必要はない
-// 全銘柄で共通の時刻配列(ts)を持ち、揃っていない旧データは補正する
-function alignMarket(data, now) {
+// 価格更新: 「前回更新から5秒以上たっていて、手元の最新データでもそう判断できる時だけ」1人が書き込む
+// ・履歴は直近 HIST_MAX 点のみ。古い点は捨てる（h_番号ドキュメントへの退避・長期保存はしない）
+// ・書き込みは merge なしの上書きなので、旧データの ts / chunks も自動で消える
+let marketTickAt = 0;
+function alignMarket(data) {
   const stocks = data.stocks || {};
-  STOCKS.forEach(d => { if (!stocks[d.id]) stocks[d.id] = freshStock(d); });
-  let ts = Array.isArray(data.ts) ? data.ts.slice() : [], H = ts.length;
-  STOCKS.forEach(d => { H = Math.max(H, stocks[d.id].h.length); });
-  if (ts.length !== H) { const end = typeof data.tickAt === "number" ? data.tickAt : now; ts = Array.from({ length: H }, (_, i) => end - (H - 1 - i) * TICK_MS); }
-  STOCKS.forEach(d => { const h = stocks[d.id].h; while (h.length < H) h.unshift(h[0]); });
-  return { stocks, ts, chunks: data.chunks || 0, overrides: Object.assign({}, data.overrides || {}) };
-}
-// 古い点は market/h_番号 ドキュメントに退避して保存し続ける（本体ドキュメントは軽いまま）
-function writeMarket(tx, m, now) {
-  while (m.ts.length > MAIN_MAX) {
-    const p = {}; STOCKS.forEach(d => { p[d.id] = m.stocks[d.id].h.splice(0, ARCH); });
-    tx.set(doc(db, "market", "h_" + m.chunks), { n: m.chunks, ts: m.ts.splice(0, ARCH), p });
-    m.chunks++;
-  }
-  tx.set(marketRef, { stocks: m.stocks, ts: m.ts, chunks: m.chunks, overrides: m.overrides || {}, tickAt: now, updated_at: Timestamp.now() }, { merge: true });
+  STOCKS.forEach(d => {
+    const s = stocks[d.id] || (stocks[d.id] = freshStock(d));
+    if (!Array.isArray(s.h) || !s.h.length) s.h = [s.p || d.base];
+    if (s.h.length > HIST_MAX) s.h = s.h.slice(-HIST_MAX);
+  });
+  return { stocks, overrides: Object.assign({}, data.overrides || {}) };
 }
 async function tickMarket() {
   if (document.hidden || stkEl("stockSection").style.display !== "block") return;
+  if (marketTickAt && Date.now() - marketTickAt < TICK_MS - 300) return;   // すでに最新 → サーバーに触らない
   try {
     await runTransaction(db, async tx => {
       const snap = await tx.get(marketRef);
       const data = snap.exists() ? snap.data() : {}, now = Date.now();
       let last = typeof data.tickAt === "number" ? data.tickAt : 0;
       if (last > now + 60000) last = now - TICK_MS;           // 端末時計のずれ対策
-      const needInit = !data.stocks || !Array.isArray(data.ts) || STOCKS.some(d => !data.stocks[d.id]);
+      const needInit = !data.stocks || STOCKS.some(d => !data.stocks[d.id]);
       if (!needInit && now - last < TICK_MS - 300) return;     // 他の人が更新済み
-      const m = alignMarket(data, now);
+      const m = alignMarket(data);
       const steps = data.stocks ? Math.min(MAX_CATCHUP, Math.max(1, Math.floor((now - last) / TICK_MS))) : 0;
       for (let i = 0; i < steps; i++) {
-        m.ts.push(now - (steps - 1 - i) * TICK_MS);
         STOCKS.forEach(d => { const s = m.stocks[d.id]; s.p = nextPrice(stockParams(d, m.overrides[d.id]), s.p); s.h.push(s.p); if (s.p < s.lo) s.lo = s.p; if (s.p > s.hi) s.hi = s.p; });
       }
-      writeMarket(tx, m, now);
+      STOCKS.forEach(d => { const s = m.stocks[d.id]; if (s.h.length > HIST_MAX) s.h = s.h.slice(-HIST_MAX); });
+      tx.set(marketRef, { stocks: m.stocks, overrides: m.overrides, tickAt: now, updated_at: Timestamp.now() });
     });
   } catch (e) {}
 }
 function scheduleTick() {
   clearTimeout(tickTimer);
-  tickTimer = setTimeout(async () => { if (stkEl("stockSection").style.display !== "block") { stopMarket(); return; } await tickMarket(); if (marketUnsub) scheduleTick(); }, TICK_MS + Math.random() * 1000);
+  tickTimer = setTimeout(async () => { if (stkEl("stockSection").style.display !== "block") { stopMarket(); return; } await tickMarket(); if (marketUnsub) scheduleTick(); }, TICK_MS + Math.random() * 1500);
 }
 function startMarket() {
   if (marketUnsub) return;
-  clearInterval(stockClockTimer); updateStockClock(); stockClockTimer = setInterval(updateStockClock, 200);
-  resetHist(); renderRangeBar();
+  clearInterval(stockClockTimer); updateStockClock(); stockClockTimer = setInterval(updateStockClock, 500);
   stkEl("stockStatus").textContent = "株価を読み込み中...";
   clearTimeout(statusTimer);
   statusTimer = setTimeout(() => { if (!marketData) stkEl("stockStatus").textContent = "株価を取得できません。通信状況を確認してください。"; }, 8000);
@@ -2332,7 +2317,8 @@ function startMarket() {
     const data = snap.exists() ? snap.data() : null, st = data && data.stocks;
     if (!st) return;
     if (stkEl("stockSection").style.display !== "block") { stopMarket(); return; }
-    marketData = st; applyHistory(data); stkEl("stockStatus").textContent = ""; renderStockUI();
+    marketData = st; marketTickAt = typeof data.tickAt === "number" ? data.tickAt : 0;
+    stkEl("stockStatus").textContent = ""; renderStockUI();
   }, () => { stkEl("stockStatus").textContent = "株価の取得に失敗しました。"; });
   tickMarket(); scheduleTick();
 }
@@ -2340,252 +2326,48 @@ function stopMarket() {
   if (marketUnsub) { marketUnsub(); marketUnsub = null; }
   clearInterval(stockClockTimer); stockClockTimer = null;
   clearTimeout(tickTimer); clearTimeout(statusTimer); tickTimer = null;
-  resetHist();
 }
-document.addEventListener("visibilitychange", () => { if (!document.hidden && marketUnsub) tickMarket(); });
+// タブが裏に回ったら購読ごと止める（見ていない間は読み書きゼロ）。戻ったら再開
+document.addEventListener("visibilitychange", () => {
+  if (stkEl("stockSection").style.display !== "block") return;
+  if (document.hidden) stopMarket(); else startMarket();
+});
 
 function holdingsListHtml(acc) {
   const h = normalizeHoldings(acc), rows = STOCKS.filter(s => h[s.id] > 0).map(s => `<div>${s.emoji} ${s.name}：<strong>${h[s.id]}</strong> 株</div>`);
   return rows.length ? rows.join("") : '<div style="color:#888;">保有株はありません</div>';
 }
 
-// ===== 履歴グラフ =====
-const STK_PX = 5, STK_CH = 220, STK_AXB = 32;
-let mainTs = [], mainP = {}, mainChunks = 0, oldTs = [], oldP = {}, oldestLoaded = 0;
-let rangeKey = "live", histInit = false, loadStep = 1, loadingOlder = false, histEnd = false, histGen = 0, selAbs = null, selGap = null, scrollRaf = false, firstDraw = false;
-function resetHist() {
-  mainTs = []; mainP = {}; mainChunks = 0; oldTs = []; oldP = {}; oldestLoaded = 0;
-  histInit = false; rangeKey = "live"; loadStep = 1; loadingOlder = false; histEnd = false; selAbs = null; selGap = null; histGen++;
-  const b = document.getElementById("stockChartBox"); if (b) b.innerHTML = "";
-}
-function applyHistory(data) {
-  const st = data.stocks; let H = 0;
-  STOCKS.forEach(d => { if (st[d.id]) H = Math.max(H, st[d.id].h.length); });
-  let ts = Array.isArray(data.ts) ? data.ts : [];
-  if (ts.length !== H) { const end = typeof data.tickAt === "number" ? data.tickAt : Date.now(); ts = Array.from({ length: H }, (_, i) => end - (H - 1 - i) * TICK_MS); }
-  const chunks = data.chunks || 0, np = {};
-  STOCKS.forEach(d => { const a = (st[d.id] ? st[d.id].h : []).slice(); while (a.length < H) a.unshift(a.length ? a[0] : null); np[d.id] = a; });
-  if (!histInit) { oldestLoaded = chunks; oldTs = []; oldP = {}; histInit = true; }
-  else if (chunks !== mainChunks) {
-    if (chunks - mainChunks === 1 && mainTs.length >= ARCH) {   // 退避された120点は手元にあるので読み直さない
-      const prev = oldTs.length;
-      oldTs = oldTs.concat(mainTs.slice(0, ARCH));
-      STOCKS.forEach(d => { oldP[d.id] = (oldP[d.id] || new Array(prev).fill(null)).concat(mainP[d.id].slice(0, ARCH)); });
-    } else { oldTs = []; oldP = {}; oldestLoaded = chunks; }
-  }
-  mainTs = ts; mainP = np; mainChunks = chunks;
-}
-const stkTotal = () => oldTs.length + mainTs.length;
-const GAP_MS = 10 * 60 * 1000;   // この時間以上データが途切れたら「データなし」として線を引かない
-function stkFmtDur(ms) { const m = Math.round(ms / 60000); if (m < 60) return `${m}分`; const h = ms / 3600e3; if (h < 48) return `${Math.round(h * 10) / 10}時間`; return `${Math.round(ms / 864e5 * 10) / 10}日`; }
-// データなし区間（斜線の帯＋ラベル）。見えている部分の中央にラベルを置く
-function stkGapSvg(gaps, x, W, plotH) {
-  if (!gaps.length) return "";
-  let s = '<defs><pattern id="stkHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f6f7f9"/><line x1="0" y1="0" x2="0" y2="8" stroke="#e1e5ea" stroke-width="3"/></pattern></defs>';
-  gaps.forEach(([a, b]) => {
-    const x1 = Math.max(0, x(a)), x2 = Math.min(W, x(b)); if (!(x2 > x1)) return;
-    s += `<rect x="${x1.toFixed(1)}" y="0" width="${(x2 - x1).toFixed(1)}" height="${plotH}" fill="url(#stkHatch)"/>`;
-    if (x2 - x1 >= 70) {
-      const cx = ((x1 + x2) / 2).toFixed(1), cy = plotH / 2;
-      s += `<text x="${cx}" y="${cy}" text-anchor="middle" font-size="12" fill="#7b8794">データなし</text>`;
-      if (isFinite(a) && isFinite(b)) s += `<text x="${cx}" y="${cy + 15}" text-anchor="middle" font-size="10" fill="#9aa5b1">（約${stkFmtDur(b - a)}）</text>`;
-    }
-  });
-  return s;
-}
-// その時刻が「データなし区間」の中なら [前の点の時刻, 次の点の時刻] を返す
-function stkGapAt(id, t) {
-  const N = stkTotal(); if (!N) return null;
-  const k = stkLB(t); let a = k - 1, b = k;
-  while (a >= 0 && stkP(id, a) == null) a--;
-  while (b < N && stkP(id, b) == null) b++;
-  if (a < 0 || b >= N) return null;
-  const ta = stkTs(a), tb = stkTs(b);
-  return (t > ta && t < tb && tb - ta >= GAP_MS) ? [ta, tb] : null;
-}
-// 時間軸ベースの座標。欠けた時間帯も実際の時間幅のまま、前後の点を直線でつなぐ
-const stkFit = () => rangeKey === "all";
-function stkLB(t) { let a = 0, b = stkTotal(); while (a < b) { const m = (a + b) >> 1; if (stkTs(m) < t) a = m + 1; else b = m; } return a; }
-function stkGeom(W) {
-  const N = stkTotal(), live = rangeKey === "live", fit = stkFit();
-  if (!N) return { t0: 0, tEnd: 0, pxMs: 1, width: W, shift: 0, fit };
-  const t0 = stkTs(0), tEnd = stkTs(N - 1), dur = Math.max(1, tEnd - t0);
-  let pxMs = live ? STK_PX / TICK_MS : fit ? (W - 12) / dur : (W - 12) / rangeSpan();
-  if (!fit && dur * pxMs > 1.5e7) pxMs = 1.5e7 / dur;          // ブラウザの幅上限対策
-  if (fit) return { t0, tEnd, pxMs, width: W, shift: 0, fit };
-  const content = 6 + dur * pxMs + (live ? 30 : 6), width = Math.max(W, content);
-  return { t0, tEnd, pxMs, width, shift: content < W ? W - content : 0, fit };   // データが期間より短い時は右寄せ
-}
-const stkTs = i => i < oldTs.length ? oldTs[i] : mainTs[i - oldTs.length];
-function stkP(id, i) { if (i < oldTs.length) { const a = oldP[id]; return a ? a[i] : null; } const a = mainP[id]; return a ? a[i - oldTs.length] : null; }
-const stkPad = n => String(n).padStart(2, "0");
-const stkDate = t => { const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; };
-const stkTime = t => { const d = new Date(t); return `${stkPad(d.getHours())}:${stkPad(d.getMinutes())}:${stkPad(d.getSeconds())}`; };
-
-// 表示範囲: 今(ライブ・スクロール)／1時間／1日／1週間／1ヶ月／全期間（画面幅に合わせて表示）
-const STK_RANGES = [["live", "今", 0], ["m15", "15分", 900e3], ["h1", "1時間", 3600e3], ["d1", "1日", 864e5], ["w1", "1週間", 6048e5], ["m1", "1ヶ月", 2592e6], ["all", "全期間", Infinity]];
-const rangeSpan = () => STK_RANGES.find(r => r[0] === rangeKey)[2];
-function renderRangeBar() { stkEl("stockRangeBar").innerHTML = STK_RANGES.map(r => `<button data-r="${r[0]}" class="${r[0] === rangeKey ? "on" : ""}">${r[1]}</button>`).join(""); }
-function rangeFirst() {
-  const N = stkTotal(), span = rangeSpan();
-  if (rangeKey === "live" || !N || span === Infinity) return 0;
-  const cut = stkTs(N - 1) - span; let a = 0, b = N - 1;
-  while (a < b) { const m = (a + b) >> 1; if (stkTs(m) < cut) a = m + 1; else b = m; }
-  return a;
-}
-function rangeNeedsMore() {
-  if (rangeKey === "live" || oldestLoaded <= 0 || histEnd || oldTs.length >= 300 * ARCH) return false;
-  const span = rangeSpan(); return span === Infinity ? true : stkTs(0) > stkTs(stkTotal() - 1) - span;
-}
+// ===== 直近グラフ（メインドキュメントの履歴だけを描く。期間選択・過去の読み込みは無し） =====
+const STK_CH = 220, STK_PADB = 14;
+let selTs = null;
+const stkHist = () => { const s = marketData && marketData[selectedStockId]; return s && Array.isArray(s.h) ? s.h : []; };
+const selIndex = h => { if (selTs == null) return null; const i = h.length - 1 - Math.round((marketTickAt - selTs) / TICK_MS); return i >= 0 && i < h.length ? i : null; };
 function updateTip() {
-  const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId], N = stkTotal();
-  const clr = stkEl("stockClearSelBtn"); if (clr) clr.style.display = (selAbs != null || selGap) ? "" : "none";
-  if (selGap) { el.textContent = `⚠️ ${stkDate(selGap[0])} ${stkTime(selGap[0])} 〜 ${stkDate(selGap[1])} ${stkTime(selGap[1])} はデータがありません（約${stkFmtDur(selGap[1] - selGap[0])}）`; return; }
-  if (selAbs != null) {
-    const i = selAbs - oldestLoaded * ARCH, v = (i >= 0 && i < N) ? stkP(selectedStockId, i) : null;
-    el.textContent = v == null ? "この時点のデータはありません" : `📍 ${stkDate(stkTs(i))} ${stkTime(stkTs(i))} の ${d.name} は ${v} コイン`; return;
-  }
-  if (rangeKey !== "live" && N > 1) {
-    const f = rangeFirst(), a = stkP(selectedStockId, f), b = stkP(selectedStockId, N - 1);
-    if (a != null && b != null) { const df = b - a, pc = a ? Math.abs(df / a * 100).toFixed(1) : "0.0"; el.textContent = `${stkDate(stkTs(f))} ${stkTime(stkTs(f))} 〜 現在：${a} → ${b} コイン（${df >= 0 ? "▲+" : "▼-"}${Math.abs(df)} / ${pc}%）`; return; }
-  }
-  el.textContent = "グラフをタップすると、その時点の株価が表示されます";
+  const el = stkEl("stockTip"), d = STOCK_MAP[selectedStockId], h = stkHist(), i = selIndex(h);
+  if (i != null) { const ago = Math.round((h.length - 1 - i) * TK); el.textContent = `📍 ${ago ? ago + "秒前" : "現在"} の ${d.name} は ${h[i]} コイン`; return; }
+  el.textContent = h.length > 1 ? `直近${Math.round((h.length - 1) * TK)}秒の推移（タップでその時点の株価を表示）` : "データを蓄積中...";
 }
-function setHistStatus() {
-  const el = stkEl("stockHistStatus");
-  el.textContent = histEnd ? "これより古いデータは取得できませんでした"
-    : stkFit() ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `表示中: ${stkTotal() - rangeFirst()}件の履歴`)
-    : rangeKey !== "live" ? (rangeNeedsMore() ? "期間内の株価を読み込み中..." : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）`)
-    : oldestLoaded > 0 ? `◀ 左にスクロールできます。（表示中: ${stkTotal()}件）` : `◀ 左にスクロールできます。（表示中: ${stkTotal()}件） `;
-}
-function renderChart(anchorT) {
-  const box = stkEl("stockChartBox"), N = stkTotal(), live = rangeKey === "live";
-  if (!N) { box.innerHTML = '<div style="padding:90px 0;color:#888;font-size:13px;text-align:center;">データを蓄積中...</div>'; return; }
-  let inner = box.firstElementChild;
-  if (!inner || inner.id !== "stkInner") {
-    box.innerHTML = '<div id="stkInner" class="stk-inner"><div class="stk-view"><svg id="stkSvg"></svg></div></div>';
-    inner = box.firstElementChild; firstDraw = true;
-  }
-  const G = stkGeom(box.clientWidth), fit = G.fit;
-  box.style.overflowX = fit ? "hidden" : "auto";
-  const atRight = !fit && box.scrollLeft + box.clientWidth >= box.scrollWidth - 24;
-  inner.style.width = G.width + "px";
-  inner.firstElementChild.style.width = box.clientWidth + "px";
-  if (fit) box.scrollLeft = 0;
-  else if (anchorT != null && isFinite(anchorT)) box.scrollLeft = Math.max(0, 6 + G.shift + (anchorT - G.t0) * G.pxMs);   // 左端に見えていた時刻を保つ
-  else if (atRight || firstDraw) box.scrollLeft = box.scrollWidth;
-  firstDraw = false;
-  drawChartFrame(); setHistStatus();
-  const need = fit ? rangeNeedsMore() : (rangeNeedsMore() || (oldestLoaded > 0 && !histEnd && inner.offsetWidth < box.clientWidth * 2));
-  if (need) loadOlder(live ? 0 : 20);
-}
-// 見えている範囲だけを描く（何万点あっても軽い）。密な部分は1〜2px列ごとの最安・最高に間引く
-function drawChartFrame() {
-  const box = stkEl("stockChartBox"), svg = document.getElementById("stkSvg"); if (!svg) return;
-  const W = box.clientWidth, N = stkTotal(), sl = box.scrollLeft, id = selectedStockId, base = oldestLoaded * ARCH;
-  if (!N) return;
-  const G = stkGeom(W), x = t => 6 + G.shift + (t - G.t0) * G.pxMs - sl, xi = i => x(stkTs(i));
-  const tL = G.t0 + (sl - 6 - G.shift) / G.pxMs, tR = G.t0 + (sl + W - 6 - G.shift) / G.pxMs;
-  const first = Math.max(0, stkLB(tL) - 1), last = Math.min(N - 1, stkLB(tR) + 1);
-  const cnt = last - first + 1, buckets = Math.max(1, Math.floor((W - 12) / 2)), dense = cnt > buckets, pts = [], gaps = [];
-  // 表示範囲の点を順に見て、10分以上空いたら区間(seg)を分ける。間引きの区切りはスクロール位置に依らない絶対座標で決める（ガタつき防止）
-  let seg = 0, prevT = null, cc = null, bseg = 0, mn = -1, mx = -1, vn = Infinity, vx = -Infinity;
-  const flush = () => { if (mn < 0) return; if (mn === mx) pts.push([mn, vn, bseg]); else if (mn < mx) pts.push([mn, vn, bseg], [mx, vx, bseg]); else pts.push([mx, vx, bseg], [mn, vn, bseg]); mn = mx = -1; vn = Infinity; vx = -Infinity; };
-  for (let i = first; i <= last; i++) {
-    const v = stkP(id, i); if (v == null) continue;
-    const t = stkTs(i); if (prevT !== null && t <= prevT) continue;            // 時刻が逆戻りする点は無視
-    if (prevT !== null && t - prevT >= GAP_MS) { gaps.push([prevT, t]); seg++; }
-    prevT = t;
-    if (!dense) { pts.push([i, v, seg]); continue; }
-    const c = Math.floor((6 + G.shift + (t - G.t0) * G.pxMs) / 2);
-    if (c !== cc || seg !== bseg) { flush(); cc = c; bseg = seg; }
-    if (v < vn) { vn = v; mn = i; } if (v > vx) { vx = v; mx = i; }
-  }
-  if (dense) flush();
-  let lo = Infinity, hi = -Infinity;
-  pts.forEach(p => { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
-  if (lo === Infinity) {                                                       // 見えている範囲にデータが全くない
-    svg.setAttribute("width", W); svg.setAttribute("height", STK_CH); svg.setAttribute("viewBox", `0 0 ${W} ${STK_CH}`);
-    svg.innerHTML = stkGapSvg([[-Infinity, Infinity]], x, W, STK_CH - STK_AXB); return;
-  }
-  if (lo === hi) { lo -= 1; hi += 1; }
+function renderChart() {
+  const box = stkEl("stockChartBox"), h = stkHist(), W = box.clientWidth || 300, H = STK_CH;
+  if (h.length < 2) { box.innerHTML = '<div style="padding:90px 0;color:#888;font-size:13px;text-align:center;">データを蓄積中...</div>'; return; }
+  let lo = Math.min(...h), hi = Math.max(...h); if (lo === hi) { lo -= 1; hi += 1; }
   const pv = (hi - lo) * 0.1; lo -= pv; hi += pv;
-  const plotH = STK_CH - STK_AXB, y = v => 6 + (plotH - 12) * (1 - (v - lo) / (hi - lo));
-  let g = stkGapSvg(gaps, x, W, plotH);
-  const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 5, 10].map(k => k * mag).find(s => s >= raw);
-  for (let k = Math.ceil(lo / step); k * step <= hi; k++) {          // 横の目安線＋価格
-    const v = k * step, yy = y(v).toFixed(1);
-    g += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="#e3e8ee" stroke-dasharray="3 3"/><text x="4" y="${(y(v) - 3).toFixed(1)}" font-size="10" fill="#8795a1">${Math.round(v * 10) / 10}</text>`;
-  }
-  // 縦の目安線＋日時（実際の時刻で等間隔）
-  const stepSec = [10, 20, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400, 43200, 86400, 259200, 604800, 2592000].find(n => n * 1000 * G.pxMs >= 80) || 2592000;
-  const stepMs = stepSec * 1000, tz = -new Date(tR).getTimezoneOffset() * 60000;
-  for (let t = Math.ceil((tL + tz) / stepMs) * stepMs - tz; t <= tR; t += stepMs) {
-    const xv = x(t), xx = xv.toFixed(1), anc = xv < 40 ? "start" : xv > W - 40 ? "end" : "middle";
-    const lab = stepSec >= 60 ? `${stkPad(new Date(t).getHours())}:${stkPad(new Date(t).getMinutes())}` : stkTime(t);
-    g += `<line x1="${xx}" x2="${xx}" y1="0" y2="${plotH}" stroke="#e3e8ee"/><text x="${xx}" y="${plotH + 12}" font-size="10" fill="#555" text-anchor="${anc}">${lab}</text><text x="${xx}" y="${plotH + 24}" font-size="9" fill="#8795a1" text-anchor="${anc}">${stkDate(t)}</text>`;
-  }
-  let dstr = "", fv = null, lv = null, prevSeg = -1; const dots = [];
-  pts.forEach((p, k) => {
-    if (fv === null) fv = p[1]; lv = p[1];
-    const px = xi(p[0]), py = y(p[1]), nw = p[2] !== prevSeg;
-    dstr += (nw ? "M" : "L") + px.toFixed(1) + " " + py.toFixed(1) + " ";
-    if (nw && (k === pts.length - 1 || pts[k + 1][2] !== p[2])) dots.push([px, py]);   // 1点だけの区間は点で表示
-    prevSeg = p[2];
-  });
-  const lineCol = lv >= fv ? "#27ae60" : "#c0392b";
-  g += `<path d="${dstr}" fill="none" stroke="${lineCol}" stroke-width="2" stroke-linejoin="round"/>`;
-  dots.forEach(d => { g += `<circle cx="${d[0].toFixed(1)}" cy="${d[1].toFixed(1)}" r="2.2" fill="${lineCol}"/>`; });
-  if (selAbs != null) {                                                // タップした位置
-    const i = selAbs - base, v = (i >= first && i <= last) ? stkP(id, i) : null;
-    if (v != null) { const sx = xi(i).toFixed(1); g += `<line x1="${sx}" x2="${sx}" y1="0" y2="${plotH}" stroke="#e67e22" stroke-width="1.5"/><circle cx="${sx}" cy="${y(v).toFixed(1)}" r="4" fill="#fff" stroke="#e67e22" stroke-width="1.5"/>`.replace('fill="#fff" stroke="#e67e22"', 'fill="#e67e22" stroke="#fff"'); }
-  }
-  svg.setAttribute("width", W); svg.setAttribute("height", STK_CH); svg.setAttribute("viewBox", `0 0 ${W} ${STK_CH}`);
-  svg.innerHTML = g;
+  const x = i => 6 + (W - 12) * i / (h.length - 1), y = v => 6 + (H - 12 - STK_PADB) * (1 - (v - lo) / (hi - lo));
+  const col = h[h.length - 1] >= h[0] ? "#27ae60" : "#c0392b";
+  let g = "";
+  for (let k = 0; k <= 3; k++) { const v = lo + (hi - lo) * k / 3, yy = y(v).toFixed(1); g += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" stroke="#e3e8ee" stroke-dasharray="3 3"/><text x="4" y="${(y(v) - 3).toFixed(1)}" font-size="10" fill="#8795a1">${Math.round(v)}</text>`; }
+  g += `<path d="${h.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ")}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+  const si = selIndex(h);
+  if (si != null) { const sx = x(si).toFixed(1); g += `<line x1="${sx}" x2="${sx}" y1="0" y2="${H - STK_PADB}" stroke="#e67e22" stroke-width="1.5"/><circle cx="${sx}" cy="${y(h[si]).toFixed(1)}" r="4" fill="#e67e22"/>`; }
+  box.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
-async function loadOlder(n) {   // 今モード: スクロールするたび 1→2→4→…→16個。期間モード: 20個ずつ
-  if (loadingOlder || oldestLoaded <= 0 || histEnd) return;
-  loadingOlder = true; const gen = histGen;
-  stkEl("stockHistStatus").textContent = "過去の株価を読み込み中...";
-  try {
-    const count = Math.min(n || loadStep, oldestLoaded), from = oldestLoaded - count;
-    const snaps = await Promise.all(Array.from({ length: count }, (_, k) => getDoc(doc(db, "market", "h_" + (from + k)))));
-    if (gen !== histGen) return;
-    const got = [];
-    for (let k = count - 1; k >= 0; k--) { if (!snaps[k].exists()) break; got.unshift(snaps[k].data()); }
-    if (!got.length) { histEnd = true; setHistStatus(); return; }
-    const box = stkEl("stockChartBox"), prevSL = box.scrollLeft, prevLen = oldTs.length, fitMode = stkFit();
-    const g0 = stkGeom(box.clientWidth);
-    const tA = g0.t0 + (prevSL - 6 - g0.shift) / g0.pxMs;                       // 今、左端に見えている時刻
-    const gts = got.map(c => Array.isArray(c.ts) ? c.ts : []);
-    const alignTo = (arr, len) => { const a = Array.isArray(arr) ? arr : []; return a.length === len ? a : a.length < len ? new Array(len - a.length).fill(null).concat(a) : a.slice(a.length - len); };   // 時刻と株価の本数がずれていても列がずれないように
-    const addTs = [].concat(...gts);
-    STOCKS.forEach(d => { oldP[d.id] = [].concat(...got.map((c, k) => alignTo(c.p && c.p[d.id], gts[k].length)), alignTo(oldP[d.id], prevLen)); });
-    oldTs = addTs.concat(oldTs); oldestLoaded -= got.length; if (!n) loadStep = Math.min(loadStep * 2, 16);
-    loadingOlder = false;
-    renderChart(fitMode ? null : tA);                                            // 見ている位置を保ったまま描き直す
-    updateTip(); setHistStatus();
-  } catch (e) { histEnd = true; setHistStatus(); }
-  finally { loadingOlder = false; }
-}
-stkEl("stockChartBox").onscroll = () => {
-  if (scrollRaf || stkFit()) return; scrollRaf = true;
-  requestAnimationFrame(() => { scrollRaf = false; drawChartFrame(); const bx = stkEl("stockChartBox"); if (bx.scrollLeft < Math.max(400, bx.clientWidth * 2) && oldestLoaded > 0 && !histEnd) loadOlder(rangeKey === "live" ? 0 : 20); });
-};
 stkEl("stockChartBox").onclick = e => {
-  const box = e.currentTarget, N = stkTotal(); if (!N) return;
-  const px = e.clientX - box.getBoundingClientRect().left, G = stkGeom(box.clientWidth);
-  const t = G.t0 + (px + box.scrollLeft - 6 - G.shift) / G.pxMs;
-  const gp = stkGapAt(selectedStockId, t);
-  if (gp) { selAbs = null; selGap = gp; updateTip(); drawChartFrame(); return; }
-  selGap = null;
-  let i = stkLB(t); if (i >= N) i = N - 1; else if (i > 0 && t - stkTs(i - 1) < stkTs(i) - t) i = i - 1;
-  selAbs = oldestLoaded * ARCH + i; updateTip(); drawChartFrame();
-};
-stkEl("stockClearSelBtn").onclick = () => { selAbs = null; selGap = null; updateTip(); drawChartFrame(); };
-stkEl("stockRangeBar").onclick = e => {
-  const b = e.target.closest("button[data-r]"); if (!b || b.dataset.r === rangeKey) return;
-  rangeKey = b.dataset.r; firstDraw = true; renderRangeBar(); renderChart(); updateTip();
+  const h = stkHist(); if (h.length < 2) return;
+  const box = e.currentTarget, px = e.clientX - box.getBoundingClientRect().left;
+  const n = Math.max(0, Math.min(h.length - 1, Math.round((px - 6) / (box.clientWidth - 12) * (h.length - 1))));
+  selTs = selIndex(h) === n ? null : marketTickAt - (h.length - 1 - n) * TICK_MS;   // 同じ所をもう一度タップで解除
+  renderChart(); updateTip();
 };
 window.addEventListener("resize", () => { if (marketUnsub) renderChart(); });
 
@@ -2622,7 +2404,7 @@ function updateEstimate() {
   const s = marketData && marketData[selectedStockId], q = parseInt(stkEl("tradeShareInput").value, 10);
   stkEl("tradeEstimate").textContent = (s && q > 0) ? `${q}株 × ${s.p}コイン = ${q * s.p}コイン` : "";
 }
-stkEl("stockList").onclick = e => { const c = e.target.closest(".stk-card"); if (c) { selectedStockId = c.dataset.id; renderStockUI(); } };
+stkEl("stockList").onclick = e => { const c = e.target.closest(".stk-card"); if (c) { selectedStockId = c.dataset.id; selTs = null; renderStockUI(); } };
 stkEl("tradeShareInput").oninput = updateEstimate;
 
 // ★取引は「画面の株価で即時に約定」させ、保存（Firestore）は裏で順番に行う。
@@ -4273,8 +4055,9 @@ async function listenThreads(){
   const listenSearch = (word) => {
     document.getElementById("bfResultBar").style.display = "none";
     if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-    const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
-    threadsUnsub = onSnapshot(q, snap => {
+    const gen = listenSearch.gen = (listenSearch.gen || 0) + 1; threadsUnsub = null;
+    const q = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(500));   // 検索は1回だけ取得（リアルタイム購読しない）
+    getDocs(q).then(snap => { if (gen !== listenSearch.gen) return;
       const allDocs = snap.docs.map(d => ({ id: d.id, data: () => d.data() }));
       const filtered = allDocs.filter(item => (item.data().title || "").includes(word));
       filtered.sort((a, b) => {
@@ -4291,7 +4074,7 @@ async function listenThreads(){
       isAllLoaded = true; 
       pageByRoom[currentRoom] = 1; 
       renderThreadsPage(); 
-    }, (error) => { console.error("検索結果の読み込みに失敗しました", error); showLoadError(); });
+    }).catch((error) => { console.error("検索結果の読み込みに失敗しました", error); showLoadError(); });
   };
 
   listenNormal();
@@ -5278,10 +5061,10 @@ openThreadFromURL();
 function loadAllThreads(){
   if (isAllLoaded) return; showLoading("すべてのスレッドを読み込み中...");
   if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
-  let isInitialLoadAll = true; const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));
-  threadsUnsub = onSnapshot(q, snapshot => {
-    if (!isInitialLoadAll) snapshot.docChanges().forEach(change => { if (change.type === "added") showTopNotification(`新しいスレッド「${change.doc.data().title}」が作成されました`); });
-    isInitialLoadAll = false; 
+  const gen = loadAllThreads.gen = (loadAllThreads.gen || 0) + 1; threadsUnsub = null;
+  const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));   // 全件は1回だけ取得（リアルタイム購読しない）
+  getDocs(q).then(snapshot => {
+    if (gen !== loadAllThreads.gen) return;
     const allDocs = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() }));
     allDocs.sort((a, b) => {
       const aPinned = a.data().pinned ? 1 : 0;
@@ -5297,28 +5080,33 @@ function loadAllThreads(){
       return bTime - aTime;
     });
     threadsData = allDocs; isAllLoaded = true; renderThreadsPage(); hideLoading();
-  }, (error) => { hideLoading(); });
+  }).catch(() => { hideLoading(); });
 }
 
 let mySessionId = sessionStorage.getItem('sessionId'); if (!mySessionId) { mySessionId = Math.random().toString(36).slice(2); sessionStorage.setItem('sessionId', mySessionId); }
 const onlineRef = doc(db, "online", mySessionId);
-async function heartbeat() { 
+const ONLINE_BEAT_MS = 90000, ONLINE_LIVE_MS = 200000;   // 書き込み・集計は90秒毎、200秒以内に動いた人を「同接」とする
+async function heartbeat() {
+  if (document.hidden) return;
   const activeName = currentAccount || (typeof nickName !== 'undefined' ? nickName : "名称未設定");
-  try { await setDoc(onlineRef, { t: serverTimestamp(), name: activeName, ...getBoardWriteMeta() }); } catch (e) { } 
+  try { await setDoc(onlineRef, { t: serverTimestamp(), name: activeName, ...getBoardWriteMeta() }); } catch (e) { }
+}
+async function refreshOnline() {   // 全件のリアルタイム購読をやめ、有効な人だけを定期取得
+  if (document.hidden) return;
+  try {
+    const snap = await getDocs(query(collection(db, "online"), where("t", ">", Timestamp.fromMillis(Date.now() - ONLINE_LIVE_MS))));
+    const names = []; snap.forEach(d => { const x = d.data(); if (x && x.t) names.push(x.name || "名称未設定"); });
+    const displayBtn = document.getElementById("onlineCount");
+    if (displayBtn) { const uniqueUsers = [...new Set(names)]; displayBtn.textContent = `同接: ${uniqueUsers.length}人`; window.currentOnlineUsers = uniqueUsers; }
+  } catch (e) { }
+}
+async function cleanOldOnline() {   // 1時間以上前の残骸を、ときどき最大10件だけ掃除
+  try { const snap = await getDocs(query(collection(db, "online"), where("t", "<", Timestamp.fromMillis(Date.now() - 3600000)), limit(10))); snap.forEach(d => deleteDoc(d.ref)); } catch (e) { }
 }
 window.addEventListener('beforeunload', () => { deleteDoc(onlineRef); });
-heartbeat(); setInterval(heartbeat, 20000);
-
-onSnapshot(collection(db, "online"), snap => {
-  const now = Date.now(), activeNames = [];
-  snap.forEach(d => {
-    const data = d.data(); if (!data || !data.t) return;
-    const ts = data.t.toMillis ? data.t.toMillis() : new Date(data.t).getTime();
-    if (now - ts < 45000) activeNames.push(data.name || "名称未設定"); else deleteDoc(doc(db, "online", d.id));
-  });
-  const displayBtn = document.getElementById("onlineCount");
-  if (displayBtn) { const uniqueUsers = [...new Set(activeNames)]; displayBtn.textContent = `同接: ${uniqueUsers.length}人`; window.currentOnlineUsers = uniqueUsers; }
-});
+document.addEventListener('visibilitychange', () => { if (document.hidden) deleteDoc(onlineRef).catch(() => { }); else heartbeat().then(refreshOnline); });
+heartbeat().then(refreshOnline); setInterval(() => { heartbeat().then(refreshOnline); }, ONLINE_BEAT_MS);
+if (Math.random() < 0.2) setTimeout(cleanOldOnline, 20000 + Math.random() * 30000);
 document.getElementById("onlineCount").onclick = () => { if (!window.currentOnlineUsers || window.currentOnlineUsers.length === 0) return alert("オンラインユーザーなし"); alert("現在オンラインのユーザー:\n\n" + window.currentOnlineUsers.join("\n")); };
 
 const quickMenuBtn = document.getElementById("quickMenuBtn"), quickMenuContent = document.getElementById("quickMenuContent"), quickPostInput = document.getElementById("quickPostInput");
