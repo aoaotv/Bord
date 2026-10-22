@@ -3267,9 +3267,9 @@ async function spinRoulette() {
       const acc = snap.data();
       if (!((acc.premiumUntil || 0) > Date.now())) throw new Error("プレミアム会員ではありません。");
       if (acc.rouletteDate === today) throw new Error("今日はもう回しました。");
-      const coins = (acc.coins !== undefined ? acc.coins : 1000) + prize;
-      tx.update(ref, { coins, rouletteDate: today, updated_at: Timestamp.now() });
-      return { coins };
+      const coins = coinBigInt(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000)) + BigInt(prize);
+      tx.update(ref, { coinsExact: coins.toString(), coins: coins <= 999999999999999n ? Number(coins) : 999999999999999, rouletteDate: today, updated_at: Timestamp.now() });
+      return { coins: coins.toString() };
     });
     localStorage.setItem("rouletteDate", today);
     saveLog("roulette", { prize, coinsAfter: res.coins });
@@ -3375,10 +3375,11 @@ async function buyPremium() {
       const snap = await tx.get(ref);
       if (!snap.exists()) throw new Error("アカウントが見つかりません。");
       const acc = snap.data(), now = Date.now();
-      const coins = acc.coins !== undefined ? acc.coins : 1000;
-      if (coins < cost) throw new Error(`コインが足りません（必要: ${cost.toLocaleString()} コイン）`);
+      const coins = coinBigInt(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000));
+      if (coins < BigInt(cost)) throw new Error(`コインが足りません（必要: ${cost.toLocaleString()} コイン）`);
+      const nextCoins = coins - BigInt(cost);
       const until = Math.max(now, acc.premiumUntil || 0) + days * DAY_MS;
-      const upd = { coins: coins - cost, premiumUntil: until, updated_at: Timestamp.now() };
+      const upd = { coinsExact: nextCoins.toString(), coins: nextCoins <= 999999999999999n ? Number(nextCoins) : 999999999999999, premiumUntil: until, updated_at: Timestamp.now() };
       // 日利が切り替わる前に、ここまでの利子を確定させる
       if ((acc.deposit || 0) > 0) { upd.deposit = calcDeposit(acc.deposit, acc.depositAt, now, acc.premiumUntil || 0); upd.depositAt = now; }
       tx.update(ref, upd);
@@ -5580,8 +5581,9 @@ document.getElementById('accCoinBtn').onclick = async () => {
   const newCoinsStr = document.getElementById('adminCoinEditInput').value.trim();
   if (!accName) return alert("アカウントを選択してください");
   if (newCoinsStr === "") return alert("変更後のコイン数を入力してください");
-  const newCoins = parseInt(newCoinsStr, 10);
-  if (isNaN(newCoins)) return alert("有効な数値を入力してください");
+  const normalizedCoins = newCoinsStr.replace(/[,_\s]/g, "");
+  if (!/^\d+$/.test(normalizedCoins)) return alert("0以上の整数を入力してください");
+  const newCoins = coinBigInt(normalizedCoins);
   showLoading("変更中...");
   try {
     const accRef = doc(db, "accounts", accName);
@@ -5590,10 +5592,10 @@ document.getElementById('accCoinBtn').onclick = async () => {
       hideLoading();
       return alert("アカウントは削除されました");
     }
-    await updateDoc(accRef, { coinsExact: coinDecimal(newCoins), coins: coinBigInt(newCoins) <= 999999999999999n ? Number(newCoins) : 999999999999999, updated_at: Timestamp.now() });
+    await updateDoc(accRef, { coinsExact: newCoins.toString(), coins: newCoins <= 999999999999999n ? Number(newCoins) : 999999999999999, updated_at: Timestamp.now() });
     await saveLog("admin_edit_account_coins", { targetAccount: accName, newCoins });
     hideLoading();
-    alert(`アカウント「${accName}」のコインを ${newCoins} 枚に変更しました。`);
+    alert(`アカウント「${accName}」のコインを ${coinText(newCoins)} に変更しました。`);
     document.getElementById('adminCoinEditInput').value = "";
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
