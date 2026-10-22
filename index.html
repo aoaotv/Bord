@@ -422,6 +422,7 @@ li img, li video { max-width: 100%; height: auto; }
     <div id="menuBfNotifyBtn" class="menu-grid-item">🔔<br>通知センター</div>
 
     <div id="menuBfSearchBtn" class="menu-grid-item">🔎<br>詳細検索</div>
+    <div id="menuAIChatbotBtn" class="menu-grid-item">🤖<br>AIチャットボット<br><small>AIに質問する</small></div>
     <div id="menuBulkSaveBtn" class="menu-grid-item">📥<br>一括読み込み<br><span style="font-size:11px;font-weight:normal;opacity:.7;">直近20スレッドを保存</span></div>
   </div>
 </div>
@@ -490,6 +491,24 @@ li img, li video { max-width: 100%; height: auto; }
   <div id="versionHistoryList" style="display:grid;gap:12px;padding:2px 5px 12px 2px"></div>
   <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
  </div>
+</div>
+
+<!-- AIチャットボット画面（Botpress埋め込み） -->
+<div id="aiChatbotSection" class="full-screen-section" style="display:none;top:0;bottom:0;height:100dvh;max-height:100dvh;padding:10px;z-index:2000;overflow:hidden;">
+  <div style="max-width:1000px;height:100%;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:#34495e;color:#fff;flex-shrink:0;">
+      <strong style="font-size:16px;">🤖 AIチャットボット</strong>
+      <button type="button" id="closeAIChatbotBtn" style="margin:0;background:#e74c3c;color:#fff;padding:7px 13px;">✕ 閉じる</button>
+    </div>
+    <iframe
+      id="aiChatbotFrame"
+      src="https://cdn.botpress.cloud/webchat/v5.0/shareable.html?configUrl=https://files.bpcontent.cloud/2026/10/22/11/20261022115643-B9A9KR1V.json"
+      title="AIチャットボット"
+      loading="lazy"
+      allow="clipboard-write; microphone"
+      style="display:block;width:100%;flex:1;min-height:0;border:0;background:#fff;"
+    ></iframe>
+  </div>
 </div>
 
 <!-- スレッド一覧画面 -->
@@ -1796,8 +1815,13 @@ document.getElementById("menuStoreBtn").onclick = () => {
 // 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
 // 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
 // ============================================================
-const CURRENT_APP_VERSION = "1.1";
+const CURRENT_APP_VERSION = "1.2";
 const VERSION_HISTORY = [
+  { version: "1.2", date: "2026-10-22", title: "AIチャットボットを追加", changes: [
+    "右上の「…」メニューにAIチャットボットボタンを追加",
+    "Botpressのチャット画面を専用ページ内に埋め込み表示",
+    "閉じるボタンで掲示板に戻れるように改善"
+  ]},
   { version: "1.1", date: "2026-10-22", title: "これまでの改善を統合", changes: [
     "全スレッドを読み込んだ後も新規スレッドをリアルタイム反映",
     "スレッド一覧の表示順をピン留め → 急上昇 → ブースト中 → 新しい順に整理",
@@ -6316,6 +6340,20 @@ async function playCoinRps(choice) {
 document.getElementById("rpsRockBtn").onclick = () => playCoinRps("rock");
 document.getElementById("rpsPaperBtn").onclick = () => playCoinRps("paper");
 document.getElementById("rpsScissorsBtn").onclick = () => playCoinRps("scissors");
+
+// AIチャットボット専用画面の表示・終了
+document.getElementById("menuAIChatbotBtn")?.addEventListener("click", () => {
+  const menu = document.getElementById("headerMenuContent");
+  if (menu) menu.style.display = "none";
+  document.querySelectorAll(".full-screen-section").forEach(el => { el.style.display = "none"; });
+  document.getElementById("threadListSection").style.display = "none";
+  document.getElementById("threadDetailSection").style.display = "none";
+  document.getElementById("aiChatbotSection").style.display = "block";
+});
+document.getElementById("closeAIChatbotBtn")?.addEventListener("click", () => {
+  document.getElementById("aiChatbotSection").style.display = "none";
+  document.getElementById("threadListSection").style.display = "block";
+});
 
 </script>
 </body>
