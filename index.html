@@ -8,6 +8,8 @@
 <meta name="keywords" content="Bord,sinzobord,Sinzobord,bord,掲示板,sinzo bord,しんぞ教,シンゾボ">
 <meta name="robots" content="index, follow">
 <meta name="apple-mobile-web-app-title" content="Bord">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="canonical" href="https://sinzo.site/">
@@ -16,7 +18,7 @@
 <meta property="og:description" content="完全匿名の掲示板ツール Bord">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sinzo.site/">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js">
@@ -44,8 +46,8 @@ button:active { transform: scale(0.95); }
 li small span { white-space: nowrap; }
 .redBtn { background-color: #c0392b; color: white; }
 
-#threadListSection { overflow-y: auto; padding: 10px; padding-bottom: 10px; }
-#threadDetailSection { display:none; text-align:left; overflow-y: auto; padding: 10px; padding-bottom: 120px; }
+#threadListSection { overflow-y: auto; box-sizing: border-box; padding: 10px 10px 0 !important; margin-bottom: 0 !important; }
+#threadDetailSection { display:none; text-align:left; overflow-y: auto; box-sizing: border-box; padding: 10px 10px 0 !important; margin-bottom: 0 !important; }
 
 /* 独立した各専用画面の共通スタイル */
 .full-screen-section { display: none; text-align: left; width: 100vw; box-sizing: border-box; padding: 20px 40px; background: #e6f0ff; position: fixed; top: 70px; left: 0; z-index: 1000; overflow-y: auto; }
@@ -131,7 +133,7 @@ textarea { min-height:60px; resize: vertical; }
 #lineInputBar input { flex: 1; height: 40px; border-radius: 20px; border: 1px solid #ccc; padding: 0 14px; font-size: 14px; }
 #lineInputBar button { height: 40px; border-radius: 20px; border: none; padding: 0 14px; font-size: 14px; cursor: pointer; }
 #quickSendBtn { background: #27ae60; color: white; }
-#postList { padding-bottom: 80px; }
+#postList { padding-bottom: 0 !important; margin-bottom: 0 !important; }
 
 .adminTwoColumns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
 .adminPanel { background: #f7f9fc; border: 1px solid #dfe6e9; border-radius: 14px; padding: 14px; }
@@ -413,7 +415,7 @@ li img, li video { max-width: 100%; height: auto; }
   </div>
   <ul id="threadList"></ul>
   <div id="pagination"></div>
-  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom:70px; right:20px; z-index: 1100;">📄新規スレッド作成</button>
+  <button id="createThreadBtn" class="greenBtn" style="position: fixed; bottom: max(12px, env(safe-area-inset-bottom, 0px)); right:20px; z-index: 1100;">📄新規スレッド作成</button>
 </div>
 
 <!-- スレッド詳細・投稿画面 -->
@@ -1136,9 +1138,9 @@ li img, li video { max-width: 100%; height: auto; }
   <button id="forceReloadBtn" type="button">再読み込み</button>
 </div>
 
-<div id="imagePopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
-  <img id="popupImage" loading="lazy" decoding="async" src="" style="max-width:90%; max-height:90%; margin-top:5%;">
-  <br><button id="closeImagePopup" class="greenBtn" style="margin-top:10px;">閉じる</button>
+<div id="imagePopup" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; text-align:center;">
+  <button id="closeImagePopup" type="button" aria-label="画像を閉じる" style="position:absolute; top:calc(env(safe-area-inset-top, 0px) + 14px); right:16px; z-index:2; border:none; border-radius:50%; width:44px; height:44px; background:#27ae60; color:#fff; font-size:28px; line-height:1; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.35);">×</button>
+  <img id="popupImage" loading="lazy" decoding="async" src="" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); max-width:90%; max-height:calc(100% - 100px); margin:0; object-fit:contain;">
 </div>
 
 
@@ -3930,8 +3932,9 @@ function formatRelativeTime(ts){
 }
 
 function setSectionsHeight(){ 
-  const h = window.innerHeight-180; 
-  threadListSection.style.height = h+'px'; 
+  const listTop = threadListSection.getBoundingClientRect().top;
+  const h = Math.max(120, window.innerHeight - listTop - 4);
+  threadListSection.style.height = h+'px';
   threadDetailSection.style.height = h+'px'; 
   
   const sectionHeight = (window.innerHeight - 70) + 'px';
