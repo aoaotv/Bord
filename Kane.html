@@ -132,12 +132,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore, collection, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
-  authDomain: "sinzo-3f972.firebaseapp.com",
-  projectId: "sinzo-3f972",
-  storageBucket: "sinzo-3f972.firebasestorage.app",
-  messagingSenderId: "1058985227031",
-  appId: "1:1058985227031:web:6b152911e917903910bd52"
+  apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
+  authDomain: "sinzobord.firebaseapp.com",
+  projectId: "sinzobord",
+  storageBucket: "sinzobord.firebasestorage.app",
+  messagingSenderId: "326229251487",
+  appId: "1:326229251487:web:d5a32cb2a9023d862819aa"
 });
 const db = getFirestore(app);
 const $ = id => document.getElementById(id);
@@ -153,7 +153,7 @@ function calcDeposit(principal, since, now, premiumUntil) {
   const total = Math.max(0, now - since), prem = Math.min(total, Math.max(0, (premiumUntil || 0) - since)), norm = total - prem;
   return principal * Math.pow(1 + RATE_PREMIUM, prem / DAY_MS) * Math.pow(1 + RATE_NORMAL, norm / DAY_MS);
 }
-const ACTIONS = ["send_coin", "coin_rain", "deposit_in", "deposit_out", "stock_buy", "stock_sell", "premium_buy", "gacha", "dice_win", "dice_lose", "roulette", "coin_redeem", "shop_buy", "admin_edit_account_coins"];
+const ACTIONS = ["send_coin", "coin_rain", "deposit_in", "deposit_out", "stock_buy", "stock_sell", "premium_buy", "gacha", "dice_win", "dice_lose", "roulette", "coin_redeem", "shop_buy", "boost_thread", "admin_edit_account_coins", "admin_edit_account_shares", "admin_edit_stock_price"];
 const CATS = { transfer: "送金", deposit: "預金", stock: "株", game: "ゲーム", other: "その他", admin: "管理者" };
 
 const fmt = n => Math.round(n).toLocaleString("ja-JP");
@@ -178,8 +178,9 @@ function normalize(d) {
   const a = d.action, x = d.detail || {}, at = tsMs(d.created_at), u = d.user || "不明";
   const bal = {};
   if (a === "send_coin") { bal[x.from] = { coins: x.fromAfter ?? x.coinsAfter, dep: x.depAfter }; bal[x.to] = { coins: x.toAfter }; }
-  else if (a !== "admin_edit_account_coins") bal[u] = { coins: x.coinsAfter, dep: x.depAfter };
-  else bal[x.targetAccount || u] = { coins: x.newCoins };
+  else if (a === "admin_edit_account_coins") bal[x.targetAccount || u] = { coins: x.newCoins };
+  else if (a === "admin_edit_account_shares" || a === "admin_edit_stock_price") { /* 残高なし */ }
+  else bal[u] = { coins: x.coinsAfter, dep: x.depAfter };
   const ev = (cat, label, deltas, extra = {}) => ({ at, cat, label, deltas, bal, accounts: Object.keys(deltas).length ? Object.keys(deltas) : [u], ...extra });
   switch (a) {
     case "send_coin": return ev("transfer", "送金", { [x.from]: -x.amount, [x.to]: +x.amount }, { from: x.from, to: x.to, amount: x.amount });
@@ -195,6 +196,9 @@ function normalize(d) {
     case "roulette": return ev("game", `プレミアムルーレット${x.prize ? "" : "（ハズレ）"}`, { [u]: +x.prize });
     case "coin_redeem": return ev("other", `コインコード「${x.code}」でチャージ`, { [u]: +x.amount });
     case "shop_buy": return ev("other", `${x.kind}購入：${x.name}`, { [u]: -x.price });
+    case "boost_thread": return ev("other", "スレッドを注目固定（コイン消費は記録なし）", {});
+    case "admin_edit_account_shares": return { at, cat: "admin", label: `管理者が保有株を ${fmt(x.newShares)} 株に設定（銘柄は記録なし）`, deltas: {}, bal, accounts: [x.targetAccount || u] };
+    case "admin_edit_stock_price": return { at, cat: "admin", label: `管理者が ${STOCK_NAMES[x.stock] || x.stock} の株価を ${fmt(x.newPrice)} に強制変更`, deltas: {}, bal, accounts: [u] };
     case "admin_edit_account_coins": return { at, cat: "admin", label: `管理者がコインを ${fmt(x.newCoins)} に設定`, deltas: {}, bal, accounts: [x.targetAccount || u] };
   }
   return null;
