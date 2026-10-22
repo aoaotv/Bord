@@ -1,3 +1,11 @@
+<!--
+AI / 開発者向け重要メモ：Bordのバージョン情報は必ず維持すること。
+正本は type="module" スクリプト内の CURRENT_APP_VERSION と VERSION_HISTORY。
+機能追加・修正・UI変更のたびにバージョン番号を更新し、VERSION_HISTORY の先頭へ
+{ version, date, title, changes } 形式で新しい履歴を追記すること。既存履歴は消さない。
+画面の「…」→「バージョン情報」はこの履歴配列を使って表示する。
+過去の公開番号が確認できない項目は、公開番号だったかのように断定せず「整理版」と明記する。
+-->
 <html lang="ja">
 
 <head>
@@ -382,6 +390,9 @@ li img, li video { max-width: 100%; height: auto; }
       <button id="closeHeaderMenuBtn" class="redBtn" style="margin:0; padding: 6px 16px; font-size: 14px;">✕ 閉じる</button>
     </div>
     
+    <div id="menuGamesBtn" class="menu-grid-item" style="grid-column:span 2;min-height:112px;padding:24px 12px;font-size:19px;background:#eaf4ff;border:2px solid #8bbcf0;">🎮<br>ゲーム<br><small style="font-size:12px;font-weight:normal;">ゲーム一覧を開く</small></div>
+    <div id="menuStoreBtn" class="menu-grid-item" style="grid-column:span 2;min-height:112px;padding:24px 12px;font-size:19px;background:#fff4e5;border:2px solid #f0c17d;">🛍️<br>ストア<br><small style="font-size:12px;font-weight:normal;">ショップ一覧を開く</small></div>
+    <div id="menuVersionBtn" class="menu-grid-item">🧾<br>バージョン情報</div>
     <div id="menuAccountBtn" class="menu-grid-item">👤<br>アカウント管理</div>
     <div id="menuProfileBtn" class="menu-grid-item">📖<br>マイプロフィール</div>
     <div id="menuAccountListBtn" class="menu-grid-item">👥<br>アカウント一覧</div>
@@ -389,14 +400,19 @@ li img, li video { max-width: 100%; height: auto; }
     <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
     <div id="menuStockBtn" class="menu-grid-item">📈<br>株式投資</div>
     <div id="menuDepositBtn" class="menu-grid-item">🏦<br>預金</div>
-    <div id="menuPremiumBtn" class="menu-grid-item">👑<br>プレミアム</div>
-    <div id="menuDiceBtn" class="menu-grid-item">🎲<br>サイコロ勝負</div>
-    <div id="menuGachaBtn" class="menu-grid-item">🎰<br>コインガチャ</div>
     <div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
-    <div id="menuEffectShopBtn" class="menu-grid-item">✨<br>名前エフェクト購入</div>
-    <div id="menuRedeemBtn" class="menu-grid-item">🪙<br>コインチャージ</div>
-    <div id="menuTagShopBtn" class="menu-grid-item">🏷️<br>タグ購入画面</div>
-    <div id="menuEmojiShopBtn" class="menu-grid-item">😀<br>絵文字購入画面</div>
+    <div id="menuPremiumBtn" class="menu-grid-item" style="display:none">👑<br>プレミアム</div>
+    <!-- 各機能の既存イベントを維持するため、個別ボタンは非表示で残します -->
+    <div id="menuDiceBtn" class="menu-grid-item" style="display:none">🎲<br>サイコロ勝負</div>
+    <div id="menuRouletteBtn" class="menu-grid-item" style="display:none">🎡<br>ルーレット</div>
+    <div id="menuSlotsBtn" class="menu-grid-item" style="display:none">🎰<br>スロット</div>
+    <div id="menuRpsBtn" class="menu-grid-item" style="display:none">✊<br>コインじゃんけん</div>
+    <div id="menuOthelloBtn" class="menu-grid-item" style="display:none">⚫<br>オセロ対戦</div>
+    <div id="menuGachaBtn" class="menu-grid-item" style="display:none">🎰<br>コインガチャ</div>
+    <div id="menuEffectShopBtn" class="menu-grid-item" style="display:none">✨<br>名前エフェクト購入</div>
+    <div id="menuRedeemBtn" class="menu-grid-item" style="display:none">🪙<br>コインチャージ</div>
+    <div id="menuTagShopBtn" class="menu-grid-item" style="display:none">🏷️<br>タグ購入画面</div>
+    <div id="menuEmojiShopBtn" class="menu-grid-item" style="display:none">😀<br>絵文字購入画面</div>
     <div id="menuRoomBtn" class="menu-grid-item">🚪<br>部屋選択</div>
     <div id="menuBfMissionsBtn" class="menu-grid-item">🎁<br>ログインボーナス・ミッション</div>
     <div id="menuBfRankBtn" class="menu-grid-item">🏆<br>レベル・実績・称号</div>
@@ -409,6 +425,70 @@ li img, li video { max-width: 100%; height: auto; }
 </div>
 
 <div id="currentRoomLabel">現在の部屋：bord</div>
+
+<!-- ゲーム一覧 -->
+<div id="gamesHubSection" class="full-screen-section" style="display:none">
+ <div class="store-container" style="max-width:900px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:18px">
+   <h2 style="margin:0;color:#2c3e50">🎮 ゲームセンター</h2><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span id="gamesHubCoins">0</span></strong>
+  </div>
+  <p style="color:#666;margin-top:0">遊びたいゲームを選んでください。ゲームごとの画面で賭け金などを設定できます。</p>
+  <div class="menu-grid" id="gamesHubGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px">
+   <button type="button" class="menu-grid-item" data-open-menu="menuDiceBtn">🎲<br>サイコロ勝負<small>偶数・奇数を予想</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuRouletteBtn">🎡<br>ルーレット<small>赤・黒・0を予想</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuSlotsBtn">🎰<br>スロット<small>絵柄をそろえる</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuRpsBtn">✊<br>コインじゃんけん<small>CPUと勝負</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuOthelloBtn">⚫<br>オセロ対戦<small>ボット・オンライン</small></button>
+  </div>
+  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
+ </div>
+</div>
+
+<!-- コインストア一覧 -->
+<div id="storeHubSection" class="full-screen-section" style="display:none">
+ <div class="store-container" style="max-width:900px">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:18px">
+   <h2 style="margin:0;color:#2c3e50">🛍️ コインストア</h2><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span id="storeHubCoins">0</span></strong>
+  </div>
+  <p style="color:#666;margin-top:0">コインを使ってアイテムやカスタマイズを購入できます。商品を選ぶと各ショップが開きます。</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px">
+   <button type="button" class="menu-grid-item" data-open-menu="menuGachaBtn">🎰<br>コインガチャ<small>ガチャを引く</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuEffectShopBtn">✨<br>名前エフェクト<small>名前を装飾</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuTagShopBtn">🏷️<br>タグショップ<small>名前タグを購入</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuEmojiShopBtn">😀<br>絵文字ショップ<small>使える絵文字を購入</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuPremiumBtn">👑<br>プレミアム<small>特典を確認</small></button>
+   <button type="button" class="menu-grid-item" data-open-menu="menuRedeemBtn">🪙<br>コインチャージ<small>コイン関連メニュー</small></button>
+  </div>
+  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
+ </div>
+</div>
+
+<!-- バージョン情報・更新履歴
+  AI/開発者向け：CURRENT_APP_VERSION と VERSION_HISTORY がバージョン情報の正本。
+  更新時は現在バージョンを更新し、VERSION_HISTORY の先頭に {version,date,title,changes} を追加。
+  履歴は削除しない。過去の公開番号を検証できない記録には「整理版」と明記する。
+  バージョン情報画面を開いた時点で自動描画し、確認ボタンを必須にしない。
+-->
+<div id="versionInfoSection" class="full-screen-section" style="display:none;bottom:0;max-height:calc(100dvh - 70px);overflow-y:auto;overscroll-behavior:contain">
+ <div class="store-container" style="max-width:900px;margin:0 auto">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid #d7e6dc;padding-bottom:12px;margin-bottom:16px">
+   <div><h3 style="margin:0;color:#245b36;font-size:17px">🧾 バージョン情報</h3><p style="margin:5px 0 0;color:#617568;font-size:13px">現在のバージョンと更新履歴</p></div>
+  </div>
+  <div style="background:#fff;border:1px solid #dce8df;border-radius:14px;padding:22px 16px;margin-bottom:18px;text-align:center">
+   <div style="font-size:14px;color:#617568;font-weight:600;margin-bottom:6px">現在のバージョン</div>
+   <div id="currentVersionBadge" style="font-size:42px;line-height:1.15;font-weight:800;letter-spacing:.5px;color:#216b38;margin:4px 0 14px">1.1</div>
+   <div id="currentVersionTitle" style="font-size:17px;font-weight:bold;color:#2c3e50">バージョン情報の表示を改善</div>
+   <p id="currentVersionDescription" style="color:#555;margin:9px 0 0;line-height:1.7">現在の更新内容を表示します。</p>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:20px 0 12px">
+   <h3 style="margin:0;color:#2c3e50;font-size:17px">過去のバージョン・更新履歴</h3>
+   <input id="versionHistorySearch" type="search" placeholder="バージョン・更新内容を検索" aria-label="更新履歴を検索" style="max-width:100%;width:280px;padding:10px 12px;border:1px solid #bbb;border-radius:12px;box-sizing:border-box">
+  </div>
+  <p style="font-size:13px;color:#777">下へスクロールすると古い履歴を確認できます。過去の公開番号が確認できないものは、履歴整理用の番号として記載しています。</p>
+  <div id="versionHistoryList" style="display:grid;gap:12px;padding:2px 5px 12px 2px"></div>
+  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
+ </div>
+</div>
 
 <!-- スレッド一覧画面 -->
 <div id="threadListSection">
@@ -468,6 +548,10 @@ li img, li video { max-width: 100%; height: auto; }
     <button id="quickSendBtn">送信</button>
   </div>
 
+  <div id="postLoadProgress" style="display:none;margin:8px 0 10px;padding:9px 12px;background:#f4f7fb;border:1px solid #dce5ef;border-radius:9px;color:#34495e;font-size:13px;">
+    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px"><span>投稿を読み込み中…</span><strong id="postLoadCount">取得済み 0 / 0 件</strong></div>
+    <div style="height:5px;background:#dfe6ed;border-radius:99px;overflow:hidden"><div id="postLoadBar" style="height:100%;width:0%;background:#3498db;border-radius:99px;transition:width .08s linear"></div></div>
+  </div>
   <ol id="postList"></ol>
   <button id="createPostBtn" class="greenBtn" style="position: fixed; bottom:80px; right:20px; z-index: 1100;">📝投稿</button>
   <button id="closeThreadBtn" class="greenBtn" style="position: fixed; bottom:80px; left:20px; z-index: 1100;">戻る</button>
@@ -576,6 +660,87 @@ li img, li video { max-width: 100%; height: auto; }
 
     <button class="closeSectionBtn greenBtn" style="width:100%; padding: 12px; font-size: 16px; background-color:#7f8c8d;">ボードに戻る</button>
   </div>
+</div>
+
+<!-- ルーレット画面 -->
+<div id="rouletteSection" class="full-screen-section">
+ <div class="store-container" style="max-width:650px;text-align:center">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:20px"><h3 style="margin:0;color:#2c3e50">🎡 コインルーレット</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span class="sharedCoinCount">0</span></strong></div>
+  <div id="rouletteWheel" style="font-size:76px;margin:18px 0">🎡</div>
+  <p style="color:#555">赤・黒・緑（0）を予想しよう。赤・黒は的中で2倍、緑は36倍！</p>
+  <label for="rouletteBetInput">賭け金</label><input id="rouletteBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold">
+  <label for="rouletteChoice">予想</label><select id="rouletteChoice" style="max-width:300px;margin:0 auto 12px"><option value="red">🔴 赤（2倍）</option><option value="black">⚫ 黒（2倍）</option><option value="green">🟢 緑・0（36倍）</option></select>
+  <button id="roulettePlayBtn" class="greenBtn" style="width:100%;padding:14px;font-size:18px">ルーレットを回す</button>
+  <div id="rouletteResult" aria-live="polite" style="font-size:18px;font-weight:bold;min-height:52px;margin:16px 0;color:#2c3e50"></div>
+  <button class="closeSectionBtn greenBtn" style="width:100%;background:#7f8c8d">ボードに戻る</button>
+ </div>
+</div>
+
+<!-- スロット画面 -->
+<div id="slotsSection" class="full-screen-section">
+ <div class="store-container" style="max-width:650px;text-align:center">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:20px"><h3 style="margin:0;color:#2c3e50">🎰 コインスロット</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span class="sharedCoinCount">0</span></strong></div>
+  <p style="color:#555">絵柄をそろえてコインを獲得！ 7️⃣7️⃣7️⃣ は10倍。</p>
+  <div id="slotsReels" style="display:flex;justify-content:center;gap:8px;margin:24px 0"><span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">❔</span><span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">❔</span><span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">❔</span></div>
+  <label for="slotsBetInput">賭け金</label><input id="slotsBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold">
+  <button id="slotsPlayBtn" class="greenBtn" style="width:100%;padding:14px;font-size:18px">スロットを回す</button>
+  <div id="slotsResult" aria-live="polite" style="font-size:18px;font-weight:bold;min-height:52px;margin:16px 0;color:#2c3e50"></div>
+  <p style="font-size:12px;color:#777">配当倍率は賭け金を含む受取総額です。7️⃣3つ＝10倍、💎3つ＝6倍、その他の同じ絵柄3つ＝4倍、2つ一致＝1.5倍。</p>
+  <button class="closeSectionBtn greenBtn" style="width:100%;background:#7f8c8d">ボードに戻る</button>
+ </div>
+</div>
+
+<!-- コインじゃんけん画面 -->
+<div id="rpsSection" class="full-screen-section">
+ <div class="store-container" style="max-width:650px;text-align:center">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:20px"><h3 style="margin:0;color:#2c3e50">✊ コインじゃんけん</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span class="sharedCoinCount">0</span></strong></div>
+  <p style="color:#555">CPUとじゃんけん！勝てば賭け金の2倍、あいこは賭け金が戻ります。</p>
+  <label for="rpsBetInput">賭け金</label><input id="rpsBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold">
+  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:20px 0"><button id="rpsRockBtn" class="blueBtn" style="font-size:18px;padding:14px 20px">✊ グー</button><button id="rpsPaperBtn" class="blueBtn" style="font-size:18px;padding:14px 20px">✋ パー</button><button id="rpsScissorsBtn" class="blueBtn" style="font-size:18px;padding:14px 20px">✌️ チョキ</button></div>
+  <div id="rpsBattleDisplay" style="font-size:42px;min-height:58px;margin:12px 0">あなた ?　VS　? CPU</div>
+  <div id="rpsResult" aria-live="polite" style="font-size:18px;font-weight:bold;min-height:52px;margin:16px 0;color:#2c3e50"></div>
+  <button class="closeSectionBtn greenBtn" style="width:100%;background:#7f8c8d">ボードに戻る</button>
+ </div>
+</div>
+
+<!-- オセロ：モード・部屋選択画面 -->
+<div id="othelloSection" class="full-screen-section">
+ <div class="store-container" style="max-width:650px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:12px;margin-bottom:14px">
+   <h3 style="margin:0;color:#2c3e50">⚫ オセロ｜モード・部屋選択</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span id="othCoins">0</span></strong>
+  </div>
+  <div style="background:#f7f9fc;padding:16px;border-radius:12px;margin-bottom:12px">
+   <label for="othMode">対戦モード</label><select id="othMode"><option value="bot">🤖 ボットと対戦</option><option value="online">🌐 オンラインで友達と対戦</option></select>
+   <label for="othBet">掛け金（1人分）</label><select id="othBet"><option value="0">練習（0コイン）</option><option value="10">10コイン</option><option value="100" selected>100コイン</option><option value="500">500コイン</option><option value="1000">1,000コイン</option><option value="5000">5,000コイン</option><option value="10000">10,000コイン</option></select>
+   <label for="othTime">1手の制限時間</label><select id="othTime"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option><option value="0">制限なし</option></select>
+   <div id="othOnlineControls" style="display:none;margin-top:12px">
+    <label for="othJoinCode">友達の部屋コード</label><input id="othJoinCode" inputmode="numeric" maxlength="6" placeholder="6桁のコード">
+    <button id="othCreateRoom" class="greenBtn" style="width:100%;margin-top:8px">部屋を作成してコードを発行</button>
+    <button id="othJoinRoom" class="blueBtn" style="width:100%;margin-top:8px">コードで友達の部屋に参加</button>
+    <p style="font-size:12px;color:#666;line-height:1.6">部屋を作った人が黒、参加した人が白です。作成後に表示される6桁のコードを友達に共有してください。</p>
+   </div>
+   <button id="othStartBot" class="greenBtn" style="width:100%;padding:12px;margin-top:10px">ボット戦を開始</button>
+  </div>
+  <div id="othRoomInfo" style="font-weight:bold;color:#2c3e50;margin:8px 0;overflow-wrap:anywhere"></div>
+  <div id="othSetupStatus" style="color:#555;font-size:14px;margin:8px 0"></div>
+  <button id="othSetupBack" class="greenBtn" style="width:100%;background:#7f8c8d">ボードに戻る</button>
+ </div>
+</div>
+
+<!-- オセロ：対戦画面 -->
+<div id="othelloGameSection" class="full-screen-section" style="display:none">
+ <div class="store-container" style="max-width:760px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:12px;margin-bottom:14px">
+   <h3 style="margin:0;color:#2c3e50">⚫ オセロ対戦中</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span id="othGameCoins">0</span></strong>
+  </div>
+  <div id="othGameRoomInfo" style="font-weight:bold;color:#2c3e50;margin:8px 0;overflow-wrap:anywhere"></div>
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0"><strong id="othStatus">対戦準備中</strong><span id="othClock" style="font-variant-numeric:tabular-nums;font-weight:bold">⏱ --</span></div>
+  <div id="othScore" style="margin-bottom:8px;color:#333">⚫ 黒 2　⚪ 白 2</div>
+  <div id="othBoard" style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px;background:#145b39;border:4px solid #145b39;border-radius:8px;padding:2px;max-width:560px;margin:0 auto;touch-action:manipulation"></div>
+  <div id="othResult" style="text-align:center;font-size:18px;font-weight:bold;margin:14px 0;color:#2c3e50"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="othPass" class="blueBtn">パス</button><button id="othResign" class="redBtn">投了</button><button id="othBack" class="greenBtn" style="margin-left:auto">選択画面に戻る</button></div>
+  <p style="font-size:12px;color:#666;line-height:1.7">コインはこのサイト内のゲーム用ポイントです。オンライン対戦の勝敗・コイン更新は通信状態や切断の影響を受ける場合があります。</p>
+ </div>
 </div>
 
 <!-- サイコロ勝負画面 -->
@@ -1186,7 +1351,7 @@ li img, li video { max-width: 100%; height: auto; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot, Timestamp,
-  getDocs, doc, deleteDoc, updateDoc, getDoc, getDocFromCache, increment, limit, where,
+  getDocs, doc, deleteDoc, updateDoc, getDoc, getDocFromCache, increment, limit, where, getCountFromServer, startAfter,
   serverTimestamp, setDoc, runTransaction, writeBatch, arrayUnion, arrayRemove, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   CACHE_SIZE_UNLIMITED, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -1601,12 +1766,84 @@ document.getElementById("menuAccountBtn").onclick = () => {
 let marketUnsub = null, tickTimer = null;
 function hideAllSections() {
   headerMenuContent.style.display = "none";
-  ["threadListSection","threadDetailSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection","accountListSection"]
+  ["threadListSection","threadDetailSection","gamesHubSection","storeHubSection","versionInfoSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection","accountListSection","rouletteSection","slotsSection","rpsSection","othelloSection","othelloGameSection"]
     .forEach(id => { document.getElementById(id).style.display = "none"; });
   stopMarket();
   stopDepositUI();
   stopPremiumUI();
 }
+
+document.getElementById("menuGamesBtn").onclick = () => {
+  headerMenuContent.style.display = "none";
+  hideAllSections();
+  document.getElementById("gamesHubSection").style.display = "block";
+  document.getElementById("gamesHubCoins").textContent = getMyCoins().toLocaleString("ja-JP");
+};
+document.getElementById("menuStoreBtn").onclick = () => {
+  headerMenuContent.style.display = "none";
+  hideAllSections();
+  document.getElementById("storeHubSection").style.display = "block";
+  document.getElementById("storeHubCoins").textContent = getMyCoins().toLocaleString("ja-JP");
+};
+
+// ============================================================
+// AI / 開発者向けバージョン管理メモ（必ず守る）
+// 1) アプリを変更したら CURRENT_APP_VERSION を新しい番号（例: 1.2）へ更新する。
+// 2) 新しい変更は VERSION_HISTORY の先頭に追加し、古い履歴は絶対に削除しない。
+// 3) 各履歴に version, date, title, changes を記載し、既存履歴は削除しない。
+// 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
+// 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
+// ============================================================
+const CURRENT_APP_VERSION = "1";
+const VERSION_HISTORY = [
+  { version: "1", date: "2026-10-22", title: "バージョン機能を追加", changes: ["バージョン機能を追加"] }
+];
+
+function renderVersionHistory(filterText = "") {
+  const list = document.getElementById("versionHistoryList");
+  if (!list) return;
+  const q = filterText.trim().toLocaleLowerCase("ja");
+  const entries = VERSION_HISTORY.filter(item => [item.version, item.date, item.title, ...(item.changes || [])].join(" ").toLocaleLowerCase("ja").includes(q));
+  list.innerHTML = "";
+  if (!entries.length) {
+    const empty = document.createElement("p"); empty.textContent = "一致する更新履歴がありません。検索語を変えてください。"; empty.style.color = "#666"; list.appendChild(empty); return;
+  }
+  entries.forEach((item, index) => {
+    const card = document.createElement("article");
+    card.style.cssText = "background:#fff;border:1px solid #dce4e8;border-radius:14px;padding:15px 17px;box-shadow:0 2px 6px rgba(0,0,0,.04)";
+    const head = document.createElement("div"); head.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:7px";
+    const title = document.createElement("strong"); title.textContent = item.title; title.style.color = "#2c3e50";
+    const badge = document.createElement("span"); badge.textContent = "v" + item.version; badge.style.cssText = "background:#eef3f6;color:#34495e;border-radius:16px;padding:5px 9px;font-size:12px;font-weight:bold";
+    head.append(title, badge);
+    const date = document.createElement("div"); date.textContent = "更新日：" + item.date; date.style.cssText = "font-size:12px;color:#777;margin-bottom:8px";
+    const ul = document.createElement("ul"); ul.style.cssText = "padding-left:20px;list-style:disc;text-align:left;margin:0";
+    (item.changes || []).forEach(change => { const li = document.createElement("li"); li.textContent = change; li.style.cssText = "color:#444;margin:5px 0;padding:0;list-style:disc;cursor:default"; ul.appendChild(li); });
+    card.append(head, date, ul);
+    if (index === 0 && item.version === CURRENT_APP_VERSION) card.style.borderColor = "#8fcba0";
+    list.appendChild(card);
+  });
+}
+
+document.getElementById("menuVersionBtn").onclick = () => {
+  headerMenuContent.style.display = "none";
+  hideAllSections();
+  document.getElementById("versionInfoSection").style.display = "block";
+  document.getElementById("versionInfoSection").scrollTop = 0;
+  const latest = VERSION_HISTORY.find(item => item.version === CURRENT_APP_VERSION) || VERSION_HISTORY[0];
+  document.getElementById("currentVersionBadge").textContent = CURRENT_APP_VERSION;
+  document.getElementById("currentVersionTitle").textContent = latest.title;
+  document.getElementById("currentVersionDescription").textContent = latest.changes.join(" ");
+  // 画面を開くたびに履歴を自動描画する。手動の読み込みボタンは不要。
+  renderVersionHistory(document.getElementById("versionHistorySearch").value);
+};
+document.getElementById("versionHistorySearch").addEventListener("input", event => renderVersionHistory(event.target.value));
+
+document.querySelectorAll("[data-open-menu]").forEach(button => {
+  button.addEventListener("click", () => {
+    const target = document.getElementById(button.dataset.openMenu);
+    if (target) target.click();
+  });
+});
 
 document.getElementById("menuStockBtn").onclick = () => {
   if (!currentAccount) return alert("株式投資を利用するにはアカウントが必要です。");
@@ -2034,8 +2271,14 @@ document.getElementById("menuCoinRainBtn").onclick = async () => {
 
 document.querySelectorAll(".closeSectionBtn").forEach(btn => {
   btn.onclick = () => {
+    const parentSection = btn.closest(".full-screen-section");
     hideAllSections();
-    document.getElementById("threadListSection").style.display = "block";
+    if (parentSection && (parentSection.id === "gamesHubSection" || parentSection.id === "storeHubSection" || parentSection.id === "versionInfoSection")) {
+      // ゲーム一覧・ストア一覧からは、ボードではなく「…」メニューへ戻る
+      document.getElementById("headerMenuContent").style.display = "grid";
+    } else {
+      document.getElementById("threadListSection").style.display = "block";
+    }
   };
 });
 
@@ -3954,6 +4197,8 @@ function setSectionsHeight(){
   document.getElementById('adminSection').style.height = sectionHeight;
   document.getElementById('profileSection').style.height = sectionHeight;
   document.getElementById('favoritesSection').style.height = sectionHeight;
+  document.getElementById('othelloSection').style.height = sectionHeight;
+  document.getElementById('othelloGameSection').style.height = sectionHeight;
   document.getElementById('diceSection').style.height = sectionHeight;
   document.getElementById('dmSection').style.height = sectionHeight;
   document.getElementById('depositSection').style.height = sectionHeight;
@@ -3991,6 +4236,20 @@ function showLoading(msg="読み込み中...", options={}){
       reloadBtn.style.display = 'inline-block';
     }
   }, 10000);
+}
+
+
+function updateThreadLoadProgress(loaded, total){
+  const popup = document.getElementById('loadingPopup');
+  if (!popup || popup.style.display !== 'block') return;
+  const wrap = document.getElementById('loadingProgressWrap');
+  const label = document.getElementById('loadingProgressText');
+  const bar = document.getElementById('loadingProgressBar');
+  wrap.style.display = 'block';
+  label.style.display = 'block';
+  const pct = total > 0 ? Math.min(100, Math.round(loaded / total * 100)) : (loaded > 0 ? 100 : 0);
+  label.textContent = total > 0 ? `スレッド取得中：${loaded.toLocaleString()} / ${total.toLocaleString()} 件（${pct}%）` : `スレッド取得中：${loaded.toLocaleString()} 件`;
+  bar.style.width = pct + '%';
 }
 
 function hideLoading(){
@@ -4471,11 +4730,16 @@ let loadPostsGen = 0;
 async function loadPosts(threadId) {
   const postList = document.getElementById("postList");
   postList.innerHTML = ""; knownPostIds.clear();
+  const postLoadUi=document.getElementById("postLoadProgress"); if(postLoadUi)postLoadUi.style.display="none";
   if (postsUnsub) postsUnsub();
   const q = query(collection(db, currentRoom, threadId, "posts"), orderBy("created_at", "asc"));
 
   // 一括保存済みのスレッドなら、サーバー応答を待たずに先に表示
   const myGen = ++loadPostsGen; let gotFirstSnap = false;
+  const loadUi = document.getElementById("postLoadProgress"), loadCount = document.getElementById("postLoadCount"), loadBar = document.getElementById("postLoadBar");
+  function setPostLoadProgress(done,total){ if(!loadUi)return; loadUi.style.display="block"; loadCount.textContent=`取得済み ${Math.min(done,total)} / ${total} 件`; loadBar.style.width=(total?Math.min(100,done/total*100):100)+"%"; }
+  function finishPostLoad(){ if(loadUi)loadUi.style.display="none"; }
+  setPostLoadProgress(0,1);
   bulkCacheGet(currentRoom + "/" + threadId).then(entry => {
     if (entry && !gotFirstSnap && myGen === loadPostsGen) renderCachedPosts(entry, postList);
   }).catch(() => {});
@@ -4483,31 +4747,42 @@ async function loadPosts(threadId) {
   postsUnsub = onSnapshot(q, (snapshot) => {
     const isFirstSnap = !gotFirstSnap; gotFirstSnap = true;
     try {
+      if(isFirstSnap) setPostLoadProgress(0, snapshot.size);
       const iconIds = [...new Set(snapshot.docs.map(d => d.data().icon).filter(Boolean))];
       const missingIcons = iconIds.filter(id => !iconCache[id]);
       if (missingIcons.length) Promise.all(missingIcons.map(id => getIconSrc(id))).then(fillPostIcons);
 
       const changes = snapshot.docChanges();
       if (changes.length === 0) {
-        if (isFirstSnap) postList.querySelectorAll(".cached-post").forEach(el => el.remove());
+        if (isFirstSnap) { postList.querySelectorAll(".cached-post").forEach(el => el.remove()); finishPostLoad(); }
         const tocContainer = document.getElementById("threadToc");
         if (tocContainer) { tocContainer.innerHTML = ""; tocContainer.style.display = "flex"; }
         return;
       }
 
       // 一括で同期描画（rAF分割だとバックグラウンドで止まり、大量投稿で非常に遅くなる）
-      (function renderAll() {
+      (async function renderAll() {
         try {
+          let processed = 0;
+          const advancePostProgress = async () => {
+            processed++;
+            if (isFirstSnap) {
+              // 1投稿の描画が終わるたびに件数とバーを更新し、画面にも反映させる
+              setPostLoadProgress(processed, snapshot.size);
+              await new Promise(resolve => setTimeout(resolve, 0));
+            }
+          };
           for (let i = 0; i < changes.length; i++) {
+            if(myGen !== loadPostsGen) return;
             const change = changes[i];
             const data = change.doc.data();
             const docId = data.index || change.doc.id;
 
             if (change.type === "added") {
               const existingLi = document.getElementById("post-" + docId);
-              if(existingLi && !existingLi.classList.contains('temp-post') && !existingLi.classList.contains('cached-post')) continue; 
+              if(existingLi && !existingLi.classList.contains('temp-post') && !existingLi.classList.contains('cached-post')) { await advancePostProgress(); continue; }
               if(existingLi && (existingLi.classList.contains('temp-post') || existingLi.classList.contains('cached-post'))) existingLi.remove();
-              if (data.deleted) { const dl = document.createElement("li"); dl.id = "post-" + docId; renderDeletedPost(dl, data); postList.appendChild(dl); continue; }
+              if (data.deleted) { const dl = document.createElement("li"); dl.id = "post-" + docId; renderDeletedPost(dl, data); postList.appendChild(dl); await advancePostProgress(); continue; }
 
               const _frId = ICON_FRAMES.some(f => f.id === data.iconFrame) ? data.iconFrame : "";
               let iconHtml = data.icon && iconCache[data.icon] ? wrapFrameHtml(`<img src="${iconCache[data.icon]}" style="width:24px; height:24px; border-radius:50%; vertical-align:middle; margin-right:0; object-fit:cover; background:#fff;">`, _frId) : (data.icon ? `<span class="pIcon" data-icon-id="${data.icon}" data-frame="${_frId}" style="display:inline-block;width:24px;height:24px;"></span>` : "");
@@ -4585,6 +4860,7 @@ async function loadPosts(threadId) {
               const el = document.getElementById("post-" + docId);
               if (el) el.remove();
             }
+            await advancePostProgress();
           }
           {
             if (isFirstSnap) postList.querySelectorAll(".cached-post").forEach(el => el.remove());
@@ -4608,11 +4884,14 @@ async function loadPosts(threadId) {
         } catch (renderError) {
           console.error("投稿の描画に失敗しました", renderError);
         }
+        if(isFirstSnap && myGen === loadPostsGen) finishPostLoad();
       })();
     } catch (e) {
+      if(myGen === loadPostsGen) finishPostLoad();
       console.error("投稿データの処理に失敗しました", e);
     }
   }, (error) => {
+    const ui=document.getElementById("postLoadProgress"); if(ui)ui.style.display="none";
     console.error("投稿の読み込みに失敗しました", error);
   });
 }
@@ -5263,14 +5542,32 @@ async function openThreadFromURL() {
 }
 openThreadFromURL();
 
-function loadAllThreads(){
-  if (isAllLoaded) return; showLoading("すべてのスレッドを読み込み中...");
+async function loadAllThreads(){
+  if (isAllLoaded) return;
+  showLoading("すべてのスレッドを読み込み中...", {progress:true});
   if (threadsUnsub) threadsUnsub(); if (pinnedUnsub) { pinnedUnsub(); pinnedUnsub = null; }
   const gen = loadAllThreads.gen = (loadAllThreads.gen || 0) + 1; threadsUnsub = null;
-  const q = query(collection(db, currentRoom), orderBy("created_at", "desc"));   // 全件は1回だけ取得（リアルタイム購読しない）
-  getDocs(q).then(snapshot => {
+  try {
+    // 先に総件数を取得し、100件ずつ取得するたびに実際の進捗を更新する
+    const totalSnap = await getCountFromServer(collection(db, currentRoom));
     if (gen !== loadAllThreads.gen) return;
-    const allDocs = snapshot.docs.map(d => ({ id: d.id, data: () => d.data() }));
+    const total = totalSnap.data().count || 0;
+    updateThreadLoadProgress(0, total);
+    const allDocs = [];
+    const batchSize = 100;
+    let cursor = null;
+    while (true) {
+      let q = query(collection(db, currentRoom), orderBy("created_at", "desc"), limit(batchSize));
+      if (cursor) q = query(collection(db, currentRoom), orderBy("created_at", "desc"), startAfter(cursor), limit(batchSize));
+      const snapshot = await getDocs(q);
+      if (gen !== loadAllThreads.gen) return;
+      if (snapshot.empty) break;
+      allDocs.push(...snapshot.docs.map(d => ({ id: d.id, data: () => d.data() })));
+      cursor = snapshot.docs[snapshot.docs.length - 1];
+      updateThreadLoadProgress(allDocs.length, total);
+      if (snapshot.size < batchSize) break;
+    }
+    if (gen !== loadAllThreads.gen) return;
     allDocs.sort((a, b) => {
       const aData = a.data(), bData = b.data();
       const aPinned = aData.pinned ? 1 : 0;
@@ -5286,8 +5583,12 @@ function loadAllThreads(){
       const bTime = bData.created_at?.toMillis ? bData.created_at.toMillis() : 0;
       return bTime - aTime;
     });
-    threadsData = allDocs; isAllLoaded = true; renderThreadsPage(); hideLoading();
-  }).catch(() => { hideLoading(); });
+    threadsData = allDocs; isAllLoaded = true; renderThreadsPage();
+    hideLoading(); // 完了表示は出さず、進捗表示ごと即座に閉じる
+  } catch (error) {
+    console.error("全スレッドの読み込みに失敗しました", error);
+    showLoadError("スレッドの読み込みに失敗しました");
+  }
 }
 
 let mySessionId = sessionStorage.getItem('sessionId'); if (!mySessionId) { mySessionId = Math.random().toString(36).slice(2); sessionStorage.setItem('sessionId', mySessionId); }
@@ -5785,6 +6086,185 @@ const bfOriginalListenThreads=listenThreads;
 listenThreads=async function(...args){const r=await bfOriginalListenThreads.apply(this,args);return r;};
 // 検索やトレンド画面は最新の一覧データを参照するため、必要時に再描画できるようにする。
 document.querySelectorAll(".roomBtn").forEach(b=>b.addEventListener("click",()=>{if(bfPanel.style.display==="block"&&(bfCurrentTab==="trend"||bfCurrentTab==="search"))setTimeout(renderBfTab,500);}));
+
+
+// ===== オセロ対戦 =====
+const oth = {board:null, turn:1, active:false, mode:"bot", bet:0, limit:30, endAt:0, roomId:null, unsub:null, myColor:1, busy:false, timer:null, lastState:null};
+const othDirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+function othInitial(){let b=Array(64).fill(0);b[27]=-1;b[28]=1;b[35]=1;b[36]=-1;return b;}
+function othMoves(b,c){let out=[];for(let i=0;i<64;i++){if(b[i])continue;let r=i>>3,col=i&7, flips=[];for(let [dr,dc] of othDirs){let rr=r+dr,cc=col+dc,line=[];while(rr>=0&&rr<8&&cc>=0&&cc<8&&b[rr*8+cc]===-c){line.push(rr*8+cc);rr+=dr;cc+=dc;}if(line.length&&rr>=0&&rr<8&&cc>=0&&cc<8&&b[rr*8+cc]===c)flips.push(...line);}if(flips.length)out.push({i,flips});}return out;}
+function othCounts(b){return {black:b.filter(x=>x===1).length,white:b.filter(x=>x===-1).length};}
+function othSetStatus(t){document.getElementById("othStatus").textContent=t;}
+function othRender(){
+ const b=document.getElementById("othBoard");b.innerHTML="";
+ if(!oth.board)oth.board=othInitial();
+ let legal=oth.active?othMoves(oth.board,oth.turn):[];
+ for(let i=0;i<64;i++){let cell=document.createElement("button");cell.type="button";cell.style.cssText="aspect-ratio:1/1;min-width:0;margin:0;padding:0;border:0;border-radius:2px;background:#23834e;display:flex;align-items:center;justify-content:center;position:relative";
+ let disc=document.createElement("span");if(oth.board[i]){disc.style.cssText=`width:78%;height:78%;border-radius:50%;background:${oth.board[i]===1?'#161616':'#fff'};box-shadow:0 2px 4px #0005;border:1px solid #0003;display:block`;}else if(legal.some(m=>m.i===i)){disc.style.cssText="width:22%;height:22%;border-radius:50%;background:#b8f7c7;opacity:.8;display:block";}
+ cell.appendChild(disc);cell.setAttribute("aria-label",`行${(i>>3)+1}列${(i&7)+1}${oth.board[i]?" 石あり":""}`);cell.disabled=!oth.active||!legal.some(m=>m.i===i)||oth.busy;cell.onclick=()=>othPlay(i);b.appendChild(cell);}
+ let n=othCounts(oth.board);document.getElementById("othScore").textContent=`⚫ 黒 ${n.black}　⚪ 白 ${n.white}　｜ あなた：${oth.myColor===1?'黒':'白'}`;
+ const coinText=(typeof getMyCoins==="function"?getMyCoins():0).toLocaleString("ja-JP");document.getElementById("othCoins").textContent=coinText;const gameCoins=document.getElementById("othGameCoins");if(gameCoins)gameCoins.textContent=coinText;
+ document.getElementById("othPass").disabled=!oth.active||legal.length>0||oth.busy;
+}
+function othStartClock(){clearInterval(oth.timer);if(!oth.active||!oth.limit){document.getElementById("othClock").textContent=oth.limit?"⏱ --":"⏱ 制限なし";return;}oth.endAt=Date.now()+oth.limit*1000;oth.timer=setInterval(()=>{let left=Math.max(0,Math.ceil((oth.endAt-Date.now())/1000));document.getElementById("othClock").textContent=`⏱ ${left}秒`;if(left<=0){clearInterval(oth.timer);if(oth.active)othFinish(-oth.turn,"時間切れ");}},200);}
+function othStart(board,turn){oth.board=board||othInitial();oth.turn=turn||1;oth.active=true;oth.busy=false;document.getElementById("othResult").textContent="";othSetStatus(`対戦中：${oth.turn===1?'黒':'白'}の番`);othRender();othStartClock();if(oth.mode==="bot"&&oth.turn===-1)setTimeout(othBotMove,350);}
+async function othDeduct(bet){if(!currentAccount){alert("オセロにはアカウントが必要です。");return false;}let coins=getMyCoins();if(bet>coins){alert("所持コインが足りません。");return false;}if(bet>0)setMyCoins(coins-bet);return true;}
+function othFinish(winner,reason="対局終了"){
+ if(!oth.active)return;oth.active=false;clearInterval(oth.timer);let n=othCounts(oth.board),draw=n.black===n.white;let result=draw?"引き分け":winner===1?"黒の勝ち":"白の勝ち";
+ document.getElementById("othResult").textContent=`${result}（黒 ${n.black} - 白 ${n.white}）`;
+ othSetStatus(reason);
+ if(oth.mode==="bot"&&oth.bet>0){if(draw)setMyCoins(getMyCoins()+oth.bet);else if(winner===oth.myColor)setMyCoins(getMyCoins()+oth.bet*2);document.getElementById("othCoins").textContent=getMyCoins().toLocaleString("ja-JP");}
+ if(oth.mode==="online"&&oth.roomId&&oth.myColor===1&&winner!==0){let winnerName=winner===1?currentAccount:oth.lastState?.guest; if(winnerName)setDoc(doc(db,"othelloRooms",oth.roomId),{status:"finished",winner:winnerName,bet:oth.bet,finishReason:reason,board:oth.board,turn:oth.turn,updatedAt:Date.now()},{merge:true}).catch(()=>{});}
+ othRender();
+}
+function othAdvance(){let next=-oth.turn;if(!othMoves(oth.board,next).length){if(!othMoves(oth.board,oth.turn).length){othFinish(0,"両者とも置ける場所がありません");return;}next=oth.turn;othSetStatus(`${next===1?'黒':'白'}の番（相手はパス）`);}else othSetStatus(`対戦中：${next===1?'黒':'白'}の番`);oth.turn=next;othRender();othStartClock();if(oth.mode==="bot"&&oth.active&&oth.turn===-1)setTimeout(othBotMove,350);if(oth.mode==="online")othSyncMove();}
+function othApply(i){let m=othMoves(oth.board,oth.turn).find(x=>x.i===i);if(!m)return false;oth.board[i]=oth.turn;m.flips.forEach(j=>oth.board[j]=oth.turn);return true;}
+async function othPlay(i){if(!oth.active||oth.busy)return;if(oth.mode==="online"&&oth.turn!==oth.myColor)return;if(!othApply(i))return;othAdvance();}
+function othBotMove(){if(!oth.active||oth.mode!=="bot"||oth.turn!==-1)return;let ms=othMoves(oth.board,-1);if(!ms.length){othAdvance();return;}let corners=[0,7,56,63];ms.sort((a,b)=>(corners.includes(b.i)?100:0)-(corners.includes(a.i)?100:0)+b.flips.length-a.flips.length);othApply(ms[0].i);othAdvance();}
+function othPass(){if(!oth.active||othMoves(oth.board,oth.turn).length)return;othAdvance();}
+async function othSyncMove(){if(!oth.roomId||!oth.active)return;try{await updateDoc(doc(db,"othelloRooms",oth.roomId),{board:oth.board,turn:oth.turn,updatedAt:Date.now(),status:"playing"});}catch(e){othSetStatus("通信に失敗しました。接続を確認してください。");}}
+function othWatchRoom(id){if(oth.unsub)oth.unsub();oth.roomId=id;oth.unsub=onSnapshot(doc(db,"othelloRooms",id),snap=>{if(!snap.exists())return;let d=snap.data();oth.lastState=d;if(d.status==="playing"&&document.getElementById("othelloSection").style.display!=="none"){othShowGame();}if(d.board){oth.board=d.board;oth.turn=d.turn;oth.active=d.status==="playing";othRender();if(oth.active){othSetStatus(oth.turn===oth.myColor?"あなたの番です":"相手の番です");othStartClock();}else if(d.status==="finished"){clearInterval(oth.timer);document.getElementById("othResult").textContent=d.winner?`勝者：${d.winner}`:"対局終了";othSetStatus(d.finishReason||"対局終了");if(d.winner===currentAccount&&Number(d.bet)>0&&localStorage.getItem("othSettled_"+id)!=="1"){localStorage.setItem("othSettled_"+id,"1");setMyCoins(getMyCoins()+Number(d.bet)*2);document.getElementById("othResult").textContent+="｜掛け金の配当を受け取りました";}}}document.getElementById("othRoomInfo").textContent=`部屋コード：${id}（友達に共有）`;document.getElementById("othGameRoomInfo").textContent=`部屋コード：${id}`;},e=>othSetStatus("部屋の同期に失敗しました。Firestoreの設定を確認してください。"));}
+function othShowGame(){document.getElementById("othelloSection").style.display="none";document.getElementById("othelloGameSection").style.display="block";document.getElementById("othGameRoomInfo").textContent=document.getElementById("othRoomInfo").textContent;othRender();}
+function othShowSetup(){document.getElementById("othelloGameSection").style.display="none";document.getElementById("othelloSection").style.display="block";document.getElementById("othRoomInfo").textContent=oth.roomId?`部屋コード：${oth.roomId}（友達に共有）`:"";}
+document.getElementById("menuOthelloBtn").onclick=()=>{if(!currentAccount)return alert("オセロにはアカウントが必要です。");hideAllSections();document.getElementById("othelloSection").style.display="block";document.getElementById("othelloGameSection").style.display="none";oth.board=othInitial();oth.active=false;oth.mode=document.getElementById("othMode").value;othRender();document.getElementById("othRoomInfo").textContent="";document.getElementById("othSetupStatus").textContent="モードと対戦条件を選んでください。";document.getElementById("othResult").textContent="";};
+document.getElementById("othMode").onchange=e=>{let online=e.target.value==="online";document.getElementById("othOnlineControls").style.display=online?"block":"none";document.getElementById("othStartBot").style.display=online?"none":"block";document.getElementById("othSetupStatus").textContent=online?"部屋を作成するか、友達の6桁コードを入力してください。":"掛け金と制限時間を選んでボット戦を開始してください。";};
+document.getElementById("othSetupBack").onclick=()=>{if(oth.unsub){oth.unsub();oth.unsub=null;}clearInterval(oth.timer);hideAllSections();document.getElementById("threadListSection").style.display="block";};
+document.getElementById("othStartBot").onclick=async()=>{oth.mode="bot";oth.roomId=null;if(oth.unsub){oth.unsub();oth.unsub=null;}oth.bet=Number(document.getElementById("othBet").value)||0;oth.limit=Number(document.getElementById("othTime").value)||0;if(!await othDeduct(oth.bet))return;oth.myColor=1;othShowGame();othStart(othInitial(),1);};
+document.getElementById("othCreateRoom").onclick=async()=>{if(!currentAccount)return alert("ログインしてください。");oth.bet=Number(document.getElementById("othBet").value)||0;oth.limit=Number(document.getElementById("othTime").value)||0;if(!await othDeduct(oth.bet))return;let id=String(Math.floor(100000+Math.random()*900000));try{await setDoc(doc(db,"othelloRooms",id),{host:currentAccount,guest:null,bet:oth.bet,limit:oth.limit,board:othInitial(),turn:1,status:"waiting",createdAt:Date.now(),updatedAt:Date.now()});oth.mode="online";oth.myColor=1;oth.roomId=id;oth.board=othInitial();oth.turn=1;oth.active=false;othWatchRoom(id);document.getElementById("othRoomInfo").textContent=`部屋コード：${id}（友達に共有）`;document.getElementById("othSetupStatus").textContent="部屋を作成しました。友達が参加すると対戦画面に切り替わります。";}catch(e){setMyCoins(getMyCoins()+oth.bet);alert("部屋を作成できませんでした。Firestoreのアクセスルールを確認してください。");}};
+document.getElementById("othJoinRoom").onclick=async()=>{let id=document.getElementById("othJoinCode").value.trim();if(!/^\d{6}$/.test(id))return alert("6桁の部屋コードを入力してください。");try{let ref=doc(db,"othelloRooms",id),snap=await getDoc(ref);if(!snap.exists())return alert("部屋が見つかりません。");let d=snap.data();if(d.status!=="waiting"||d.guest)return alert("この部屋は参加できません。");if(d.host===currentAccount)return alert("自分の部屋には参加できません。");oth.bet=Number(d.bet)||0;oth.limit=Number(d.limit)||0;if(!await othDeduct(oth.bet))return;await updateDoc(ref,{guest:currentAccount,status:"playing",updatedAt:Date.now()});oth.mode="online";oth.myColor=-1;oth.roomId=id;othShowGame();othWatchRoom(id);othSetStatus("対戦開始！白の番を待っています。");}catch(e){alert("参加できませんでした。コードと通信を確認してください。");}};
+document.getElementById("othPass").onclick=othPass;
+document.getElementById("othResign").onclick=()=>{if(oth.active&&confirm("投了しますか？"))othFinish(-oth.turn,"投了");};
+document.getElementById("othBack").onclick=()=>{clearInterval(oth.timer);othShowSetup();if(oth.active)othSetStatus("対戦中です。画面に戻ると手番を確認できます。");};
+
+
+// --- コインゲーム：ルーレット・スロット・じゃんけん ---
+function coinGameOpen(sectionId) {
+  if (!currentAccount) { alert("コインゲームを遊ぶにはログインしてください。"); return false; }
+  hideAllSections();
+  document.getElementById(sectionId).style.display = "block";
+  setCoinCountViews(getMyCoins());
+  return true;
+}
+document.getElementById("menuRouletteBtn").onclick = () => {
+  if (!coinGameOpen("rouletteSection")) return;
+  document.getElementById("rouletteResult").textContent = "";
+  document.getElementById("rouletteWheel").textContent = "🎡";
+};
+document.getElementById("menuSlotsBtn").onclick = () => {
+  if (!coinGameOpen("slotsSection")) return;
+  document.getElementById("slotsResult").textContent = "";
+};
+document.getElementById("menuRpsBtn").onclick = () => {
+  if (!coinGameOpen("rpsSection")) return;
+  document.getElementById("rpsResult").textContent = "";
+  document.getElementById("rpsBattleDisplay").textContent = "あなた ?　VS　? CPU";
+};
+
+let rouletteBusy = false;
+document.getElementById("roulettePlayBtn").onclick = async () => {
+  if (rouletteBusy) return;
+  if (!currentAccount) return alert("ログインしてください。");
+  const bet = Math.floor(Number(document.getElementById("rouletteBetInput").value));
+  const choice = document.getElementById("rouletteChoice").value;
+  if (!Number.isSafeInteger(bet) || bet <= 0) return alert("賭け金は1以上の整数で入力してください。");
+  if (getMyCoins() < bet) return alert("コインが足りません。");
+  rouletteBusy = true;
+  const btn = document.getElementById("roulettePlayBtn"); btn.disabled = true;
+  setMyCoins(getMyCoins() - bet);
+  const wheel = document.getElementById("rouletteWheel"), result = document.getElementById("rouletteResult");
+  result.textContent = "ボールが回転中…";
+  wheel.textContent = "🌀";
+  await new Promise(resolve => setTimeout(resolve, 900));
+  const number = Math.floor(Math.random() * 37);
+  const redNumbers = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+  const color = number === 0 ? "green" : redNumbers.has(number) ? "red" : "black";
+  const colorLabel = color === "red" ? "🔴 赤" : color === "black" ? "⚫ 黒" : "🟢 緑";
+  wheel.textContent = number === 0 ? "🟢 0" : `${color === "red" ? "🔴" : "⚫"} ${number}`;
+  if (choice === color) {
+    const multiplier = color === "green" ? 36 : 2;
+    const reward = bet * multiplier;
+    setMyCoins(getMyCoins() + reward);
+    result.style.color = "#16803c";
+    result.textContent = `🎉 的中！ ${colorLabel} ${number}｜${reward.toLocaleString("ja-JP")}コイン獲得（${multiplier}倍）`;
+    try { await saveLog("roulette_win", { bet, reward, number, color, choice }); } catch (_) {}
+  } else {
+    result.style.color = "#c0392b";
+    result.textContent = `😢 ハズレ：${colorLabel} ${number}｜${bet.toLocaleString("ja-JP")}コインを失いました`;
+    try { await saveLog("roulette_lose", { bet, number, color, choice }); } catch (_) {}
+  }
+  btn.disabled = false; rouletteBusy = false;
+};
+
+let slotsBusy = false;
+const slotSymbols = ["7️⃣", "💎", "🔔", "🍒", "⭐", "🍋"];
+document.getElementById("slotsPlayBtn").onclick = async () => {
+  if (slotsBusy) return;
+  if (!currentAccount) return alert("ログインしてください。");
+  const bet = Math.floor(Number(document.getElementById("slotsBetInput").value));
+  if (!Number.isSafeInteger(bet) || bet <= 0) return alert("賭け金は1以上の整数で入力してください。");
+  if (getMyCoins() < bet) return alert("コインが足りません。");
+  slotsBusy = true;
+  const btn = document.getElementById("slotsPlayBtn"), reels = document.getElementById("slotsReels"), result = document.getElementById("slotsResult");
+  btn.disabled = true; setMyCoins(getMyCoins() - bet); result.textContent = "リール回転中…";
+  const drawReels = arr => { reels.innerHTML = arr.map(sym => `<span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">${sym}</span>`).join(""); };
+  let spinCount = 0;
+  const spin = setInterval(() => { drawReels([0,1,2].map(() => slotSymbols[Math.floor(Math.random()*slotSymbols.length)])); spinCount++; }, 90);
+  await new Promise(resolve => setTimeout(resolve, 950)); clearInterval(spin);
+  const final = [0,1,2].map(() => slotSymbols[Math.floor(Math.random()*slotSymbols.length)]); drawReels(final);
+  let multiplier = 0, message = "ハズレ…賭け金を失いました";
+  if (final.every(x => x === final[0])) {
+    multiplier = final[0] === "7️⃣" ? 10 : final[0] === "💎" ? 6 : 4;
+    message = `🎉 3つ一致！ ${multiplier}倍！`;
+  } else if (final[0] === final[1] || final[1] === final[2] || final[0] === final[2]) {
+    multiplier = 1.5; message = "✨ 2つ一致！1.5倍！";
+  }
+  if (multiplier > 0) {
+    const reward = Math.floor(bet * multiplier); setMyCoins(getMyCoins() + reward);
+    result.style.color = "#16803c"; result.textContent = `${message} ${reward.toLocaleString("ja-JP")}コイン獲得`;
+    try { await saveLog("slots_win", { bet, reward, multiplier, symbols: final }); } catch (_) {}
+  } else {
+    result.style.color = "#c0392b"; result.textContent = message;
+    try { await saveLog("slots_lose", { bet, symbols: final }); } catch (_) {}
+  }
+  btn.disabled = false; slotsBusy = false;
+};
+
+let rpsBusy = false;
+const rpsOptions = [
+  { key: "rock", label: "グー", emoji: "✊" },
+  { key: "paper", label: "パー", emoji: "✋" },
+  { key: "scissors", label: "チョキ", emoji: "✌️" }
+];
+async function playCoinRps(choice) {
+  if (rpsBusy) return;
+  if (!currentAccount) return alert("ログインしてください。");
+  const bet = Math.floor(Number(document.getElementById("rpsBetInput").value));
+  if (!Number.isSafeInteger(bet) || bet <= 0) return alert("賭け金は1以上の整数で入力してください。");
+  if (getMyCoins() < bet) return alert("コインが足りません。");
+  rpsBusy = true;
+  const buttons = ["rpsRockBtn","rpsPaperBtn","rpsScissorsBtn"].map(id => document.getElementById(id));
+  buttons.forEach(b => b.disabled = true);
+  setMyCoins(getMyCoins() - bet);
+  const display = document.getElementById("rpsBattleDisplay"), result = document.getElementById("rpsResult");
+  result.textContent = "じゃんけん……";
+  await new Promise(resolve => setTimeout(resolve, 450));
+  const user = rpsOptions.find(x => x.key === choice), cpu = rpsOptions[Math.floor(Math.random()*rpsOptions.length)];
+  display.textContent = `あなた ${user.emoji}　VS　${cpu.emoji} CPU`;
+  if (user.key === cpu.key) {
+    setMyCoins(getMyCoins() + bet); result.style.color = "#2865a8"; result.textContent = `🤝 あいこ！賭け金 ${bet.toLocaleString("ja-JP")}コインを返却しました。`;
+    try { await saveLog("rps_draw", { bet, choice, cpu: cpu.key }); } catch (_) {}
+  } else if ((choice === "rock" && cpu.key === "scissors") || (choice === "paper" && cpu.key === "rock") || (choice === "scissors" && cpu.key === "paper")) {
+    const reward = bet * 2; setMyCoins(getMyCoins() + reward); result.style.color = "#16803c"; result.textContent = `🎉 勝ち！ ${reward.toLocaleString("ja-JP")}コイン獲得（2倍）`;
+    try { await saveLog("rps_win", { bet, reward, choice, cpu: cpu.key }); } catch (_) {}
+  } else {
+    result.style.color = "#c0392b"; result.textContent = `😢 負け… ${bet.toLocaleString("ja-JP")}コインを失いました。`;
+    try { await saveLog("rps_lose", { bet, choice, cpu: cpu.key }); } catch (_) {}
+  }
+  buttons.forEach(b => b.disabled = false); rpsBusy = false;
+}
+document.getElementById("rpsRockBtn").onclick = () => playCoinRps("rock");
+document.getElementById("rpsPaperBtn").onclick = () => playCoinRps("paper");
+document.getElementById("rpsScissorsBtn").onclick = () => playCoinRps("scissors");
 
 </script>
 </body>
