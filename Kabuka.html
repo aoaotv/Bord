@@ -93,13 +93,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore, doc, onSnapshot, runTransaction, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyC9ygh6HjX5mK1e5ZBnEWnLQCEjRMKIEWA",
-  authDomain: "sinzo-3f972.firebaseapp.com",
-  databaseURL: "https://sinzo-3f972-default-rtdb.firebaseio.com",
-  projectId: "sinzo-3f972",
-  storageBucket: "sinzo-3f972.firebasestorage.app",
-  messagingSenderId: "1058985227031",
-  appId: "1:1058985227031:web:6b152911e917903910bd52"
+  apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
+  authDomain: "sinzobord.firebaseapp.com",
+  projectId: "sinzobord",
+  storageBucket: "sinzobord.firebasestorage.app",
+  messagingSenderId: "326229251487",
+  appId: "1:326229251487:web:d5a32cb2a9023d862819aa"
 });
 const db = getFirestore(app);
 const marketRef = doc(db, "market", "global");
@@ -216,7 +215,7 @@ function drawLine(cv,arr,color,opt){
 // 下落時（v<0）を赤(#ff4d5e)、上昇時（v>0）を緑(#2ee6a0)に設定
 const colOf=v=>v>0?"#2ee6a0":v<0?"#ff4d5e":"#9aa7c7";
 function info(d){
-  const s=market[d.id],h=s.h,p=s.p,prev=h.length>1?h[h.length-2]:p,open=h[0];
+  const s=market[d.id],h=(s.h||[]).filter(v=>v!=null),p=s.p,prev=h.length>1?h[h.length-2]:p,open=h.length?h[0]:p;
   return {d,s,h,p,prev,open,tick:p-prev,diff:p-prev,pct:prev?(p-prev)/prev*100:0,dOpen:p-open,pOpen:open?(p-open)/open*100:0};
 }
 const sgn=(v,dg)=>(v>0?"+":"")+(dg?v.toFixed(dg):v);
@@ -254,7 +253,7 @@ function render(){
     }else if(layout==="focus"){
       el.querySelector(".fbig").className="fbig num "+c;el.querySelector(".fbig").textContent=fmt(i.p);
       const fc=el.querySelector(".fchg");fc.className="fchg num "+c;fc.textContent=`前回比 ${arrow(i.diff)} ${sgn(i.diff)}（${sgn(i.pct,2)}%）`;
-      el.querySelector(".fmeta").innerHTML=`<span>高値 <b>${fmt(Math.max(...i.h))}</b></span><span>安値 <b>${fmt(Math.min(...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前回 <b>${fmt(i.prev)}</b></span><span>始値比 <b class="${cls(i.dOpen)}">${arrow(i.dOpen)} ${sgn(i.dOpen)}（${sgn(i.pOpen,2)}%）</b></span><span>${chosen.indexOf(focus)+1} / ${chosen.length}</span>`;
+      el.querySelector(".fmeta").innerHTML=`<span>高値 <b>${fmt(Math.max(i.p,...i.h))}</b></span><span>安値 <b>${fmt(Math.min(i.p,...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前回 <b>${fmt(i.prev)}</b></span><span>始値比 <b class="${cls(i.dOpen)}">${arrow(i.dOpen)} ${sgn(i.dOpen)}（${sgn(i.pOpen,2)}%）</b></span><span>${chosen.indexOf(focus)+1} / ${chosen.length}</span>`;
       drawLine(el.querySelector("canvas"),i.h,colOf(i.diff),{axis:true});
       if(old!=null&&old!==i.p){el.classList.remove("flash-up","flash-down");void el.offsetWidth;el.classList.add(i.p>old?"flash-up":"flash-down");}
     }else{
@@ -264,7 +263,7 @@ function render(){
       if(i.d.id===focus){
         const m=v.querySelector(".main");m.querySelector("h2").textContent=`${i.d.emoji} ${i.d.name}`;
         const b=m.querySelector(".big");b.className="big num "+c;b.innerHTML=`${fmt(i.p)} <small style="font-size:.28em">コイン</small> <span style="font-size:.3em">前回比 ${arrow(i.diff)} ${sgn(i.diff)} (${sgn(i.pct,2)}%)</span>`;
-        m.querySelector(".meta").innerHTML=`<span>高値 <b>${fmt(Math.max(...i.h))}</b></span><span>安値 <b>${fmt(Math.min(...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前回 <b>${fmt(i.prev)}</b></span><span>始値比 <b class="${cls(i.dOpen)}">${arrow(i.dOpen)} ${sgn(i.dOpen)}（${sgn(i.pOpen,2)}%）</b></span><span>表示 <b>${i.h.length}</b>点</span>`;
+        m.querySelector(".meta").innerHTML=`<span>高値 <b>${fmt(Math.max(i.p,...i.h))}</b></span><span>安値 <b>${fmt(Math.min(i.p,...i.h))}</b></span><span>始値 <b>${fmt(i.open)}</b></span><span>前回 <b>${fmt(i.prev)}</b></span><span>始値比 <b class="${cls(i.dOpen)}">${arrow(i.dOpen)} ${sgn(i.dOpen)}（${sgn(i.pOpen,2)}%）</b></span><span>表示 <b>${i.h.length}</b>点</span>`;
         drawLine(m.querySelector("canvas"),i.h,colOf(i.diff),{axis:true});
       }
     }
