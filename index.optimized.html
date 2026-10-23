@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Bord 軽量版：Firebase の読み書きを抑えた掲示板コア">
+<title>Bord 軽量版</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#172033;background:#f4f6fa}
+*{box-sizing:border-box}body{margin:0}header{background:#263b55;color:white;padding:16px}main{max-width:900px;margin:20px auto;padding:0 14px}
+.panel{background:white;border:1px solid #dce2ec;border-radius:12px;padding:16px;margin-bottom:14px}
+h1{font-size:1.2rem;margin:0}h2{font-size:1rem;margin:0 0 12px}
+input,textarea,button{font:inherit}input,textarea{width:100%;padding:10px;border:1px solid #cbd3df;border-radius:8px;margin:5px 0 10px}
+button{border:0;border-radius:8px;padding:10px 14px;background:#2563eb;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:wait}
+ul{padding:0;list-style:none;margin:0}.thread{padding:12px;border-bottom:1px solid #e8edf4;cursor:pointer}.thread:last-child{border-bottom:0}.muted{color:#65738a;font-size:.85rem}.posts{max-height:55vh;overflow:auto}.post{padding:10px;border-bottom:1px solid #edf0f5;overflow-wrap:anywhere}.status{font-size:.9rem;color:#65738a;min-height:1.4em}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}@media(max-width:560px){.row{display:block}}
+</style>
+</head>
+<body>
+<header><h1>Bord 軽量版（掲示板コア）</h1></header>
+<main>
+  <section class="panel">
+    <h2>利用者 ID</h2>
+    <input id="memberId" maxlength="40" placeholder="表示名 / 利用者 ID">
+    <p class="muted">この ID は表示用です。Firebase のセキュリティルールや認証の代わりにはなりません。</p>
+  </section>
+  <section class="panel">
+    <h2>スレッドを作成</h2>
+    <input id="threadTitle" maxlength="120" placeholder="スレッドタイトル">
+    <textarea id="threadBody" maxlength="4000" rows="3" placeholder="最初の投稿（任意）"></textarea>
+    <button id="createThread">作成</button>
+  </section>
+  <section class="panel">
+    <h2>スレッド一覧 <span class="muted">（最新20件）</span></h2>
+    <div id="threads" class="muted">読み込み中…</div>
+    <button id="refreshThreads" type="button">一覧を再読み込み</button>
+  </section>
+  <section class="panel" id="threadPanel" hidden>
+    <div class="row"><h2 id="activeTitle">投稿</h2><button id="closeThread" type="button">閉じる</button></div>
+    <div id="posts" class="posts"></div>
+    <textarea id="postBody" maxlength="4000" rows="3" placeholder="投稿内容"></textarea>
+    <button id="sendPost">投稿</button>
+  </section>
+  <p class="status" id="status" role="status"></p>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  collection, doc, addDoc, query, orderBy, limit, onSnapshot,
+  serverTimestamp, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/*
+ * 低通信量の設計：
+ * - スレッド一覧は最新20件だけを監視
+ * - 投稿は選択中のスレッドだけ最新100件を監視
+ * - 画面遷移時に前の onSnapshot を必ず解除
+ * - 一覧の手動更新ボタンも用意（監視が不要なら stopThreadListListener() を利用）
+ * - ローカル永続キャッシュを有効化
+ *
+ * 注意：これは既存 Bord の全機能を置き換えるものではない「掲示板コア」です。
+ * コレクション名や既存データ構造が異なる場合は下記設定を合わせてください。
+ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
+  authDomain: "sinzobord.firebaseapp.com",
+  projectId: "sinzobord",
+  storageBucket: "sinzobord.firebasestorage.app",
+  messagingSenderId: "326229251487",
+  appId: "1:326229251487:web:d5a32cb2a9023d862819aa",
+  measurementId: "G-12GGPD0H2H"
+};
+const ROOM_COLLECTION = "threads"; // 既存のルーム別コレクション名に合わせて変更
+const THREAD_LIMIT = 20;
+const POST_LIMIT = 100;
+
+const app = initializeApp(firebaseConfig);
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+const $ = id => document.getElementById(id);
+let threadListUnsub = null;
+let postsUnsub = null;
+let activeThreadId = null;
+let threadDocs = [];
+const iconSafe = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const memberId = () => $("memberId").value.trim().slice(0,40) || "名称未設定";
+function status(message){ $("status").textContent = message; }
+
+function stopThreadListListener(){
+  if(threadListUnsub){threadListUnsub();threadListUnsub=null;}
+}
+function stopPostsListener(){
+  if(postsUnsub){postsUnsub();postsUnsub=null;}
+}
+function renderThreads(){
+  const root=$("threads");
+  if(!threadDocs.length){root.textContent="スレッドはありません";return;}
+  const ul=document.createElement("ul");
+  for(const snap of threadDocs){
+    const d=snap.data();
+    const li=document.createElement("li"); li.className="thread";
+    const title=document.createElement("strong"); title.textContent=d.title || "タイトルなし";
+    const meta=document.createElement("div"); meta.className="muted";
+    meta.textContent=(d.memberId || "名称未設定")+" ・ 投稿 "+(Number(d.postCount)||0)+" 件";
+    li.append(title,meta);
+    li.addEventListener("click",()=>openThread(snap.id,d.title || "タイトルなし"));
+    ul.appendChild(li);
+  }
+  root.replaceChildren(ul);
+}
+function startThreadListListener(){
+  stopThreadListListener();
+  const q=query(collection(db,ROOM_COLLECTION),orderBy("created_at","desc"),limit(THREAD_LIMIT));
+  threadListUnsub=onSnapshot(q,snap=>{
+    threadDocs=snap.docs; renderThreads();
+  },err=>{status("一覧の読み込みに失敗しました: "+err.message);});
+}
+function openThread(id,title){
+  stopPostsListener();
+  activeThreadId=id;
+  $("activeTitle").textContent=title;
+  $("threadPanel").hidden=false;
+  $("posts").textContent="読み込み中…";
+  const q=query(collection(db,ROOM_COLLECTION,id,"posts"),orderBy("created_at","asc"),limit(POST_LIMIT));
+  postsUnsub=onSnapshot(q,snap=>{
+    const frag=document.createDocumentFragment();
+    for(const p of snap.docs){
+      const d=p.data(), el=document.createElement("article"); el.className="post";
+      const body=document.createElement("div"); body.textContent=d.body || "";
+      const meta=document.createElement("div"); meta.className="muted";
+      meta.textContent="#"+(d.index ?? "—")+" · "+(d.memberId || "名称未設定");
+      el.append(body,meta); frag.appendChild(el);
+    }
+    $("posts").replaceChildren(frag);
+  },err=>status("投稿の読み込みに失敗しました: "+err.message));
+}
+$("closeThread").addEventListener("click",()=>{
+  stopPostsListener(); activeThreadId=null; $("threadPanel").hidden=true;
+});
+$("refreshThreads").addEventListener("click",()=>{
+  // ボタン操作時だけ再取得したい場合の簡易更新。監視は継続する。
+  startThreadListListener();
+});
+$("createThread").addEventListener("click",async()=>{
+  const button=$("createThread"), title=$("threadTitle").value.trim(), body=$("threadBody").value.trim();
+  if(!title){status("タイトルを入力してください");return;}
+  button.disabled=true;
+  try{
+    const now=serverTimestamp();
+    const threadRef=await addDoc(collection(db,ROOM_COLLECTION),{
+      title, memberId:memberId(), created_at:now, latestPostTime:now, postCount:body?1:0
+    });
+    if(body){
+      await addDoc(collection(db,ROOM_COLLECTION,threadRef.id,"posts"),{
+        body, memberId:memberId(), created_at:serverTimestamp(), index:1
+      });
+    }
+    $("threadTitle").value=""; $("threadBody").value="";
+    status("スレッドを作成しました");
+    openThread(threadRef.id,title);
+  }catch(err){status("作成できませんでした: "+err.message);}
+  finally{button.disabled=false;}
+});
+$("sendPost").addEventListener("click",async()=>{
+  const body=$("postBody").value.trim();
+  if(!activeThreadId || !body)return;
+  const button=$("sendPost"); button.disabled=true;
+  try{
+    // 投稿本文を1回だけ追加。カウンター更新は既存スキーマに合わせたサーバー側処理を推奨。
+    await addDoc(collection(db,ROOM_COLLECTION,activeThreadId,"posts"),{
+      body, memberId:memberId(), created_at:serverTimestamp()
+    });
+    $("postBody").value=""; status("投稿しました");
+  }catch(err){status("投稿できませんでした: "+err.message);}
+  finally{button.disabled=false;}
+});
+window.addEventListener("pagehide",()=>{stopThreadListListener();stopPostsListener();});
+startThreadListListener();
+</script>
+</body>
+</html>
