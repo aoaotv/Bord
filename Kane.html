@@ -8,29 +8,33 @@
 <style>
 :root{--bg:#f4f6fb;--card:#fff;--ink:#1f2a37;--mute:#6b7785;--line:#e3e8ef;--blue:#2f7de1;--green:#1f9d63;--red:#d64545;--orange:#e67e22}
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;font-size:100%}
 html,body{max-width:100%;overflow-x:hidden}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans",Roboto,sans-serif;font-size:14px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans",Roboto,sans-serif;font-size:.875rem}
 header{background:#1f2a37;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-header h1{margin:0;font-size:18px}
+header h1{margin:0;font-size:1.125rem}
 header .sp{flex:1}
-main{max-width:1180px;margin:0 auto;padding:16px}
+main{max-width:none;width:100%;margin:0;padding:16px}
 button{font:inherit;border:none;border-radius:8px;padding:9px 16px;background:var(--blue);color:#fff;cursor:pointer;font-weight:600}
 button:disabled{opacity:.55;cursor:default}
 button.ghost{background:#e8edf5;color:var(--ink)}
 input,select{font:inherit;padding:8px 10px;border:1px solid #cdd5e0;border-radius:8px;background:#fff;color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
-.card h2{margin:0 0 10px;font-size:16px}
-.sub{color:var(--mute);font-size:12px}
+.card h2{margin:0 0 10px;font-size:1rem}
+.sub{color:var(--mute);font-size:0.75rem}
 .gate{max-width:340px;margin:12vh auto;text-align:center}
 .gate input{width:100%;margin:10px 0}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
-.kpi .l{font-size:12px;color:var(--mute)}
-.kpi .v{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpis{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden}
+
+.kpi{min-width:0;display:flex;align-items:baseline;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.kpi:last-child{border-bottom:none}
+.kpi .l{flex:0 0 min(12em,34%);font-size:.8125rem;color:var(--mute)}
+.kpi .v{flex:1;min-width:0;font-size:1.25rem;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;line-height:1.3;word-break:break-all;overflow-wrap:anywhere;white-space:normal}
+.coin-approx{display:inline-block;font-size:.5em;vertical-align:baseline;line-height:1;margin-left:4px;color:inherit;opacity:.7;font-weight:normal;white-space:nowrap;letter-spacing:0;word-break:keep-all}
 .tablewrap{overflow-x:hidden}
 table{border-collapse:collapse;width:100%;table-layout:auto}
 th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:normal;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}
-th{font-size:12px;color:var(--mute);font-weight:600;background:#f8fafc;position:sticky;top:0;cursor:pointer;user-select:none}
+th{font-size:.75rem;color:var(--mute);font-weight:600;background:#f8fafc;position:sticky;top:0;cursor:pointer;user-select:none}
 th:first-child,td:first-child{text-align:left}
 tr.clickable{cursor:pointer}
 tr.clickable:hover{background:#f1f6fe}
@@ -38,7 +42,7 @@ tr.sel{background:#e6f0ff}
 .pos{color:var(--green)}.neg{color:var(--red)}
 .bar{display:inline-block;height:8px;border-radius:4px;background:var(--blue);vertical-align:middle;margin-right:6px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
-.tag{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;width:max-content;max-width:100%;padding:4px 9px;line-height:1.35;border-radius:999px;font-size:11px;font-weight:700;color:#fff;writing-mode:horizontal-tb;word-break:keep-all;overflow-wrap:normal}
+.tag{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;width:max-content;max-width:100%;padding:4px 9px;line-height:1.35;border-radius:999px;font-size:0.6875rem;font-weight:700;color:#fff;writing-mode:horizontal-tb;word-break:keep-all;overflow-wrap:normal}
 .t-transfer{background:#2f7de1}.t-deposit{background:#16a085}.t-stock{background:#8e44ad}.t-game{background:#e67e22}.t-other{background:#7f8c8d}.t-admin{background:#c0392b}
 .flow{display:inline-flex;gap:6px;align-items:center}
 .arrow{color:var(--mute)}
@@ -49,7 +53,7 @@ tr.sel{background:#e6f0ff}
 #timelineMore{margin-top:10px}
 .hidden{display:none}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{background:#e8edf5;color:var(--ink);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600}
+.chip{background:#e8edf5;color:var(--ink);padding:6px 12px;border-radius:999px;font-size:0.8125rem;font-weight:600}
 .chip.on{background:var(--blue);color:#fff}
 #fAcc{flex:1;min-width:0;max-width:260px}
 #sortSel{display:none}
@@ -62,8 +66,8 @@ tr.sel{background:#e6f0ff}
   tr{border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-bottom:8px;background:#fff}
   td{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding:5px 0;text-align:right!important}
   td:last-child{border-bottom:none}
-  td::before{content:attr(data-label);color:var(--mute);font-size:12px;flex:0 0 auto;text-align:left}
-  td:first-child{font-size:15px}
+  td::before{content:attr(data-label);color:var(--mute);font-size:0.75rem;flex:0 0 auto;text-align:left}
+  td:first-child{font-size:0.9375rem}
 }
 </style>
 </head>
@@ -83,6 +87,7 @@ tr.sel{background:#e6f0ff}
   <span class="sub" id="loadedAt" style="color:#aab4c3"></span>
   <span class="sp"></span>
   <span id="liveBadge" class="sub" style="color:#aab4c3">⏳ 接続待ち</span>
+  <button id="refreshBtn" class="ghost" type="button">🔄 更新</button>
 </header>
 <main>
   <div id="status" class="status">パスワードを入力すると、自動で読み込みを始めて、リアルタイムに更新されます。</div>
@@ -129,7 +134,7 @@ tr.sel{background:#e6f0ff}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, doc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, collection, doc, query, where, onSnapshot, getDocsFromServer, getDocFromServer } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
@@ -143,6 +148,82 @@ const db = getFirestore(app);
 const $ = id => document.getElementById(id);
 const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const ADMIN_PASSWORD = "2026";
+
+// ---- 保存機能（クッキー＋ブラウザ保存）----
+// クッキー : 最終保存時刻などのメタ情報（常に保存）
+// 本体データ: gzip圧縮して保存。BODY_IN_COOKIE=true にすると本体もクッキーに分割保存（容量に注意）
+const BODY_IN_COOKIE = false, CK_CHUNK = 3500, CK_MAX = 40, CK_PFX = "bord_";
+const ckSet = (k, v, days = 400) => { try { document.cookie = `${k}=${encodeURIComponent(v)};max-age=${days * 86400};path=/;SameSite=Lax`; } catch (e) {} };
+const ckGet = k => { try { const m = document.cookie.split("; ").find(s => s.startsWith(k + "=")); return m ? decodeURIComponent(m.slice(k.length + 1)) : null; } catch (e) { return null; } };
+const ckDel = k => { try { document.cookie = `${k}=;max-age=0;path=/`; } catch (e) {} };
+async function gz(s) {
+  const b = await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer();
+  let t = ""; new Uint8Array(b).forEach(c => t += String.fromCharCode(c));
+  return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function ungz(s) {
+  const u = Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+  return await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+}
+async function saveCache(name, obj) {
+  try {
+    const z = await gz(JSON.stringify(obj));
+    if (BODY_IN_COOKIE) {
+      const n = Math.ceil(z.length / CK_CHUNK);
+      if (n > CK_MAX) throw new Error("クッキーの容量超過");
+      for (let i = 0; i < n; i++) ckSet(`${CK_PFX}${name}_${i}`, z.slice(i * CK_CHUNK, (i + 1) * CK_CHUNK));
+      for (let i = n; i < CK_MAX && ckGet(`${CK_PFX}${name}_${i}`) !== null; i++) ckDel(`${CK_PFX}${name}_${i}`);
+      ckSet(`${CK_PFX}${name}_n`, String(n));
+    } else localStorage.setItem(CK_PFX + name, z);
+    ckSet(`${CK_PFX}${name}_meta`, JSON.stringify({ t: Date.now(), bytes: z.length }));
+  } catch (e) { console.warn("保存に失敗:", e); }
+}
+async function loadCache(name) {
+  try {
+    let z;
+    if (BODY_IN_COOKIE) {
+      const n = +ckGet(`${CK_PFX}${name}_n`); if (!n) return null;
+      z = ""; for (let i = 0; i < n; i++) { const p = ckGet(`${CK_PFX}${name}_${i}`); if (p == null) return null; z += p; }
+    } else z = localStorage.getItem(CK_PFX + name);
+    return z ? JSON.parse(await ungz(z)) : null;
+  } catch (e) { return null; }
+}
+
+// ---- 取得済みデータの保存・復元 ----
+let lastSaved = "", saveTimer = null;
+function snapshotForCache() {
+  if (!accDocs || !logDocs) return null;
+  const str = v => v === undefined || v === null ? undefined : String(v);
+  return {
+    t: Date.now(),
+    acc: accDocs.map(({ name, data: a }) => ({ name, data: { holdings: a.holdings, shares: a.shares, coinsExact: str(a.coinsExact), coins: str(a.coins), deposit: a.deposit, depositAt: a.depositAt, premiumUntil: a.premiumUntil } })),
+    mk: marketStocks,
+    logs: logDocs.map(d => ({ action: d.action, user: d.user, detail: d.detail, created_at: tsMs(d.created_at) }))
+  };
+}
+function scheduleSave() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(async () => {
+    saveTimer = null;
+    const snap = snapshotForCache(); if (!snap) return;
+    const sig = JSON.stringify({ ...snap, t: 0 });
+    if (sig === lastSaved) return;          // 更新がなければ保存しない
+    lastSaved = sig;
+    await saveCache("kane", snap);
+  }, 3000);
+}
+async function restoreCache() {
+  const c = await loadCache("kane");
+  if (!c || !c.acc || !c.logs) return;
+  try {
+    accDocs = c.acc; marketStocks = c.mk || {}; logDocs = c.logs;
+    lastSaved = JSON.stringify({ ...c, t: 0 });
+    recompute();
+    $("loadedAt").textContent = "保存データ " + dstr(c.t) + " 時点";
+    $("liveBadge").textContent = "💾 保存データ表示中（更新を確認中…）";
+  } catch (e) { console.warn(e); accDocs = null; logDocs = null; }
+}
+
 
 // ---- アプリ本体と同じ設定 ----
 const DAY_MS = 86400000, RATE_NORMAL = 0.002, RATE_PREMIUM = 0.003;
@@ -162,7 +243,35 @@ const fmt = n => {
   if (!Number.isFinite(Number(n))) return "計算上限超過";
   return Math.round(Number(n)).toLocaleString("ja-JP");
 };
-const fmtSigned = n => (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(Math.abs(n));
+// ---- 巨大な数でも桁あふれしないよう、集計はすべてBigIntで行う ----
+const toBig = v => {
+  try {
+    if (typeof v === "bigint") return v;
+    if (typeof v === "string" && /^\s*-?\d+\s*$/.test(v)) return BigInt(v.trim());
+    const n = Number(v); if (!Number.isFinite(n)) return 0n;
+    return BigInt(n.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 0 }));
+  } catch (e) { return 0n; }
+};
+const bAbs = n => typeof n === "bigint" ? (n < 0n ? -n : n) : Math.abs(n);
+const cmp = (x, y) => x > y ? 1 : x < y ? -1 : 0;
+const ratio = (v, m) => m > 0n ? Number(toBig(v) * 1000n / m) / 1000 : 0;
+const UNITS = [["穣", 10n ** 28n], ["秭", 10n ** 24n], ["垓", 10n ** 20n], ["京", 10n ** 16n], ["兆", 10n ** 12n], ["億", 10n ** 8n], ["万", 10n ** 4n]];
+function approxText(v) {
+  const abs = v < 0n ? -v : v;
+  if (abs < 10000n) return "";
+  for (let i = 0; i < UNITS.length; i++) {
+    const [name, size] = UNITS[i];
+    if (abs < size) continue;
+    const rounded = (abs / size) * 10n + ((abs % size) * 10n) / size;
+    if (rounded >= 100000n && i > 0) return "1" + UNITS[i - 1][0];
+    return (v < 0n ? "-" : "") + (rounded % 10n === 0n ? String(rounded / 10n) : `${rounded / 10n}.${rounded % 10n}`) + name;
+  }
+  return "";
+}
+const unitSpan = n => { const ap = approxText(toBig(n)); return ap ? `<span class="coin-approx">${ap}</span>` : ""; };
+const fmtU = n => { const b = fmt(n); return b === "計算上限超過" ? b : b + unitSpan(n); };
+const fmtSignedU = n => { const b = fmtSigned(n); return b.endsWith("計算上限超過") ? b : b + unitSpan(bAbs(toBig(n))); };
+const fmtSigned = n => (n > 0 ? "+" : n < 0 ? "−" : "") + fmt(bAbs(n));
 const cls = n => n > 0 ? "pos" : n < 0 ? "neg" : "";
 const tsMs = t => !t ? 0 : t.toMillis ? t.toMillis() : t.toDate ? t.toDate().getTime() : new Date(t).getTime() || 0;
 const dstr = ms => { const d = new Date(ms), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}/${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
@@ -170,7 +279,7 @@ const dstr = ms => { const d = new Date(ms), p = n => String(n).padStart(2, "0")
 // ---- ログイン ----
 function openGate() {
   if ($("pw").value.trim() !== ADMIN_PASSWORD) { $("pwErr").textContent = "パスワードが違います"; return; }
-  $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); startLive();
+  $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); restoreCache().finally(startLive);
 }
 $("pwBtn").onclick = openGate;
 $("pw").addEventListener("keydown", e => { if (e.key === "Enter") openGate(); });
@@ -188,19 +297,19 @@ function normalize(d) {
   else bal[u] = { coins: x.coinsAfter, dep: x.depAfter };
   const ev = (cat, label, deltas, extra = {}) => ({ at, cat, label, deltas, bal, accounts: Object.keys(deltas).length ? Object.keys(deltas) : [u], ...extra });
   switch (a) {
-    case "send_coin": return ev("transfer", "送金", { [x.from]: -x.amount, [x.to]: +x.amount }, { from: x.from, to: x.to, amount: x.amount });
-    case "coin_rain": return ev("transfer", `コインの雨（${x.recipientsCount ?? "?"}人に分配）`, { [u]: -x.amount }, { from: u, to: `オンライン${x.recipientsCount ?? "?"}人`, amount: x.amount });
-    case "deposit_in": return ev("deposit", "預金に預けた", { [u]: -x.amount }, { amount: x.amount, depIn: x.amount });
-    case "deposit_out": return ev("deposit", "預金から引き出し", { [u]: +x.amount }, { amount: x.amount, depOut: x.amount });
-    case "stock_buy": return ev("stock", `${STOCK_NAMES[x.stock] || x.stock} を ${x.qty}株 購入（@${x.price}）`, { [u]: -x.total });
-    case "stock_sell": return ev("stock", `${STOCK_NAMES[x.stock] || x.stock} を ${x.qty}株 売却（@${x.price}）`, { [u]: +x.total });
-    case "premium_buy": return ev("other", `プレミアム ${x.days}日分 購入`, { [u]: -x.cost });
-    case "gacha": return ev("game", `ガチャ（${x.cost}→${x.prize}コイン）`, { [u]: x.prize - x.cost });
-    case "dice_win": return ev("game", `サイコロ勝ち（賭け${x.bet}）`, { [u]: x.reward - x.bet });
-    case "dice_lose": return ev("game", `サイコロ負け（賭け${x.bet}）`, { [u]: -x.bet });
-    case "roulette": return ev("game", `プレミアムルーレット${x.prize ? "" : "（ハズレ）"}`, { [u]: +x.prize });
-    case "coin_redeem": return ev("other", `コインコード「${x.code}」でチャージ`, { [u]: +x.amount });
-    case "shop_buy": return ev("other", `${x.kind}購入：${x.name}`, { [u]: -x.price });
+    case "send_coin": return ev("transfer", "送金", { [x.from]: -toBig(x.amount), [x.to]: toBig(x.amount) }, { from: x.from, to: x.to, amount: toBig(x.amount) });
+    case "coin_rain": return ev("transfer", `コインの雨（${x.recipientsCount ?? "?"}人に分配）`, { [u]: -toBig(x.amount) }, { from: u, to: `オンライン${x.recipientsCount ?? "?"}人`, amount: toBig(x.amount) });
+    case "deposit_in": return ev("deposit", "預金に預けた", { [u]: -toBig(x.amount) }, { amount: toBig(x.amount), depIn: toBig(x.amount) });
+    case "deposit_out": return ev("deposit", "預金から引き出し", { [u]: toBig(x.amount) }, { amount: toBig(x.amount), depOut: toBig(x.amount) });
+    case "stock_buy": return ev("stock", `${STOCK_NAMES[x.stock] || x.stock} を ${x.qty}株 購入（@${x.price}）`, { [u]: -toBig(x.total) });
+    case "stock_sell": return ev("stock", `${STOCK_NAMES[x.stock] || x.stock} を ${x.qty}株 売却（@${x.price}）`, { [u]: toBig(x.total) });
+    case "premium_buy": return ev("other", `プレミアム ${x.days}日分 購入`, { [u]: -toBig(x.cost) });
+    case "gacha": return ev("game", `ガチャ（${x.cost}→${x.prize}コイン）`, { [u]: toBig(x.prize) - toBig(x.cost) });
+    case "dice_win": return ev("game", `サイコロ勝ち（賭け${x.bet}）`, { [u]: toBig(x.reward) - toBig(x.bet) });
+    case "dice_lose": return ev("game", `サイコロ負け（賭け${x.bet}）`, { [u]: -toBig(x.bet) });
+    case "roulette": return ev("game", `プレミアムルーレット${x.prize ? "" : "（ハズレ）"}`, { [u]: toBig(x.prize) });
+    case "coin_redeem": return ev("other", `コインコード「${x.code}」でチャージ`, { [u]: toBig(x.amount) });
+    case "shop_buy": return ev("other", `${x.kind}購入：${x.name}`, { [u]: -toBig(x.price) });
     case "boost_thread": return ev("other", "スレッドを注目固定（コイン消費は記録なし）", {});
     case "admin_edit_account_shares": return { at, cat: "admin", label: `管理者が保有株を ${fmt(x.newShares)} 株に設定（銘柄は記録なし）`, deltas: {}, bal, accounts: [x.targetAccount || u] };
     case "admin_edit_stock_price": return { at, cat: "admin", label: `管理者が ${STOCK_NAMES[x.stock] || x.stock} の株価を ${fmt(x.newPrice)} に強制変更`, deltas: {}, bal, accounts: [u] };
@@ -220,12 +329,30 @@ function onErr(e) {
 }
 function startLive() {
   if (liveStarted) return; liveStarted = true;
-  $("status").textContent = "⏳ 読み込み中...";
+  if (!accDocs) $("status").textContent = "⏳ 読み込み中...";
   onSnapshot(collection(db, "accounts"), snap => { accDocs = snap.docs.map(d => ({ name: d.id, data: d.data() })); scheduleRecompute(); }, onErr);
   onSnapshot(doc(db, "market", "global"), snap => { const st = snap.exists() ? snap.data().stocks || {} : {}; marketStocks = {}; Object.keys(st).forEach(k => marketStocks[k] = st[k].p); scheduleRecompute(); }, () => {});
   onSnapshot(query(collection(db, "logs"), where("action", "in", ACTIONS)), snap => { logDocs = snap.docs.map(d => d.data()); scheduleRecompute(); }, onErr);
   setInterval(() => { if (accDocs) { renderKpis(); renderAccounts(); } }, 3000);   // 預金の利子が増えていくので定期的に再計算
 }
+// ---- 手動更新：サーバーから最新の履歴・残高・株価を取り直して表示と保存を更新 ----
+async function manualRefresh() {
+  const b = $("refreshBtn"); if (b.disabled) return;
+  b.disabled = true; b.textContent = "⏳ 更新中…";
+  try {
+    const [a, m, l] = await Promise.all([
+      getDocsFromServer(collection(db, "accounts")),
+      getDocFromServer(doc(db, "market", "global")).catch(() => null),
+      getDocsFromServer(query(collection(db, "logs"), where("action", "in", ACTIONS)))
+    ]);
+    accDocs = a.docs.map(d => ({ name: d.id, data: d.data() }));
+    if (m) { const st = m.exists() ? m.data().stocks || {} : {}; marketStocks = {}; Object.keys(st).forEach(k => marketStocks[k] = st[k].p); }
+    logDocs = l.docs.map(d => d.data());
+    recompute(); scheduleSave();
+  } catch (e) { onErr(e); }
+  finally { b.disabled = false; b.textContent = "🔄 更新"; }
+}
+$("refreshBtn").onclick = manualRefresh;
 function recompute() {
   if (!accDocs || !logDocs) return;
   const now = Date.now(), prices = marketStocks;
@@ -236,22 +363,22 @@ function recompute() {
     return { name, coins, coinsDisplay: coins, coinsNumber: Number(coins), raw: a, hold, stockVal, shares, premium: (a.premiumUntil || 0) > now };
   });
   events = logDocs.map(normalize).filter(Boolean).sort((a, b) => b.at - a.at);
-  stats = {}; const get = n => stats[n] || (stats[n] = { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 });
+  stats = {}; const get = n => stats[n] || (stats[n] = { sent: 0n, recv: 0n, depIn: 0n, depOut: 0n, net: 0n });
   const pairs = {};
   events.forEach(e => {
     Object.keys(e.deltas).forEach(n => { get(n).net += e.deltas[n]; });
     if (e.cat === "transfer" && e.from) {
       get(e.from).sent += e.amount;
-      if (e.label === "送金") { get(e.to).recv += e.amount; const k = e.from + "\u0000" + e.to; (pairs[k] = pairs[k] || { from: e.from, to: e.to, n: 0, sum: 0 }); pairs[k].n++; pairs[k].sum += e.amount; }
+      if (e.label === "送金") { get(e.to).recv += e.amount; const k = e.from + "\u0000" + e.to; (pairs[k] = pairs[k] || { from: e.from, to: e.to, n: 0, sum: 0n }); pairs[k].n++; pairs[k].sum += e.amount; }
     }
     if (e.depIn) get(e.accounts[0]).depIn += e.depIn;
     if (e.depOut) get(e.accounts[0]).depOut += e.depOut;
   });
-  window.__pairs = Object.values(pairs).sort((a, b) => b.sum - a.sum);
+  window.__pairs = Object.values(pairs).sort((a, b) => cmp(b.sum, a.sum));
   const keep = shown;
   renderAll();
   while (shown < keep && shown < filtered.length) moreRows();   // 表示件数を保ったまま更新
-  lastUpdate = now;
+  lastUpdate = now; scheduleSave();
   $("loadedAt").textContent = "最終更新 " + dstr(now);
   $("liveBadge").textContent = "🟢 リアルタイム更新中";
   $("status").classList.remove("err");
@@ -265,13 +392,13 @@ function renderAll() { renderKpis(); renderAccounts(); renderPairs(); renderFilt
 
 function renderKpis() {
   accounts.forEach(liveCalc);
-  const sum = k => accounts.reduce((a, b) => a + b[k], 0);
-  const transfers = events.filter(e => e.label === "送金"), tsum = transfers.reduce((a, e) => a + e.amount, 0);
-  const depIn = Object.values(stats).reduce((a, s) => a + s.depIn, 0), depOut = Object.values(stats).reduce((a, s) => a + s.depOut, 0);
+  const sum = k => accounts.reduce((a, b) => a + toBig(b[k]), 0n);
+  const transfers = events.filter(e => e.label === "送金"), tsum = transfers.reduce((a, e) => a + e.amount, 0n);
+  const depIn = Object.values(stats).reduce((a, s) => a + s.depIn, 0n), depOut = Object.values(stats).reduce((a, s) => a + s.depOut, 0n);
   const items = [
-    ["アカウント数", fmt(accounts.length) + " 人"], ["所持コイン合計", fmt(accounts.reduce((v,a)=>v+a.coinsDisplay,0n))], ["預金残高合計", fmt(sum("dep"))],
-    ["株の評価額合計", fmt(sum("stockVal"))], ["総資産", fmt(sum("total"))],
-    ["送金（回数 / 合計）", `${fmt(transfers.length)} 回 / ${fmt(tsum)}`], ["預入累計 / 引出累計", `${fmt(depIn)} / ${fmt(depOut)}`]
+    ["アカウント数", fmt(accounts.length) + " 人"], ["所持コイン合計", fmtU(accounts.reduce((v,a)=>v+a.coinsDisplay,0n))], ["預金残高合計", fmtU(sum("dep"))],
+    ["株の評価額合計", fmtU(sum("stockVal"))], ["総資産", fmtU(sum("total"))],
+    ["送金（回数 / 合計）", `${fmt(transfers.length)} 回 / ${fmtU(tsum)}`], ["預入累計 / 引出累計", `${fmtU(depIn)} / ${fmtU(depOut)}`]
   ];
   $("kpis").innerHTML = items.map(([l, v]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
 }
@@ -280,20 +407,20 @@ const COLS = [
   ["name", "アカウント"], ["coins", "所持コイン"], ["dep", "預金残高"], ["stockVal", "株評価額"], ["total", "合計資産"],
   ["sent", "送った計"], ["recv", "受け取った計"], ["depIn", "預入累計"], ["depOut", "引出累計"], ["net", "記録上の増減"]
 ];
-function liveCalc(a) { const r = a.raw || {}; a.dep = calcDeposit(r.deposit || 0, r.depositAt, Date.now(), r.premiumUntil || 0); a.total = a.coinsNumber + a.dep + a.stockVal; }
-function rowVal(a, k) { return k in a ? a[k] : (stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 })[k]; }
+function liveCalc(a) { const r = a.raw || {}; a.dep = calcDeposit(r.deposit || 0, r.depositAt, Date.now(), r.premiumUntil || 0); a.total = a.coins + toBig(a.dep) + toBig(a.stockVal); }
+function rowVal(a, k) { return k in a ? a[k] : (stats[a.name] || { sent: 0n, recv: 0n, depIn: 0n, depOut: 0n, net: 0n })[k]; }
 function renderAccounts() {
   accounts.forEach(liveCalc);
   const rows = accounts.slice().sort((a, b) => {
     const x = rowVal(a, sortKey), y = rowVal(b, sortKey);
-    return (typeof x === "string" ? x.localeCompare(y, "ja") : x - y) * sortDir;
+    return (typeof x === "string" ? x.localeCompare(y, "ja") : cmp(x, y)) * sortDir;
   });
-  const max = Math.max(1, ...accounts.map(a => a.total));
+  const max = accounts.reduce((m, a) => a.total > m ? a.total : m, 1n);
   const sel = $("fAcc").value.trim();
   $("accTable").innerHTML = `<thead><tr>${COLS.map(([k, l]) => `<th data-k="${k}">${l}${k === sortKey ? (sortDir < 0 ? " ▼" : " ▲") : ""}</th>`).join("")}</tr></thead><tbody>` +
     rows.map(a => {
-      const s = stats[a.name] || { sent: 0, recv: 0, depIn: 0, depOut: 0, net: 0 };
-      return `<tr class="clickable${sel === a.name ? " sel" : ""}" data-n="${esc(a.name)}"><td data-label="アカウント"><b>${esc(a.name)}</b>${a.premium ? " 👑" : ""}</td><td data-label="所持コイン">${fmt(a.coinsDisplay)}</td><td data-label="預金残高">${fmt(a.dep)}</td><td data-label="株評価額">${fmt(a.stockVal)}</td><td data-label="合計資産"><span class="bar" style="width:${Math.max(2, a.total / max * 60)}px"></span>${fmt(a.total)}</td><td data-label="送った計">${fmt(s.sent)}</td><td data-label="受け取った計">${fmt(s.recv)}</td><td data-label="預入累計">${fmt(s.depIn)}</td><td data-label="引出累計">${fmt(s.depOut)}</td><td data-label="記録上の増減" class="${cls(s.net)}">${fmtSigned(s.net)}</td></tr>`;
+      const s = stats[a.name] || { sent: 0n, recv: 0n, depIn: 0n, depOut: 0n, net: 0n };
+      return `<tr class="clickable${sel === a.name ? " sel" : ""}" data-n="${esc(a.name)}"><td data-label="アカウント"><b>${esc(a.name)}</b>${a.premium ? " 👑" : ""}</td><td data-label="所持コイン">${fmtU(a.coinsDisplay)}</td><td data-label="預金残高">${fmtU(a.dep)}</td><td data-label="株評価額">${fmtU(a.stockVal)}</td><td data-label="合計資産"><span class="bar" style="width:${Math.max(2, ratio(a.total, max) * 60)}px"></span>${fmtU(a.total)}</td><td data-label="送った計">${fmtU(s.sent)}</td><td data-label="受け取った計">${fmtU(s.recv)}</td><td data-label="預入累計">${fmtU(s.depIn)}</td><td data-label="引出累計">${fmtU(s.depOut)}</td><td data-label="記録上の増減" class="${cls(s.net)}">${fmtSignedU(s.net)}</td></tr>`;
     }).join("") + "</tbody>";
   const ss = $("sortSel");
   ss.innerHTML = COLS.map(([k, l]) => `<option value="${k}">並び替え：${l}</option>`).join(""); ss.value = sortKey;
@@ -305,9 +432,9 @@ function renderAccounts() {
 function renderPairs() {
   const pairs = window.__pairs || [];
   if (!pairs.length) { $("pairTable").innerHTML = "<tbody><tr><td style='text-align:left'>送金の記録はまだありません</td></tr></tbody>"; return; }
-  const max = Math.max(...pairs.map(p => p.sum));
+  const max = pairs.reduce((m, p) => p.sum > m ? p.sum : m, 1n);
   $("pairTable").innerHTML = "<thead><tr><th>送った人 → 受け取った人</th><th>回数</th><th>合計コイン</th></tr></thead><tbody>" +
-    pairs.map(p => `<tr><td data-label="送金"><span class="who" data-n="${esc(p.from)}">${esc(p.from)}</span> <span class="arrow">→</span> <span class="who" data-n="${esc(p.to)}">${esc(p.to)}</span></td><td data-label="回数">${fmt(p.n)}</td><td data-label="合計コイン"><span class="bar" style="width:${Math.max(2, p.sum / max * 120)}px"></span>${fmt(p.sum)}</td></tr>`).join("") + "</tbody>";
+    pairs.map(p => `<tr><td data-label="送金"><span class="who" data-n="${esc(p.from)}">${esc(p.from)}</span> <span class="arrow">→</span> <span class="who" data-n="${esc(p.to)}">${esc(p.to)}</span></td><td data-label="回数">${fmt(p.n)}</td><td data-label="合計コイン"><span class="bar" style="width:${Math.max(2, ratio(p.sum, max) * 120)}px"></span>${fmtU(p.sum)}</td></tr>`).join("") + "</tbody>";
   $("pairTable").querySelectorAll(".who").forEach(el => el.onclick = () => { $("fAcc").value = el.dataset.n; applyFilter(); renderAccounts(); $("timeline").scrollIntoView({ behavior: "smooth", block: "start" }); });
 }
 
@@ -330,17 +457,17 @@ function moreRows() {
     let content, amount;
     if (e.cat === "transfer" && e.from) {
       content = `<span class="flow"><span class="who" data-n="${esc(e.from)}">${esc(e.from)}</span><span class="arrow">→</span><span class="who" data-n="${esc(e.to)}">${esc(e.to)}</span></span> <span class="sub">${esc(e.label === "送金" ? "" : e.label)}</span>`;
-      const d = acc ? (e.deltas[acc] ?? (e.from === acc ? -e.amount : 0)) : null;
-      amount = acc && d ? `<span class="${cls(d)}">${fmtSigned(d)}</span>` : fmt(e.amount);
+      const d = acc ? (e.deltas[acc] ?? (e.from === acc ? -e.amount : 0n)) : null;
+      amount = acc && d ? `<span class="${cls(d)}">${fmtSignedU(d)}</span>` : fmtU(e.amount);
     } else {
       const who = Object.keys(e.deltas).length ? Object.keys(e.deltas)[0] : e.accounts[0];
       content = `<span class="who" data-n="${esc(who)}">${esc(who)}</span> <span class="sub">${esc(e.label)}</span>`;
       const d = Object.values(e.deltas)[0];
-      amount = d === undefined ? "—" : `<span class="${cls(d)}">${fmtSigned(d)}</span>`;
+      amount = d === undefined ? "—" : `<span class="${cls(d)}">${fmtSignedU(d)}</span>`;
     }
     // 操作後の残高（絞り込み中はその人の分、そうでなければ操作した人の分。送金は両方）
     const accL = acc.toLowerCase(), keys = Object.keys(e.bal || {});
-    const num = n => (n === undefined || n === null ? "—" : fmt(n));
+    const num = n => (n === undefined || n === null ? "—" : fmtU(n));
     let coinsCell, depCell;
     if (e.label === "送金" && !acc) {
       coinsCell = keys.map(k => `<div><span class="sub">${esc(k)}</span> ${num(e.bal[k].coins)}</div>`).join("");
