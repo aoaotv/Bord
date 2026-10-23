@@ -28,7 +28,6 @@ AI / 開発者向け重要メモ：Bordのバージョン情報は必ず維持�
 <meta property="og:url" content="https://sinzo.site/">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<link rel="preconnect" href="https://esm.sh" crossorigin>
 
 <style>
 .blueBtn { background-color: #3498db; color: #ffffff; }
@@ -1398,287 +1397,239 @@ li img, li video { max-width: 100%; height: auto; }
 </section>
 
 <script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-// ===== Supabase 設定（ここだけ書き換える）=====
-const SUPABASE_URL = "https://vaxpffjgwbzqsialnbpx.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_V9DvTLLcDwst42Y3U5pxsw_poixe8XO";
-// ===== Firestore 互換レイヤー（Supabase の docs テーブルで動作）=====
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  global: { fetch: (u, o = {}) => {   // sb_publishable キーはJWTではないので Authorization ヘッダーには載せない
-    if (SUPABASE_ANON_KEY.startsWith("sb_")) { const h = new Headers(o.headers || {}); if ((h.get("Authorization") || "").includes(SUPABASE_ANON_KEY)) h.delete("Authorization"); o = { ...o, headers: h }; }
-    return fetch(u, o);
-  } }
-});
-const db = { __sb: true };
-// ===== 接続診断（原因が分かったら削除してOK）=====
-(async () => {
-  const out = [];
-  const t = async (label, init) => {
-    try { const r = await fetch(SUPABASE_URL + "/rest/v1/docs?select=id&limit=1", init); out.push(label + ": OK " + r.status); }
-    catch (e) { out.push(label + ": NG " + e.name + " " + e.message); }
-  };
-  await t("A 単純GET", { headers: { apikey: SUPABASE_ANON_KEY } });
-  await t("B supabase-js相当(プリフライトあり)", { headers: { apikey: SUPABASE_ANON_KEY, "x-client-info": "diag", "accept-profile": "public" } });
-  try { await fetch("https://esm.sh/", { mode: "no-cors" }); out.push("C esm.sh: OK"); } catch (e) { out.push("C esm.sh: NG"); }
-  console.log("[diag]", out.join(" | "), "origin=" + location.origin);
-  if (out.some(x => x.includes(": NG"))) {
-    const d = document.createElement("div");
-    d.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:99999;background:#c0392b;color:#fff;font:12px/1.5 monospace;padding:8px;white-space:pre-wrap;text-align:left";
-    d.textContent = "接続診断\n" + out.join("\n") + "\norigin=" + location.origin + "\n(タップで閉じる)";
-    d.onclick = () => d.remove(); document.body.appendChild(d);
-  }
-})();
+// ===== Bord D1 adapter (Firestore互換レイヤー) =====
+// Cloudflare Worker の /api/data を使い、Firestore風のドキュメント操作を行います。
+// 必ず自分の Worker URL に変更してください。
+const D1_API_URL = "https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev/api/data";
+const db = { __d1: true };
+const CACHE_SIZE_UNLIMITED = 0;
+const persistentLocalCache = () => ({});
+const persistentMultipleTabManager = () => ({});
+async function clearIndexedDbPersistence() { return; }
+function initializeFirestore() { return db; }
+function getFirestore() { return db; }
+function initializeApp(config) { return { config }; }
 
 class Timestamp {
-  constructor(ms) { this._ms = ms; this.seconds = Math.floor(ms / 1000); this.nanoseconds = (ms % 1000) * 1e6; }
-  static now() { return new Timestamp(Date.now()); }
-  static fromMillis(ms) { return new Timestamp(ms); }
-  static fromDate(d) { return new Timestamp(d.getTime()); }
-  toMillis() { return this._ms; } toDate() { return new Date(this._ms); } valueOf() { return this._ms; }
+  constructor(seconds, nanoseconds = 0) { this.seconds = seconds; this.nanoseconds = nanoseconds; }
+  toDate() { return new Date(this.seconds * 1000 + this.nanoseconds / 1e6); }
+  toMillis() { return this.seconds * 1000 + this.nanoseconds / 1e6; }
+  static now() { return Timestamp.fromDate(new Date()); }
+  static fromDate(date) { const ms = date.getTime(); return new Timestamp(Math.floor(ms / 1000), Math.floor((ms % 1000) * 1e6)); }
+  static fromMillis(ms) { return Timestamp.fromDate(new Date(ms)); }
 }
-class FieldOp { constructor(k, v) { this.k = k; this.v = v; } }
-const serverTimestamp = () => new FieldOp("ts");
-const increment = n => new FieldOp("inc", n);
-const arrayUnion = (...a) => new FieldOp("union", a);
-const arrayRemove = (...a) => new FieldOp("remove", a);
-const enc = v => {
-  if (v === undefined) return undefined;
-  if (v instanceof Timestamp) return { __t: v._ms };
-  if (v instanceof Date) return { __t: v.getTime() };
-  if (typeof v === "bigint") return v.toString();
-  if (Array.isArray(v)) return v.map(x => enc(x) ?? null);
-  if (v && typeof v === "object") { const o = {}; for (const k in v) { const e = enc(v[k]); if (e !== undefined) o[k] = e; } return o; }
-  return v;
-};
-const dec = v => {
-  if (Array.isArray(v)) return v.map(dec);
-  if (v && typeof v === "object") {
-    const ks = Object.keys(v);
-    if (ks.length === 1 && ks[0] === "__t") return new Timestamp(Number(v.__t));
-    const o = {}; for (const k of ks) o[k] = dec(v[k]); return o;
-  }
-  return v;
-};
-const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-function applyPatch(old, patch, replace) {
-  const out = replace ? {} : JSON.parse(JSON.stringify(old || {}));
-  for (const key in patch) {
-    const val = patch[key];
-    const path = !replace && key.includes(".") ? key.split(".") : [key];
-    let o = out; for (let i = 0; i < path.length - 1; i++) { if (!o[path[i]] || typeof o[path[i]] !== "object") o[path[i]] = {}; o = o[path[i]]; }
-    const k = path[path.length - 1], cur = o[k];
-    if (val instanceof FieldOp) {
-      if (val.k === "ts") o[k] = { __t: Date.now() };
-      else if (val.k === "inc") o[k] = (Number(cur) || 0) + val.v;
-      else if (val.k === "union") { const a = Array.isArray(cur) ? cur.slice() : []; for (const x of val.v.map(enc)) if (!a.some(y => same(x, y))) a.push(x); o[k] = a; }
-      else if (val.k === "remove") { const r = val.v.map(enc); o[k] = (Array.isArray(cur) ? cur : []).filter(y => !r.some(x => same(x, y))); }
-    } else { const e = enc(val); if (e !== undefined) o[k] = e; }
-  }
-  return out;
+const SERVER_TIMESTAMP = { __d1Op: "serverTimestamp" };
+function serverTimestamp() { return { ...SERVER_TIMESTAMP }; }
+function increment(n) { return { __d1Op: "increment", n: Number(n) || 0 }; }
+function arrayUnion(...values) { return { __d1Op: "arrayUnion", values }; }
+function arrayRemove(...values) { return { __d1Op: "arrayRemove", values }; }
+function randomId() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID().replace(/-/g, "");
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
-const autoId = () => Math.random().toString(36).slice(2, 12) + Date.now().toString(36).slice(-4);
-class DocRef { constructor(p, i) { this.parent = p; this.id = i; this.path = p + "/" + i; this.type = "document"; } }
-class ColRef { constructor(p) { this.path = p; this.type = "collection"; this.cons = []; } }
-const collection = (_db, ...s) => new ColRef(s.join("/"));
-const doc = (base, ...s) => {
-  if (base instanceof ColRef) return new DocRef(base.path, s[0] || autoId());
-  return new DocRef(s.slice(0, -1).join("/"), s[s.length - 1]);
-};
-const query = (q, ...cons) => { const n = new ColRef(q.path); n.cons = (q.cons || []).concat(cons); return n; };
-const where = (f, op, v) => ({ t: "where", f, op, v });
-const orderBy = (f, d = "asc") => ({ t: "orderBy", f, d });
-const limit = n => ({ t: "limit", n });
-const startAfter = s => ({ t: "startAfter", s });
-class DocSnap {
-  constructor(ref, raw, ver) { this.ref = ref; this.id = ref.id; this._raw = raw; this._ver = ver || 0; this.metadata = { fromCache: false, hasPendingWrites: false }; }
-  exists() { return this._raw != null; } data() { return this._raw == null ? undefined : dec(this._raw); }
+function cleanPath(parts) {
+  return parts.map(x => String(x ?? "").replace(/^\/+|\/+$/g, "")).filter(Boolean).join("/");
 }
-class QSnap {
-  constructor(docs, changes) { this.docs = docs; this.size = docs.length; this.empty = !docs.length; this._ch = changes; this.metadata = { fromCache: false, hasPendingWrites: false }; }
-  forEach(fn) { this.docs.forEach(fn); }
-  docChanges() { return this._ch || this.docs.map((d, i) => ({ type: "added", doc: d, oldIndex: -1, newIndex: i })); }
+function collection(parent, ...parts) {
+  const path = cleanPath([parent?.path || "", ...parts]);
+  return { __type: "collection", path };
 }
-const fetchRow = async (p, i) => {
-  const { data, error } = await sb.from("docs").select("data,ver").eq("parent", p).eq("id", i).maybeSingle();
-  if (error) throw error; return data;
-};
-const getDoc = async ref => { const r = await fetchRow(ref.parent, ref.id); return new DocSnap(ref, r ? r.data : null, r ? r.ver : 0); };
-const getDocFromCache = async () => { throw new Error("no cache"); };
-const clearIndexedDbPersistence = async () => {};
-const initializeFirestore = () => db, getFirestore = () => db, persistentLocalCache = () => ({}), persistentMultipleTabManager = () => ({}), CACHE_SIZE_UNLIMITED = -1;
-async function runQuery(q) {
-  const cons = q.cons || [], client = [];
-  let ord = null, lim = null, after = null;
-  const build = () => {
-    let rb = sb.from("docs").select("id,data,ver").eq("parent", q.path);
-    for (const c of cons) if (c.t === "where") {
-      if (c.op === "==") rb = rb.contains("data", { [c.f]: enc(c.v) });
-      else if (c.op === "array-contains") rb = rb.contains("data", { [c.f]: [enc(c.v)] });
-    }
-    if (ord) {
-      const asc = ord.d !== "desc", col = ord.f === "created_at" ? "ca" : ord.f === "updated_at" ? "ua" : null;
-      if (col && after) { const ms = after.data()[ord.f]?.valueOf?.(); if (ms != null) rb = asc ? rb.gt(col, ms) : rb.lt(col, ms); }
-      rb = rb.order(col || "data->" + ord.f, { ascending: asc, nullsFirst: false }).order("id");
-    }
-    return rb;
-  };
-  for (const c of cons) {
-    if (c.t === "where" && c.op !== "==" && c.op !== "array-contains") client.push(c);
-    else if (c.t === "orderBy") ord = c; else if (c.t === "limit") lim = c.n; else if (c.t === "startAfter") after = c.s;
+function doc(parent, ...parts) {
+  let path;
+  if (parent?.__type === "collection" && parts.length === 0) path = cleanPath([parent.path, randomId()]);
+  else path = cleanPath([parent?.path || "", ...parts]);
+  return { __type: "doc", path, id: path.split("/").pop() || "" };
+}
+function query(ref, ...constraints) { return { __type: "query", ref, constraints }; }
+function where(field, op, value) { return { __type: "where", field, op, value }; }
+function orderBy(field, direction = "asc") { return { __type: "orderBy", field, direction }; }
+function limit(n) { return { __type: "limit", n: Math.max(0, Number(n) || 0) }; }
+function startAfter(cursor) { return { __type: "startAfter", cursor }; }
+function fieldValue(obj, field) {
+  return String(field).split(".").reduce((v, k) => v == null ? undefined : v[k], obj);
+}
+function pack(value) {
+  if (value instanceof Timestamp) return { __d1Type: "Timestamp", milliseconds: value.toMillis() };
+  if (value instanceof Date) return { __d1Type: "Timestamp", milliseconds: value.getTime() };
+  if (Array.isArray(value)) return value.map(pack);
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = pack(v);
+    return out;
   }
-  let rows = [];
-  for (let from = 0; ; from += 1000) {
-    const want = client.length || lim == null ? 1000 : Math.min(1000, lim - rows.length);
-    if (want <= 0) break;
-    const { data, error } = await build().range(from, from + want - 1);
-    if (error) throw error;
-    rows = rows.concat(data);
-    if (data.length < want || (!client.length && lim != null && rows.length >= lim)) break;
+  return value;
+}
+function revive(value) {
+  if (Array.isArray(value)) return value.map(revive);
+  if (value && typeof value === "object") {
+    if (value.__d1Type === "Timestamp") return Timestamp.fromMillis(Number(value.milliseconds) || 0);
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = revive(v);
+    return out;
   }
-  let docs = rows.map(r => new DocSnap(new DocRef(q.path, r.id), r.data, r.ver));
-  for (const c of client) docs = docs.filter(d => {
-    const a = dec(d._raw[c.f]), x = a?.valueOf?.(), y = c.v?.valueOf?.();
-    if (x == null) return false;
-    return c.op === ">" ? x > y : c.op === "<" ? x < y : c.op === ">=" ? x >= y : c.op === "<=" ? x <= y : c.op === "!=" ? x !== y : true;
+  return value;
+}
+function clone(value) { return revive(pack(value)); }
+async function allRecords() {
+  if (!D1_API_URL || D1_API_URL.includes("YOUR-WORKER-NAME")) throw new Error("D1_API_URL を自分の Worker URL に設定してください");
+  const res = await fetch(D1_API_URL, { method: "GET", cache: "no-store" });
+  if (!res.ok) throw new Error(`D1読み込み失敗: HTTP ${res.status}`);
+  const json = await res.json();
+  if (!Array.isArray(json.records)) throw new Error("D1 API の応答形式が正しくありません");
+  return json.records.filter(r => r && typeof r.key === "string" && !r.value?.__d1AdapterDeleted)
+    .map(r => ({ key: r.key, value: revive(r.value) }));
+}
+function storageKey(path) { return "fs:" + path; }
+async function readDoc(ref) {
+  const rows = await allRecords();
+  const row = rows.find(r => r.key === storageKey(ref.path));
+  return row ? clone(row.value) : null;
+}
+async function writeRaw(path, value) {
+  const res = await fetch(D1_API_URL, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: storageKey(path), value: pack(value) })
   });
-  if (lim != null) docs = docs.slice(0, lim);
-  return docs;
+  const result = await res.json().catch(() => ({}));
+  if (!res.ok || !result.success) throw new Error(result.error || `D1保存失敗: HTTP ${res.status}`);
 }
-const getDocs = async q => new QSnap(await runQuery(q));
-const getCountFromServer = async q => { const n = (await runQuery(q)).length; return { data: () => ({ count: n }) }; };
-// ---- リアルタイム ----
-const subs = new Map();
-let chan = null;
-const notify = parent => { const s = subs.get(parent); if (s) s.forEach(f => f()); };
-const notifyAll = () => subs.forEach(s => s.forEach(f => f()));
-function ensureChannel() {
-  if (chan) return;
-  chan = sb.channel("docs-all").on("postgres_changes", { event: "*", schema: "public", table: "docs" }, p => {
-    notify((p.new && p.new.parent) || (p.old && p.old.parent));
-  }).subscribe(st => { if (st === "SUBSCRIBED") notifyAll(); });
+async function saveDoc(ref, data, merge = false, updateOnly = false) {
+  const old = await readDoc(ref);
+  if (updateOnly && old === null) throw new Error(`ドキュメントがありません: ${ref.path}`);
+  const base = merge || updateOnly ? (old || {}) : {};
+  const next = { ...base };
+  for (const [k, v] of Object.entries(data || {})) next[k] = resolveOp(v, base[k]);
+  await writeRaw(ref.path, next);
 }
-function onSnapshot(target, next, err) {
-  ensureChannel();
-  const isDoc = target.type === "document", parent = isDoc ? target.parent : target.path;
-  let prev = null, dead = false, busy = false, again = false, timer = null;
-  const run = async () => {
-    if (dead) return; if (busy) { again = true; return; } busy = true;
+function resolveOp(value, oldValue) {
+  if (value && typeof value === "object" && value.__d1Op) {
+    if (value.__d1Op === "serverTimestamp") return Timestamp.now();
+    if (value.__d1Op === "increment") return (Number(oldValue) || 0) + value.n;
+    if (value.__d1Op === "arrayUnion") {
+      const arr = Array.isArray(oldValue) ? oldValue.slice() : [];
+      for (const v of value.values) if (!arr.some(x => JSON.stringify(pack(x)) === JSON.stringify(pack(v)))) arr.push(clone(v));
+      return arr;
+    }
+    if (value.__d1Op === "arrayRemove") {
+      const arr = Array.isArray(oldValue) ? oldValue.slice() : [];
+      return arr.filter(x => !value.values.some(v => JSON.stringify(pack(x)) === JSON.stringify(pack(v))));
+    }
+  }
+  if (Array.isArray(value)) return value.map((v, i) => resolveOp(v, Array.isArray(oldValue) ? oldValue[i] : undefined));
+  if (value && typeof value === "object" && !(value instanceof Timestamp) && !(value instanceof Date)) {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = resolveOp(v, oldValue && typeof oldValue === "object" ? oldValue[k] : undefined);
+    return out;
+  }
+  return clone(value);
+}
+function makeDocSnapshot(ref, data) {
+  return { id: ref.id, ref, metadata: { fromCache: false, hasPendingWrites: false }, exists: () => data !== null, data: () => data === null ? undefined : clone(data), get: field => fieldValue(data, field) };
+}
+function makeQuerySnapshot(docs) {
+  return { docs, empty: docs.length === 0, size: docs.length, metadata: { fromCache: false, hasPendingWrites: false }, forEach: cb => docs.forEach(cb) };
+}
+function compare(a, b) {
+  if (a instanceof Timestamp) a = a.toMillis();
+  if (b instanceof Timestamp) b = b.toMillis();
+  if (a && typeof a === "object" && "seconds" in a) a = Number(a.seconds) * 1000;
+  if (b && typeof b === "object" && "seconds" in b) b = Number(b.seconds) * 1000;
+  if (a == null && b == null) return 0;
+  if (a == null) return -1;
+  if (b == null) return 1;
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+function same(a, b) { return JSON.stringify(pack(a)) === JSON.stringify(pack(b)); }
+function matchesWhere(data, c) {
+  const actual = fieldValue(data, c.field), expected = c.value;
+  switch (c.op) {
+    case "==": return same(actual, expected);
+    case "!=": return !same(actual, expected);
+    case "<": return compare(actual, expected) < 0;
+    case "<=": return compare(actual, expected) <= 0;
+    case ">": return compare(actual, expected) > 0;
+    case ">=": return compare(actual, expected) >= 0;
+    case "in": return Array.isArray(expected) && expected.some(v => same(actual, v));
+    case "not-in": return Array.isArray(expected) && !expected.some(v => same(actual, v));
+    case "array-contains": return Array.isArray(actual) && actual.some(v => same(v, expected));
+    case "array-contains-any": return Array.isArray(actual) && Array.isArray(expected) && actual.some(v => expected.some(e => same(v, e)));
+    default: return true;
+  }
+}
+async function getDocs(refOrQuery) {
+  const q = refOrQuery?.__type === "query" ? refOrQuery : { ref: refOrQuery, constraints: [] };
+  const base = q.ref;
+  const rows = await allRecords();
+  const prefix = base.path + "/";
+  let docs = rows.filter(r => r.key.startsWith("fs:" + prefix))
+    .map(r => {
+      const path = r.key.slice(3);
+      const tail = path.slice(base.path.length + 1);
+      if (!tail || tail.includes("/")) return null;
+      return { ref: { __type: "doc", path, id: tail }, data: r.value };
+    }).filter(Boolean);
+  for (const c of q.constraints || []) if (c.__type === "where") docs = docs.filter(d => matchesWhere(d.data, c));
+  const orders = (q.constraints || []).filter(c => c.__type === "orderBy");
+  if (orders.length) docs.sort((a, b) => {
+    for (const o of orders) { const n = compare(fieldValue(a.data, o.field), fieldValue(b.data, o.field)); if (n) return o.direction === "desc" ? -n : n; }
+    return a.ref.id.localeCompare(b.ref.id);
+  });
+  const cursor = (q.constraints || []).find(c => c.__type === "startAfter")?.cursor;
+  if (cursor) {
+    const cursorId = cursor.id;
+    const ix = docs.findIndex(d => d.ref.id === cursorId);
+    if (ix >= 0) docs = docs.slice(ix + 1);
+  }
+  const lim = (q.constraints || []).find(c => c.__type === "limit");
+  if (lim) docs = docs.slice(0, lim.n);
+  return makeQuerySnapshot(docs.map(d => makeDocSnapshot(d.ref, d.data)));
+}
+async function getDoc(ref) { return makeDocSnapshot(ref, await readDoc(ref)); }
+async function getDocFromCache(ref) { return getDoc(ref); }
+async function setDoc(ref, data, options = {}) { return saveDoc(ref, data, !!options.merge, false); }
+async function updateDoc(ref, data) { return saveDoc(ref, data, true, true); }
+async function deleteDoc(ref) { return writeRaw(ref.path, { __d1AdapterDeleted: true }); }
+async function addDoc(colRef, data) { const ref = doc(colRef); await setDoc(ref, data); return ref; }
+async function getCountFromServer(refOrQuery) { const snap = await getDocs(refOrQuery); return { data: () => ({ count: snap.size }), count: snap.size }; }
+function onSnapshot(refOrQuery, next, error) {
+  let stopped = false, timer = null, last = "";
+  const isDoc = refOrQuery?.__type === "doc";
+  const poll = async () => {
+    if (stopped) return;
     try {
-      if (isDoc) {
-        const s = await getDoc(target); if (dead) return;
-        if (!prev || prev._ver !== s._ver) { prev = s; next(s); }
-      } else {
-        const docs = await runQuery(target); if (dead) return;
-        const oldMap = new Map((prev || []).map((d, i) => [d.id, [d, i]])), newIds = new Set(docs.map(d => d.id)), ch = [];
-        docs.forEach((d, i) => { const o = oldMap.get(d.id); if (!o) ch.push({ type: "added", doc: d, oldIndex: -1, newIndex: i }); else if (o[0]._ver !== d._ver) ch.push({ type: "modified", doc: d, oldIndex: o[1], newIndex: i }); });
-        (prev || []).forEach((d, i) => { if (!newIds.has(d.id)) ch.push({ type: "removed", doc: d, oldIndex: i, newIndex: -1 }); });
-        if (!prev || ch.length) { const first = !prev; prev = docs; next(new QSnap(docs, first ? null : ch)); }
-      }
-    } catch (e) { if (err) err(e); }
-    finally { busy = false; if (again) { again = false; schedule(); } }
+      const snap = isDoc ? await getDoc(refOrQuery) : await getDocs(refOrQuery);
+      const signature = isDoc ? JSON.stringify(pack(snap.exists() ? snap.data() : null)) : JSON.stringify(snap.docs.map(d => ({ id: d.id, data: pack(d.data()) })));
+      if (signature !== last) { last = signature; next(snap); }
+    } catch (e) { if (error) error(e); }
+    if (!stopped) timer = setTimeout(poll, 3000);
   };
-  const schedule = () => { clearTimeout(timer); timer = setTimeout(run, 150); };
-  if (!subs.has(parent)) subs.set(parent, new Set());
-  subs.get(parent).add(schedule);
-  run();
-  return () => { dead = true; clearTimeout(timer); subs.get(parent)?.delete(schedule); };
+  poll();
+  return () => { stopped = true; if (timer) clearTimeout(timer); };
 }
-// ---- 書き込み ----
-async function commit(ops) {
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const cache = new Map(), cur = new Map(), order = [];
-    const key = r => r.path;
-    const load = async r => { const k = key(r); if (!cache.has(k)) { const row = await fetchRow(r.parent, r.id); cache.set(k, { r, ver: row ? row.ver : 0, data: row ? row.data : null }); cur.set(k, row ? row.data : null); } return cache.get(k); };
-    for (const op of ops) {
-      const k = key(op.ref); if (!order.includes(k)) order.push(k);
-      if (op.read) await load(op.ref);
-      if (op.kind === "delete") { cur.set(k, null); continue; }
-      const old = cur.has(k) ? cur.get(k) : null;
-      if (op.kind === "update") { if (old == null) throw new Error("No document to update: " + k); cur.set(k, applyPatch(old, op.data, false)); }
-      else if (op.kind === "merge") cur.set(k, applyPatch(old, op.data, false));
-      else cur.set(k, applyPatch(null, op.data, true));
-    }
-    const reads = [...cache.values()].map(c => ({ p: c.r.parent, i: c.r.id, v: c.ver })).sort((a, b) => (a.p + a.i).localeCompare(b.p + b.i));
-    const writes = order.map(k => { const ref = ops.find(o => key(o.ref) === k).ref; const d = cur.get(k); return d == null ? { p: ref.parent, i: ref.id, op: "delete" } : { p: ref.parent, i: ref.id, op: "set", data: d }; });
-    const { data, error } = await sb.rpc("fs_commit", { reads, writes });
-    if (error) throw error;
-    if (data) { new Set(ops.map(o => o.ref.parent)).forEach(notify); return; }
-    await new Promise(r => setTimeout(r, 30 + Math.random() * 80));
-  }
-  throw new Error("競合により保存できませんでした。もう一度お試しください。");
-}
-const hasOp = d => Object.values(d || {}).some(v => v instanceof FieldOp) || Object.keys(d || {}).some(k => k.includes("."));
-const setDoc = (ref, data, opts) => opts && opts.merge ? commit([{ kind: "merge", ref, data, read: true }]) : commit([{ kind: "set", ref, data }]);
-const updateDoc = (ref, data) => commit([{ kind: "update", ref, data, read: true }]);
-const deleteDoc = ref => commit([{ kind: "delete", ref }]);
-const addDoc = async (colRef, data) => { const ref = new DocRef(colRef.path, autoId()); await commit([{ kind: "set", ref, data }]); return ref; };
-async function runTransaction(_db, fn) {
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const ops = [], seen = new Map();
-    const tx = {
-      get: async ref => { const row = await fetchRow(ref.parent, ref.id); seen.set(ref.path, row ? row.ver : 0); return new DocSnap(ref, row ? row.data : null, row ? row.ver : 0); },
-      set: (ref, data, o) => { ops.push({ kind: o && o.merge ? "merge" : "set", ref, data, read: !!(o && o.merge) }); return tx; },
-      update: (ref, data) => { ops.push({ kind: "update", ref, data, read: true, expect: seen.get(ref.path) }); return tx; },
-      delete: ref => { ops.push({ kind: "delete", ref }); return tx; }
-    };
-    const result = await fn(tx);
-    // tx.get で読んだドキュメントは、その時点の ver と一致する場合のみ確定する
-    try { await commitChecked(ops, seen); return result; }
-    catch (e) { if (e && e.__conflict) { await new Promise(r => setTimeout(r, 30 + Math.random() * 80)); continue; } throw e; }
-  }
-  throw new Error("競合により取引を完了できませんでした。もう一度お試しください。");
-}
-async function commitChecked(ops, seen) {
-  const cur = new Map(), order = [], cache = new Map();
-  for (const [path, v] of seen) { const i = path.lastIndexOf("/"); cache.set(path, { p: path.slice(0, i), i: path.slice(i + 1), v }); }
-  for (const op of ops) {
-    const k = op.ref.path; if (!order.includes(k)) order.push(k);
-    if (!cur.has(k)) {
-      if (op.read || op.kind === "update") {
-        const row = await fetchRow(op.ref.parent, op.ref.id);
-        const ver = row ? row.ver : 0;
-        if (seen.has(k) && seen.get(k) !== ver) { const e = new Error("conflict"); e.__conflict = true; throw e; }
-        if (!seen.has(k)) cache.set(k, { p: op.ref.parent, i: op.ref.id, v: ver });
-        cur.set(k, row ? row.data : null);
-      } else cur.set(k, null);
-    }
-    const old = cur.get(k);
-    if (op.kind === "delete") cur.set(k, null);
-    else if (op.kind === "update") { if (old == null) throw new Error("No document to update: " + k); cur.set(k, applyPatch(old, op.data, false)); }
-    else if (op.kind === "merge") cur.set(k, applyPatch(old, op.data, false));
-    else cur.set(k, applyPatch(null, op.data, true));
-  }
-  const reads = [...cache.values()].map(c => ({ p: c.p, i: c.i, v: c.v })).sort((a, b) => (a.p + a.i).localeCompare(b.p + b.i));
-  const writes = order.map(k => { const i = k.lastIndexOf("/"), d = cur.get(k); return d == null ? { p: k.slice(0, i), i: k.slice(i + 1), op: "delete" } : { p: k.slice(0, i), i: k.slice(i + 1), op: "set", data: d }; });
-  const { data, error } = await sb.rpc("fs_commit", { reads, writes });
-  if (error) throw error;
-  if (!data) { const e = new Error("conflict"); e.__conflict = true; throw e; }
-  new Set(ops.map(o => o.ref.parent)).forEach(notify);
-}
-const writeBatch = () => {
+function makeWriter() {
   const ops = [];
-  const b = {
-    set: (ref, data, o) => { ops.push(["set", ref, data, o]); return b; },
-    update: (ref, data) => { ops.push(["update", ref, data]); return b; },
-    delete: ref => { ops.push(["delete", ref]); return b; },
-    commit: () => runTransaction(db, async tx => { for (const [k, r, d, o] of ops) { if (k === "set") tx.set(r, d, o); else if (k === "update") tx.update(r, d); else tx.delete(r); } })
+  return {
+    set(ref, data, options = {}) { ops.push(() => setDoc(ref, data, options)); return this; },
+    update(ref, data) { ops.push(() => updateDoc(ref, data)); return this; },
+    delete(ref) { ops.push(() => deleteDoc(ref)); return this; },
+    async commit() { for (const op of ops) await op(); }
   };
-  return b;
-};
-// ---- REST 直読み（プロフィール高速取得用）----
-async function sbRestGet(parent, id, fields) {
-  const url = `${SUPABASE_URL}/rest/v1/docs?parent=eq.${encodeURIComponent(parent)}&id=eq.${encodeURIComponent(id)}&select=data`;
-  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 8000);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: SUPABASE_ANON_KEY.startsWith("sb_") ? { apikey: SUPABASE_ANON_KEY } : { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY } });
-    if (!res.ok) throw new Error("REST " + res.status);
-    const rows = await res.json();
-    if (!rows.length) return null;
-    const all = dec(rows[0].data);
-    if (!fields || !fields.length) return all;
-    const o = {}; for (const f of fields) if (f in all) o[f] = all[f]; return o;
-  } finally { clearTimeout(t); }
 }
+function writeBatch() { return makeWriter(); }
+async function runTransaction(_db, callback) {
+  const ops = [];
+  const tx = {
+    async get(ref) { return getDoc(ref); },
+    set(ref, data, options = {}) { ops.push(() => setDoc(ref, data, options)); return tx; },
+    update(ref, data) { ops.push(() => updateDoc(ref, data)); return tx; },
+    delete(ref) { ops.push(() => deleteDoc(ref)); return tx; }
+  };
+  const result = await callback(tx);
+  for (const op of ops) await op();
+  return result;
+}
+// ===== end D1 adapter =====
+
 
 // ==========================================
 // 👑 プレミアム / 🏦 預金 の共通定義（アカウント監視より前に必要）
@@ -1891,12 +1842,31 @@ function fsDecode(v) {
   return null;
 }
 async function fetchAccountRest(name) {   // 成功: データ / 存在しない: null / 失敗: 例外
-  return await sbRestGet("accounts", name, PROFILE_FIELDS);
+  const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/accounts/${encodeURIComponent(name)}?key=${firebaseConfig.apiKey}&` +
+    PROFILE_FIELDS.map(f => "mask.fieldPaths=" + f).join("&");
+  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error("REST " + res.status);
+    const j = await res.json(), o = {}, f = j.fields || {};
+    for (const k in f) o[k] = fsDecode(f[k]);
+    return o;
+  } finally { clearTimeout(t); }
 }
 // 汎用: REST と SDK を同時に走らせ、先に成功したほうを使う。戻り値 { exists, data }。両方失敗なら例外
 async function restGetDoc(col, name, fields) {
-  const d = await sbRestGet(col, name, fields);
-  return d ? { exists: true, data: d } : { exists: false, data: null };
+  const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/${col}/${encodeURIComponent(name)}?key=${firebaseConfig.apiKey}` +
+    (fields && fields.length ? "&" + fields.map(f => "mask.fieldPaths=" + encodeURIComponent(f)).join("&") : "");
+  const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (res.status === 404) return { exists: false, data: null };
+    if (!res.ok) throw new Error("REST " + res.status);
+    const j = await res.json(), o = {}, f = j.fields || {};
+    for (const k in f) o[k] = fsDecode(f[k]);
+    return { exists: true, data: o };
+  } finally { clearTimeout(t); }
 }
 async function sdkGetDoc(col, name) {
   const sn = await getDoc(doc(db, col, name));
@@ -2315,7 +2285,7 @@ document.getElementById("coinDisplayCloseBtn").onclick = () => {
 // ============================================================
 const CURRENT_APP_VERSION = "1.20";
 const VERSION_HISTORY = [
-  { version: "1.20", date: "2026-10-23", title: "データベースをSupabaseへ移行", changes: ["バックエンドをFirebase(Firestore)からSupabaseへ変更（データ引き継ぎなし）", "Firestore互換のアダプタ層を追加し既存機能のコードを維持"] },
+  { version: "1.20", date: "2026-10-23", title: "保存先をCloudflare D1 APIに切り替え（試験版）", changes: ["Firestore依存をD1 API互換レイヤーに置き換え", "アカウント・投稿・ログなどをWorker経由で保存・読み込み"] },
   { version: "1.19", date: "2026-10-23", title: "オセロの部屋名参加・削除・対局後じゃんけんを改善", changes: ["部屋コードを画面から廃止し、部屋名一覧から参加可能に", "対局終了後に部屋を削除できるボタンを追加", "マッチング後に双方が選択式でじゃんけんを行う仕様に変更"] },
   { version: "1.18", date: "2026-10-23", title: "オセロ部屋一覧とじゃんけん選択を改善", changes: ["参加可能なオセロ部屋を一覧表示・更新できるように", "じゃんけんの手を入力プロンプトではなく選択メニューから選べるように"] },
   { version: "1.17", date: "2026-10-23", title: "オセロの部屋名・チャット・名前表示・先攻じゃんけんを追加", changes: ["オンライン対戦で部屋名を設定可能に", "盤面の右側に対戦チャットを追加", "黒・白表示をプレイヤー名表示に変更", "対戦開始前にじゃんけんで先攻を決定"] },
