@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Bord 軽量掲示板">
+<title>Bord 軽量版</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;color:#182230;background:#f3f6fa}*{box-sizing:border-box}body{margin:0}header{position:sticky;top:0;background:#fff;border-bottom:1px solid #dce3ec;padding:12px max(14px,calc((100% - 900px)/2));z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:20px;margin:0}main{max-width:900px;margin:auto;padding:14px}.panel{background:#fff;border:1px solid #e0e6ef;border-radius:12px;padding:14px;margin-bottom:14px}button,input,textarea,select{font:inherit;border:1px solid #c9d3e0;border-radius:8px;padding:9px;background:#fff}button{cursor:pointer;background:#1769aa;color:#fff;border-color:#1769aa}button.secondary{background:#fff;color:#26384d;border-color:#c9d3e0}button:disabled{opacity:.55;cursor:wait}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}input,textarea,select{width:100%}textarea{min-height:90px;resize:vertical}.muted{color:#68778a;font-size:13px}.thread,.post{padding:12px;border-bottom:1px solid #e5eaf1;overflow-wrap:anywhere}.thread{cursor:pointer;border-radius:8px}.thread:hover{background:#f2f7fc}.thread strong{display:block}.post{background:#eaf3fb;border-radius:9px;margin:8px 0;border:0}.post small{display:block;margin-top:8px;color:#43556b}.hidden{display:none!important}.status{min-height:1.4em;color:#526174;font-size:13px}.bar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.bar button{flex:0 0 auto}.danger{color:#9c2929}#postList{max-height:none}a{color:#1769aa}
+</style>
+</head>
+<body>
+<header><h1>Bord <span class="muted">軽量版</span></h1><div class="row" style="flex:0 1 300px"><input id="nickname" maxlength="15" aria-label="投稿名" placeholder="投稿名"><button id="saveName" class="secondary">名前保存</button></div></header>
+<main>
+<section id="listView">
+<div class="panel">
+<div class="bar"><div><strong>スレッド</strong><div class="muted">最新15件のみリアルタイム監視します。</div></div><button id="newThreadBtn">スレッド作成</button></div>
+<div id="threadStatus" class="status" aria-live="polite">接続中…</div>
+<div id="threadList"></div>
+<div class="bar"><button id="loadOlder" class="secondary">古いスレッドを読み込む</button><button id="refreshThreads" class="secondary">一覧を更新</button></div>
+</div>
+</section>
+<section id="threadView" class="hidden">
+<div class="panel">
+<div class="bar"><button id="backBtn" class="secondary">← 一覧へ</button><button id="refreshPosts" class="secondary">投稿を再読み込み</button></div>
+<h2 id="threadTitle">スレッド</h2><p id="threadDetail" class="muted"></p><div id="postStatus" class="status" aria-live="polite"></div>
+<div id="postList"></div>
+<div class="bar"><button id="loadOlderPosts" class="secondary">古い投稿を読み込む</button><button id="loadNewerPosts" class="secondary">最新50件を表示</button></div>
+</div>
+<div class="panel">
+<h3>投稿する</h3><textarea id="postBody" maxlength="5000" placeholder="メッセージを入力"></textarea>
+<div class="row" style="margin-top:8px"><select id="postColor" aria-label="投稿色"><option value="#eaf3fb">青</option><option value="#eaf7e9">緑</option><option value="#fff3d9">黄</option><option value="#f8e9f2">桃</option></select><button id="sendPost">投稿</button></div>
+<p class="muted">この軽量版はテキスト投稿のみです。アカウントログイン、画像、DM、通知などは含みません。</p>
+</div>
+</section>
+<section id="createView" class="hidden">
+<div class="panel"><div class="bar"><h2>スレッド作成</h2><button id="cancelCreate" class="secondary">キャンセル</button></div>
+<label>タイトル<input id="newTitle" maxlength="120" placeholder="タイトル"></label><p><label>説明<textarea id="newDetail" maxlength="2000" placeholder="説明（任意）"></textarea></label></p>
+<button id="createThreadSubmit">作成</button><div id="createStatus" class="status" aria-live="polite"></div>
+</div>
+</section>
+<section class="panel muted">
+<strong>通信量を抑える設計</strong>
+<ul><li>スレッド一覧は最新15件だけ監視し、全件監視を行いません。</li><li>投稿は初回50件を一括取得し、監視を常時開きません。</li><li>古いデータはボタンを押した時だけ追加取得します。</li><li>投稿作成時はスレッド情報を更新し、画面を開くたびの重複取得を避けます。</li></ul>
+<p class="danger">既存のBord全機能を置き換えるものではなく、掲示板の基本機能に絞った軽量版です。既存のFirestoreセキュリティルールに従います。</p>
+</section>
+</main>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, query, orderBy, limit, startAfter, getDocs, onSnapshot, addDoc, updateDoc, runTransaction, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBX1ytdufTmbCtNiyLxrpzrreYwsgNNhRA",
+  authDomain: "sinzobord.firebaseapp.com",
+  projectId: "sinzobord",
+  storageBucket: "sinzobord.firebasestorage.app",
+  messagingSenderId: "326229251487",
+  appId: "1:326229251487:web:d5a32cb2a9023d862819aa",
+  measurementId: "G-12GGPD0H2H"
+};
+const app = initializeApp(firebaseConfig);
+const db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});
+const ROOM = "threads";
+const PAGE_SIZE = 15;
+const POST_PAGE_SIZE = 50;
+const $ = id => document.getElementById(id);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dateText = value => { if(!value)return ""; const d = value.toDate ? value.toDate() : new Date(value); return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("ja-JP"); };
+let threadUnsub = null, lastThreadDoc = null, currentThread = null, firstPostDoc = null, lastPostDoc = null, postRows = [];
+let olderThreads = [], loadingThreads = false, loadingPosts = false;
+let nickname = localStorage.getItem("bord-lite-nickname") || ("名称未設定#" + String(Math.floor(Math.random()*10000)).padStart(4,"0"));
+$("nickname").value = nickname;
+$("saveName").onclick = () => { const v = $("nickname").value.trim().slice(0,15); if(!v){alert("投稿名を入力してください");return;} nickname=v;localStorage.setItem("bord-lite-nickname",v);$("nickname").value=v; };
+function setStatus(id,msg){$(id).textContent=msg;}
+function show(view){["listView","threadView","createView"].forEach(id=>$(id).classList.toggle("hidden",id!==view));}
+function threadCard(id,data){
+ const el=document.createElement("article"); el.className="thread";
+ const title=document.createElement("strong"); title.textContent=(data.pinned?"📌 ":"")+(data.title||"（タイトルなし）");
+ const detail=document.createElement("div"); detail.className="muted"; detail.textContent=(data.detail||"").slice(0,180);
+ const meta=document.createElement("div"); meta.className="muted"; meta.textContent="投稿数: "+(data.postCount||0)+" ・ "+dateText(data.created_at);
+ el.append(title,detail,meta); el.onclick=()=>openThread(id,data); return el;
+}
+function startThreadListener(){
+ if(threadUnsub)threadUnsub();
+ setStatus("threadStatus","最新スレッドを取得中…");
+ const q=query(collection(db,ROOM),orderBy("created_at","desc"),limit(PAGE_SIZE));
+ threadUnsub=onSnapshot(q,snap=>{
+  $("threadList").replaceChildren(); lastThreadDoc=snap.docs.length?snap.docs[snap.docs.length-1]:null;
+  snap.docs.forEach(d=>{const data=d.data(); if(!data.deleted)$("threadList").appendChild(threadCard(d.id,data));});
+  setStatus("threadStatus","最新"+snap.size+"件を監視中。変更がある場合のみ更新します。");
+ },err=>{console.error(err);setStatus("threadStatus","読み込みに失敗しました。Firestoreの権限・インデックスを確認してください。");});
+}
+async function loadOlderThreads(){
+ if(loadingThreads||!lastThreadDoc)return;
+ loadingThreads=true;$("loadOlder").disabled=true;
+ try{
+  const snap=await getDocs(query(collection(db,ROOM),orderBy("created_at","desc"),startAfter(lastThreadDoc),limit(PAGE_SIZE)));
+  if(!snap.empty){lastThreadDoc=snap.docs[snap.docs.length-1];snap.docs.forEach(d=>{const data=d.data();if(!data.deleted)olderThreads.push({id:d.id,data});});}
+  renderOlderThreads(); $("loadOlder").disabled=snap.size<PAGE_SIZE;
+ }catch(e){console.error(e);setStatus("threadStatus","追加読み込みに失敗しました。");}
+ finally{loadingThreads=false;$("loadOlder").disabled=false;}
+}
+function renderOlderThreads(){
+ let old=$("olderThreads"); if(!old){old=document.createElement("div");old.id="olderThreads";$("threadList").after(old);}
+ old.replaceChildren();olderThreads.forEach(x=>old.appendChild(threadCard(x.id,x.data)));
+}
+function renderPosts(rows,append=false){
+ const list=$("postList");if(!append)list.replaceChildren();
+ rows.forEach(d=>{
+  const p=d.data();const el=document.createElement("article");el.className="post";
+  const body=document.createElement("div");body.style.whiteSpace="pre-wrap";body.textContent=p.deleted?"この投稿は削除されました":(p.body|| (p.image?"（画像投稿：軽量版では画像を表示しません）":""));
+  const meta=document.createElement("small");meta.textContent="#"+(p.index??"?")+" ・ "+(p.memberId||"名称未設定")+" ・ "+dateText(p.created_at);
+  el.append(body,meta);list.appendChild(el);
+ });
+}
+async function fetchPosts({append=false,older=false}={}){
+ if(!currentThread||loadingPosts)return;loadingPosts=true;
+ try{
+  let q=query(collection(db,ROOM,currentThread.id,"posts"),orderBy("created_at","desc"),limit(POST_PAGE_SIZE));
+  if(older&&lastPostDoc)q=query(collection(db,ROOM,currentThread.id,"posts"),orderBy("created_at","desc"),startAfter(lastPostDoc),limit(POST_PAGE_SIZE));
+  const snap=await getDocs(q);const docs=snap.docs;
+  if(!older){postRows=docs;firstPostDoc=docs.length?docs[0]:null;lastPostDoc=docs.length?docs[docs.length-1]:null;}
+  else if(docs.length){postRows=postRows.concat(docs);lastPostDoc=docs[docs.length-1];}
+  const ordered=[...postRows].reverse();renderPosts(ordered,false);
+  setStatus("postStatus",postRows.length+"件を表示中（投稿は自動監視せず、必要時に再読み込み）");
+  $("loadOlderPosts").disabled=docs.length<POST_PAGE_SIZE;
+ }catch(e){console.error(e);setStatus("postStatus","投稿を読み込めませんでした。Firestoreの権限・インデックスを確認してください。");}
+ finally{loadingPosts=false;}
+}
+async function openThread(id,data){
+ currentThread={id,...data};postRows=[];firstPostDoc=null;lastPostDoc=null;
+ $("threadTitle").textContent=data.title||"（タイトルなし）";$("threadDetail").textContent=data.detail||"";
+ $("postList").replaceChildren();show("threadView");await fetchPosts();
+}
+$("backBtn").onclick=()=>{currentThread=null;show("listView");};
+$("refreshPosts").onclick=()=>fetchPosts();
+$("loadOlderPosts").onclick=()=>fetchPosts({append:true,older:true});
+$("loadNewerPosts").onclick=()=>fetchPosts();
+$("refreshThreads").onclick=()=>startThreadListener();
+$("loadOlder").onclick=loadOlderThreads;
+$("newThreadBtn").onclick=()=>{ $("newTitle").value="";$("newDetail").value="";setStatus("createStatus","");show("createView"); };
+$("cancelCreate").onclick=()=>show("listView");
+$("createThreadSubmit").onclick=async()=>{
+ const btn=$("createThreadSubmit");if(btn.disabled)return;
+ const title=$("newTitle").value.trim(),detail=$("newDetail").value.trim();
+ if(!title){setStatus("createStatus","タイトルを入力してください。");return;}
+ btn.disabled=true;setStatus("createStatus","作成中…");
+ try{
+  const now=Timestamp.now();const threadRef=doc(collection(db,ROOM));const postRef=doc(collection(db,ROOM,threadRef.id,"posts"));
+  const threadData={memberId:nickname,isAccountUser:false,nameDup:false,icon:null,title,detail,image:null,password:null,color:"#3498db",postCount:1,pinned:false,boosted:false,latestPostTime:now,created_at:now,locked:false};
+  const postData={memberId:nickname,isAccountUser:false,nameDup:false,icon:null,body:"【"+title+"】"+(detail?"\n"+detail:""),image:null,color:"#3498db",created_at:now,index:1};
+  await runTransaction(db,async tx=>{tx.set(threadRef,threadData);tx.set(postRef,postData);});
+  currentThread={id:threadRef.id,...threadData};show("threadView");$("threadTitle").textContent=title;$("threadDetail").textContent=detail;postRows=[];await fetchPosts();setStatus("createStatus","作成しました。");
+ }catch(e){console.error(e);setStatus("createStatus","作成に失敗しました。既存のFirestoreルールで書き込みが許可されているか確認してください。");}
+ finally{btn.disabled=false;}
+};
+$("sendPost").onclick=async()=>{
+ const btn=$("sendPost");if(btn.disabled||!currentThread)return;
+ const body=$("postBody").value.trim();if(!body){setStatus("postStatus","本文を入力してください。");return;}
+ btn.disabled=true;setStatus("postStatus","投稿中…");
+ try{
+  const threadRef=doc(db,ROOM,currentThread.id);
+  const postRef=doc(collection(db,ROOM,currentThread.id,"posts"));
+  await runTransaction(db,async tx=>{
+   const snap=await tx.get(threadRef);if(!snap.exists())throw new Error("thread missing");
+   const data=snap.data();if(data.deleted||data.locked)throw new Error("thread locked");
+   const nextIndex=(Number(data.postCount)||0)+1;
+   tx.set(postRef,{memberId:nickname,isAccountUser:false,nameDup:false,icon:null,body,image:null,color:$("postColor").value,created_at:Timestamp.now(),index:nextIndex});
+   tx.update(threadRef,{postCount:nextIndex,latestPostTime:Timestamp.now()});
+  });
+  $("postBody").value="";await fetchPosts();setStatus("postStatus","投稿しました。");
+ }catch(e){console.error(e);setStatus("postStatus","投稿に失敗しました。スレッドの状態またはFirestoreルールを確認してください。");}
+ finally{btn.disabled=false;}
+};
+startThreadListener();
+window.addEventListener("pagehide",()=>{if(threadUnsub)threadUnsub();});
+</script>
+</body>
+</html>
