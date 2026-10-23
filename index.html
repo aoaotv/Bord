@@ -444,7 +444,7 @@ li img, li video { max-width: 100%; height: auto; }
    <button type="button" class="menu-grid-item" data-open-menu="menuRpsBtn">✊<br>コインじゃんけん<small>CPUと勝負</small></button>
    <button type="button" class="menu-grid-item" data-open-menu="menuOthelloBtn">⚫<br>オセロ対戦<small>ボット・オンライン</small></button>
   </div>
-  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
+  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">メニューに戻る</button>
  </div>
 </div>
 
@@ -462,7 +462,7 @@ li img, li video { max-width: 100%; height: auto; }
    <button type="button" class="menu-grid-item" data-open-menu="menuEmojiShopBtn">😀<br>絵文字ショップ<small>使える絵文字を購入</small></button>
    <button type="button" class="menu-grid-item" data-open-menu="menuRedeemBtn">🪙<br>コインチャージ<small>コイン関連メニュー</small></button>
   </div>
-  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
+  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">メニューに戻る</button>
  </div>
 </div>
 
@@ -500,7 +500,7 @@ li img, li video { max-width: 100%; height: auto; }
   </div>
   <p style="font-size:13px;color:#777">下へスクロールすると古い履歴を確認できます。過去の公開番号が確認できないものは、履歴整理用の番号として記載しています。</p>
   <div id="versionHistoryList" style="display:grid;gap:12px;padding:2px 5px 12px 2px"></div>
-  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
+  <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">メニューに戻る</button>
  </div>
 </div>
 
@@ -1876,7 +1876,7 @@ function setMyCoins(amount) {
   if (currentAccount) {
     saveAccountData({
       coinsExact: decimal,
-      coins: Number(decimal),
+      coins: String(decimal),
       purchasedEmojis: getPurchasedEmojis(),
       purchasedTags: getPurchasedTags(),
       purchasedEffects: getPurchasedEffects(),
@@ -2076,8 +2076,11 @@ document.getElementById("coinDisplayCloseBtn").onclick = () => {
 // 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
 // 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
 // ============================================================
-const CURRENT_APP_VERSION = "1.13";
+const CURRENT_APP_VERSION = "1.15";
 const VERSION_HISTORY = [
+  { version: "1.15", date: "2026-10-23", title: "コインのカンスト再発防止", changes: ["コイン残高の保存時にNumber変換で精度が失われないよう修正", "coinsExactを正確な残高として維持し、互換用coinsも文字列で保存"] },
+  
+  { version: "1.14", date: "2026-10-23", title: "サイコロ勝敗表示と戻るボタン表記を改善", changes: ["サイコロ勝負の結果に勝ち・負け、予想、出目、偶数・奇数を明記", "「…メニューに戻る」を「メニューに戻る」に変更"] },
   { version: "1.13", date: "2026-10-23", title: "全額操作ボタンを追加", changes: ["預金の全額預け入れ、株の全額購入・全株売却を追加", "ゲームの全額賭け・オセロ掛け金・他人への全額送金ボタンを追加"] },
   { version: "1.12", date: "2026-10-23", title: "コイン残高の上限表示を修正", changes: ["互換用coinsフィールドが999兆9999億9999万9999コインで固定される問題を修正", "正確な残高はcoinsExactを維持し、互換用数値フィールドも上限値に固定しない"] },
   { version: "1.12", date: "2026-10-23", title: "株の取引数量に単位表示を追加", changes: ["株の取引数量入力欄の右側に概算数量と株の単位を表示"] },
@@ -2704,9 +2707,9 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
       if (mc < amount) throw new Error("NO_COINS");
       fromAfter = mc - amount; toAfter = tc + amount;
       if (toAfter < 0n) throw new Error("TOO_BIG");
-      tx.update(meRef, { coinsExact: fromAfter.toString(), coins: Number(fromAfter), updated_at: Timestamp.now() });
+      tx.update(meRef, { coinsExact: fromAfter.toString(), coins: String(fromAfter), updated_at: Timestamp.now() });
       // increment() だと coins が未設定の相手が「1000＋送金額」でなく「送金額だけ」になってしまうため、計算した値をそのまま書く
-      tx.update(toRef, { coinsExact: toAfter.toString(), coins: Number(toAfter), pendingTransfers: arrayUnion({...item, amount: amount.toString()}), updated_at: Timestamp.now() });
+      tx.update(toRef, { coinsExact: toAfter.toString(), coins: String(toAfter), pendingTransfers: arrayUnion({...item, amount: amount.toString()}), updated_at: Timestamp.now() });
     }), 20000);
     applyLocalCoinBalance(fromAfter);   // 送金後の残高を即時反映し、古い同期値による巻き戻りを防止
     syncCoinViews();
@@ -2819,15 +2822,17 @@ async function playDice(choice) {
     const userWin = (choice === "even" && isEven) || (choice === "odd" && !isEven);
 
     const resultTextEl = document.getElementById("diceResultText");
+    const prediction = choice === "even" ? "偶数" : "奇数";
+    const parity = isEven ? "偶数" : "奇数";
     if (userWin) {
-      const reward = bet * 2n;
-      setMyCoins(getMyCoins() + coinBigInt(reward));
+      const reward = coinBigInt(bet) * 2n;
+      setMyCoins(getMyCoins() + reward);
       resultTextEl.style.color = "#27ae60";
-      resultTextEl.textContent = `🎉 当たり！ ${reward} コイン獲得しました！`;
-      await saveLog("dice_win", { bet, reward, diceVal });
+      resultTextEl.textContent = `🎉 あなたの勝ち！ 予想：${prediction}／出目：${diceVal}（${parity}）。賭け金 ${bet} コインが的中し、合計 ${reward.toLocaleString("ja-JP")} コインを受け取りました。`;
+      await saveLog("dice_win", { bet, reward: reward.toString(), diceVal });
     } else {
       resultTextEl.style.color = "#c0392b";
-      resultTextEl.textContent = `😢 ハズレ… ${bet} コイン没収されました。`;
+      resultTextEl.textContent = `😢 あなたの負け…。予想：${prediction}／出目：${diceVal}（${parity}）。予想が外れたため、賭け金 ${bet} コインを失いました。`;
       await saveLog("dice_lose", { bet, diceVal });
     }
   }, 600);
@@ -3227,7 +3232,7 @@ function tradeStock(kind) {
         tx.update(accRef, {
           coinsExact: coins.toString(),
           // 従来の画面・旧バージョンとの互換用フィールド。正確な値はcoinsExactが優先。
-          coins: Number(coins),
+          coins: String(coins),
           holdings: h,
           shares: sumHoldings(h),
           updated_at: Timestamp.now()
@@ -3351,7 +3356,7 @@ async function depositOp(kind) {
         if (moved > BigInt(Math.max(0, Math.floor(bal)))) throw new Error(`預金が足りません（引き出せる額: ${coinText(Math.floor(bal))}）`);
         coins += moved; bal -= Number(moved);
       }
-      tx.update(ref, { coinsExact: coins.toString(), coins: Number(coins), deposit: bal, depositAt: now, updated_at: Timestamp.now() });
+      tx.update(ref, { coinsExact: coins.toString(), coins: String(coins), deposit: bal, depositAt: now, updated_at: Timestamp.now() });
       return { coins: coins.toString(), bal, now, moved: moved.toString() };
     });
     depositCoinWriteAt = Date.now();
@@ -3433,7 +3438,7 @@ async function spinRoulette() {
       if (!((acc.premiumUntil || 0) > Date.now())) throw new Error("プレミアム会員ではありません。");
       if (acc.rouletteDate === today) throw new Error("今日はもう回しました。");
       const coins = coinBigInt(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000)) + BigInt(prize);
-      tx.update(ref, { coinsExact: coins.toString(), coins: Number(coins), rouletteDate: today, updated_at: Timestamp.now() });
+      tx.update(ref, { coinsExact: coins.toString(), coins: String(coins), rouletteDate: today, updated_at: Timestamp.now() });
       return { coins: coins.toString() };
     });
     localStorage.setItem("rouletteDate", today);
@@ -3544,7 +3549,7 @@ async function buyPremium() {
       if (coins < BigInt(cost)) throw new Error(`コインが足りません（必要: ${cost.toLocaleString()} コイン）`);
       const nextCoins = coins - BigInt(cost);
       const until = Math.max(now, acc.premiumUntil || 0) + days * DAY_MS;
-      const upd = { coinsExact: nextCoins.toString(), coins: Number(nextCoins), premiumUntil: until, updated_at: Timestamp.now() };
+      const upd = { coinsExact: nextCoins.toString(), coins: String(nextCoins), premiumUntil: until, updated_at: Timestamp.now() };
       // 日利が切り替わる前に、ここまでの利子を確定させる
       if ((acc.deposit || 0) > 0) { upd.deposit = calcDeposit(acc.deposit, acc.depositAt, now, acc.premiumUntil || 0); upd.depositAt = now; }
       tx.update(ref, upd);
@@ -5757,7 +5762,7 @@ document.getElementById('accCoinBtn').onclick = async () => {
       hideLoading();
       return alert("アカウントは削除されました");
     }
-    await updateDoc(accRef, { coinsExact: newCoins.toString(), coins: Number(newCoins), updated_at: Timestamp.now() });
+    await updateDoc(accRef, { coinsExact: newCoins.toString(), coins: String(newCoins), updated_at: Timestamp.now() });
     await saveLog("admin_edit_account_coins", { targetAccount: accName, newCoins });
     hideLoading();
     alert(`アカウント「${accName}」のコインを ${coinText(newCoins)} に変更しました。`);
@@ -6359,7 +6364,7 @@ async function bfClaimDailyLogin(){
     const streak=streakDate===yesterdayKey?(Number(a.bfLoginStreak)||0)+1:1;
     bonus=Math.min(100,30+Math.min(streak-1,7)*10);
     const nextCoins = coinBigInt(a.coinsExact !== undefined ? a.coinsExact : (a.coins || 0)) + BigInt(bonus);
-    tx.update(ref,{bfDailyLoginDate:day,bfLoginStreak:streak,coinsExact:nextCoins.toString(),coins:Number(nextCoins),bfXp:Math.max(0,Number(a.bfXp)||0)+10,bfUpdatedAt:serverTimestamp()});
+    tx.update(ref,{bfDailyLoginDate:day,bfLoginStreak:streak,coinsExact:nextCoins.toString(),coins: String(nextCoins),bfXp:Math.max(0,Number(a.bfXp)||0)+10,bfUpdatedAt:serverTimestamp()});
     claimed=true;
   });
   if(claimed){showTopNotification(`🎁 ログインボーナス +${bonus}コイン`);}
@@ -6390,7 +6395,7 @@ async function bfTrackAction(type, extra={}){
     if(updatedPosts>=50&&!achievements.includes("posts_50"))achievements.push("posts_50");
     if(updatedThreads>=1&&!achievements.includes("first_thread"))achievements.push("first_thread");
     const nextCoins = coinBigInt(a.coinsExact !== undefined ? a.coinsExact : (a.coins || 0)) + BigInt(coinGain);
-    tx.update(ref,{bfXp:xp,bfMissionDate:day,bfMissionProgress:progress,bfMissionClaimed:claimed,bfAchievements:achievements,bfTotalPosts:updatedPosts,bfTotalThreads:updatedThreads,coinsExact:nextCoins.toString(),coins:Number(nextCoins),bfUpdatedAt:serverTimestamp()});
+    tx.update(ref,{bfXp:xp,bfMissionDate:day,bfMissionProgress:progress,bfMissionClaimed:claimed,bfAchievements:achievements,bfTotalPosts:updatedPosts,bfTotalThreads:updatedThreads,coinsExact:nextCoins.toString(),coins: String(nextCoins),bfUpdatedAt:serverTimestamp()});
     if(coinGain)extra.coinGain=coinGain;
   });
   /* Firestore account listener updates the local coin display after the transaction. */
