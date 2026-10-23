@@ -402,8 +402,9 @@ li img, li video { max-width: 100%; height: auto; }
     <div id="menuFavoritesBtn" class="menu-grid-item">⭐<br>お気に入りスレッド</div>
     <div id="menuStockBtn" class="menu-grid-item">📈<br>株式投資</div>
     <div id="menuDepositBtn" class="menu-grid-item">🏦<br>預金</div>
+    <div id="menuCoinDisplayBtn" class="menu-grid-item">🪙<br>コイン表示</div>
 <div id="menuCoinRainBtn" class="menu-grid-item">🌧️<br>コインの雨</div>
-    <div id="menuPremiumBtn" class="menu-grid-item" style="display:none">👑<br>プレミアム</div>
+    <div id="menuPremiumBtn" class="menu-grid-item">👑<br>プレミアム</div>
     <!-- 各機能の既存イベントを維持するため、個別ボタンは非表示で残します -->
     <div id="menuDiceBtn" class="menu-grid-item" style="display:none">🎲<br>サイコロ勝負</div>
     <div id="menuRouletteBtn" class="menu-grid-item" style="display:none">🎡<br>ルーレット</div>
@@ -459,11 +460,21 @@ li img, li video { max-width: 100%; height: auto; }
    <button type="button" class="menu-grid-item" data-open-menu="menuEffectShopBtn">✨<br>名前エフェクト<small>名前を装飾</small></button>
    <button type="button" class="menu-grid-item" data-open-menu="menuTagShopBtn">🏷️<br>タグショップ<small>名前タグを購入</small></button>
    <button type="button" class="menu-grid-item" data-open-menu="menuEmojiShopBtn">😀<br>絵文字ショップ<small>使える絵文字を購入</small></button>
-   <button type="button" class="menu-grid-item" data-open-menu="menuPremiumBtn">👑<br>プレミアム<small>特典を確認</small></button>
    <button type="button" class="menu-grid-item" data-open-menu="menuRedeemBtn">🪙<br>コインチャージ<small>コイン関連メニュー</small></button>
   </div>
   <button class="closeSectionBtn greenBtn" style="width:100%;margin-top:22px;background:#7f8c8d">…メニューに戻る</button>
  </div>
+</div>
+
+<!-- コイン全画面表示 -->
+<div id="coinDisplaySection" class="full-screen-section" style="display:none;top:0;bottom:0;height:100dvh;max-height:100dvh;padding:20px;z-index:2100;">
+  <div class="store-container" style="max-width:900px;min-height:calc(100% - 60px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;">
+    <div style="font-size:clamp(42px,9vw,76px);">🪙</div>
+    <h2 style="margin:8px 0;color:#2c3e50;">所持コイン</h2>
+    <div id="coinDisplayBalance" style="font-size:clamp(32px,8vw,76px);font-weight:800;line-height:1.2;color:#e67e22;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;">0</div>
+    <div id="coinDisplayApprox" style="font-size:clamp(18px,3vw,28px);color:#7f8c8d;margin-top:12px;">0 コイン</div>
+    <button id="coinDisplayCloseBtn" type="button" class="greenBtn" style="width:100%;max-width:360px;margin-top:32px;padding:14px;background:#7f8c8d;">✕ 閉じる</button>
+  </div>
 </div>
 
 <!-- バージョン情報・更新履歴
@@ -689,7 +700,7 @@ li img, li video { max-width: 100%; height: auto; }
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:20px"><h3 style="margin:0;color:#2c3e50">🎡 コインルーレット</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span class="sharedCoinCount">0</span></strong></div>
   <div id="rouletteWheel" style="font-size:76px;margin:18px 0">🎡</div>
   <p style="color:#555">赤・黒・緑（0）を予想しよう。赤・黒は的中で2倍、緑は36倍！</p>
-  <label for="rouletteBetInput">賭け金</label><input id="rouletteBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold">
+  <label for="rouletteBetInput">賭け金</label><input id="rouletteBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold"><button type="button" id="rouletteBetAllBtn" class="blueBtn" style="margin:4px 0 8px;padding:7px 12px;">全額賭け</button>
   <label for="rouletteChoice">予想</label><select id="rouletteChoice" style="max-width:300px;margin:0 auto 12px"><option value="red">🔴 赤（2倍）</option><option value="black">⚫ 黒（2倍）</option><option value="green">🟢 緑・0（36倍）</option></select>
   <button id="roulettePlayBtn" class="greenBtn" style="width:100%;padding:14px;font-size:18px">ルーレットを回す</button>
   <div id="rouletteResult" aria-live="polite" style="font-size:18px;font-weight:bold;min-height:52px;margin:16px 0;color:#2c3e50"></div>
@@ -703,7 +714,7 @@ li img, li video { max-width: 100%; height: auto; }
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:20px"><h3 style="margin:0;color:#2c3e50">🎰 コインスロット</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span class="sharedCoinCount">0</span></strong></div>
   <p style="color:#555">絵柄をそろえてコインを獲得！ 7️⃣7️⃣7️⃣ は10倍。</p>
   <div id="slotsReels" style="display:flex;justify-content:center;gap:8px;margin:24px 0"><span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">❔</span><span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">❔</span><span style="display:inline-flex;align-items:center;justify-content:center;width:88px;height:100px;background:#fff;border:3px solid #d5a738;border-radius:14px;font-size:48px">❔</span></div>
-  <label for="slotsBetInput">賭け金</label><input id="slotsBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold">
+  <label for="slotsBetInput">賭け金</label><input id="slotsBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold"><button type="button" id="slotsBetAllBtn" class="blueBtn" style="margin:4px 0 8px;padding:7px 12px;">全額賭け</button>
   <button id="slotsPlayBtn" class="greenBtn" style="width:100%;padding:14px;font-size:18px">スロットを回す</button>
   <div id="slotsResult" aria-live="polite" style="font-size:18px;font-weight:bold;min-height:52px;margin:16px 0;color:#2c3e50"></div>
   <div style="text-align:left;background:#f7f9fc;border:1px solid #dfe6e9;border-radius:12px;padding:14px;margin:14px 0">
@@ -728,7 +739,7 @@ li img, li video { max-width: 100%; height: auto; }
  <div class="store-container" style="max-width:650px;text-align:center">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #eee;padding-bottom:14px;margin-bottom:20px"><h3 style="margin:0;color:#2c3e50">✊ コインじゃんけん</h3><strong style="background:#fff3e0;padding:8px 12px;border-radius:18px">🪙 <span class="sharedCoinCount">0</span></strong></div>
   <p style="color:#555">CPUとじゃんけん！勝てば賭け金の2倍、あいこは賭け金が戻ります。</p>
-  <label for="rpsBetInput">賭け金</label><input id="rpsBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold">
+  <label for="rpsBetInput">賭け金</label><input id="rpsBetInput" type="number" min="1" step="1" value="100" style="max-width:240px;text-align:center;font-weight:bold"><button type="button" id="rpsBetAllBtn" class="blueBtn" style="margin:4px 0 8px;padding:7px 12px;">全額賭け</button>
   <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:20px 0"><button id="rpsRockBtn" class="blueBtn" style="font-size:18px;padding:14px 20px">✊ グー</button><button id="rpsPaperBtn" class="blueBtn" style="font-size:18px;padding:14px 20px">✋ パー</button><button id="rpsScissorsBtn" class="blueBtn" style="font-size:18px;padding:14px 20px">✌️ チョキ</button></div>
   <div id="rpsBattleDisplay" style="font-size:42px;min-height:58px;margin:12px 0">あなた ?　VS　? CPU</div>
   <div id="rpsResult" aria-live="polite" style="font-size:18px;font-weight:bold;min-height:52px;margin:16px 0;color:#2c3e50"></div>
@@ -745,7 +756,7 @@ li img, li video { max-width: 100%; height: auto; }
   <div style="background:#f7f9fc;padding:16px;border-radius:12px;margin-bottom:12px">
    <label for="othMode">対戦モード</label><select id="othMode"><option value="bot">🤖 ボットと対戦</option><option value="online">🌐 オンラインで友達と対戦</option></select>
    <label for="othBet">掛け金（1人分）</label>
-   <input id="othBet" type="text" inputmode="numeric" autocomplete="off" value="100" placeholder="数字を入力（例：1000000）" aria-describedby="othBetHelp">
+   <input id="othBet" type="text" inputmode="numeric" autocomplete="off" value="100" placeholder="数字を入力（例：1000000）" aria-describedby="othBetHelp"><button type="button" id="othBetAllBtn" class="blueBtn" style="margin:4px 0 8px;padding:7px 12px;">全額掛け金</button>
    <p id="othBetHelp" style="font-size:12px;color:#666;line-height:1.6;margin:5px 0 0">好きな金額を直接入力できます。練習したい場合は「0」を入力してください。現在のコイン残高を超える金額は賭けられません。</p>
    <label for="othTime">1手の制限時間</label><select id="othTime"><option value="15">15秒</option><option value="30" selected>30秒</option><option value="60">60秒</option><option value="0">制限なし</option></select>
    <div id="othOnlineControls" style="display:none;margin-top:12px">
@@ -794,7 +805,7 @@ li img, li video { max-width: 100%; height: auto; }
       <p style="color: #666; font-size: 14px; margin-bottom: 20px;">サイコロが「偶数か奇数か」を当てよう！的中すれば賭け金が2倍になって戻ってくる！</p>
       
       <label style="max-width:200px; margin:0 auto 8px;">賭けるコイン数</label>
-      <input type="number" id="diceBetInput" value="100" min="10" max="10000" style="max-width:200px; margin:0 auto 15px; text-align:center; font-weight:bold;">
+      <input type="number" id="diceBetInput" value="100" min="10" max="10000" style="max-width:200px; margin:0 auto 15px; text-align:center; font-weight:bold;"><button type="button" id="diceBetAllBtn" class="blueBtn" style="margin:4px 0 8px;padding:7px 12px;">全額賭け</button>
       
       <div style="display:flex; justify-content:center; gap:15px;">
         <button id="diceEvenBtn" class="greenBtn" style="padding: 12px 24px; font-size: 16px; background: #2980b9;">偶数 (Even) 2倍</button>
@@ -835,6 +846,10 @@ li img, li video { max-width: 100%; height: auto; }
       <div style="display:flex; gap:10px;">
         <button id="buyStockBtn" class="greenBtn" style="flex:1; margin:0; padding:12px; font-weight:bold;">選択中の株を買う</button>
         <button id="sellStockBtn" class="redBtn" style="flex:1; margin:0; padding:12px; font-weight:bold;">選択中の株を売る</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button id="buyStockAllBtn" class="greenBtn" style="flex:1;margin:0;background:#16a085;">全額で購入</button>
+        <button id="sellStockAllBtn" class="redBtn" style="flex:1;margin:0;background:#c0392b;">全株売却</button>
       </div>
       <div id="stockMsg" class="stk-msg" role="status"></div>
     </div>
@@ -922,6 +937,7 @@ li img, li video { max-width: 100%; height: auto; }
       <input type="number" id="depAmountInput" min="1" step="1" placeholder="金額（コイン）">
       <div class="dep-btns">
         <button id="depInBtn" class="greenBtn" type="button">預ける</button>
+        <button id="depInAllBtn" class="greenBtn" type="button" style="background:#16a085;">全額預け入れ</button>
         <button id="depOutBtn" class="greenBtn" type="button" style="background:#2980b9;">引き出す</button>
         <button id="depOutAllBtn" class="greenBtn" type="button" style="background:#3498db;">全額引き出す</button>
       </div>
@@ -1230,9 +1246,10 @@ li img, li video { max-width: 100%; height: auto; }
   <div id="modalCoinSendBox" style="margin-bottom:8px; padding:8px; background:#fff8ef; border:1px solid #f0d9b5; border-radius:8px;">
     <div style="font-size:12px; color:#555; margin-bottom:4px;">🪙 コインを送る（金額を指定）</div>
     <div style="display:flex; gap:6px;">
-      <input type="number" id="modalCoinAmountInput" min="1" step="1" placeholder="金額" style="flex:1; min-width:0; margin:0; text-align:center; font-weight:bold;">
+      <input type="text" inputmode="numeric" id="modalCoinAmountInput" placeholder="金額" style="flex:1; min-width:0; margin:0; text-align:center; font-weight:bold;">
       <button id="modalSendCoinBtn" class="greenBtn" style="margin:0; background:#e67e22; white-space:nowrap;">送る</button>
     </div>
+    <button id="modalSendAllCoinBtn" type="button" class="greenBtn" style="width:100%;margin:6px 0 0;background:#d35400;">全額送る</button>
   </div>
   <button id="modalSendDmBtn" class="greenBtn" style="width:100%; margin-bottom:8px; background-color:#27ae60;">💬 このユーザーにDMを送る</button>
   <button id="closeUserProfileModal" class="greenBtn" style="width:100%; background:#7f8c8d;">閉じる</button>
@@ -1735,9 +1752,84 @@ function coinText(n) {
   const ap = coinApproxText(n);
   return coinNumText(n) + "コイン" + (ap ? `（約${ap}）` : "");
 }
+function shareCountText(n) {
+  const value = String(n == null ? 0 : n).replace(/[,_\s]/g, "");
+  if (!/^\d+$/.test(value)) return "0 株";
+  const approx = coinApproxText(value);
+  return approx ? `${coinNumText(value)} 株（約${approx}株）` : `${coinNumText(value)} 株`;
+}
+// コイン金額入力欄の右側に、万・億・兆などの概算と単位を表示する
+function setupCoinInputEstimates() {
+  const ids = ["rouletteBetInput","slotsBetInput","rpsBetInput","othBet","diceBetInput","depAmountInput","genCoinAmountInput","adminCoinEditInput","modalCoinAmountInput"];
+  ids.forEach(id => {
+    const input = document.getElementById(id);
+    if (!input || input.dataset.coinEstimateReady === "true") return;
+    input.dataset.coinEstimateReady = "true";
+    const wrap = document.createElement("div");
+    wrap.className = "coin-input-estimate-wrap";
+    wrap.style.cssText = "display:flex;align-items:center;gap:8px;width:100%;min-width:0;box-sizing:border-box;";
+    const parent = input.parentNode;
+    parent.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    input.style.width = "100%";
+    input.style.minWidth = "0";
+    input.style.flex = "1 1 auto";
+    input.style.boxSizing = "border-box";
+    const estimate = document.createElement("span");
+    estimate.className = "coin-input-estimate";
+    estimate.style.cssText = "flex:0 0 auto;min-width:74px;text-align:right;font-size:12px;font-weight:700;color:#b85c00;white-space:nowrap;";
+    estimate.setAttribute("aria-live", "polite");
+    wrap.appendChild(estimate);
+    const update = () => {
+      const raw = String(input.value || "").trim().replace(/[,_\s]/g, "");
+      if (!/^\d+$/.test(raw)) { estimate.textContent = "— コイン"; return; }
+      const approx = coinApproxText(raw);
+      estimate.textContent = approx ? `約${approx} コイン` : `${coinNumText(raw)} コイン`;
+      estimate.title = `${coinNumText(raw)} コイン`;
+    };
+    input.addEventListener("input", update);
+    update();
+  });
+}
+// 株の取引数量入力欄にも、コインと同じように概算と単位を表示
+function setupStockInputEstimate() {
+  const input = document.getElementById("tradeShareInput");
+  if (!input || input.dataset.stockEstimateReady === "true") return;
+  input.dataset.stockEstimateReady = "true";
+  const wrap = document.createElement("div");
+  wrap.className = "stock-input-estimate-wrap";
+  wrap.style.cssText = "display:flex;align-items:center;gap:8px;flex:1;min-width:0;";
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  input.style.width = "100%";
+  input.style.minWidth = "0";
+  input.style.flex = "1 1 auto";
+  input.style.boxSizing = "border-box";
+  const estimate = document.createElement("span");
+  estimate.className = "stock-input-estimate";
+  estimate.style.cssText = "flex:0 0 auto;min-width:64px;text-align:right;font-size:12px;font-weight:700;color:#2471a3;white-space:nowrap;";
+  estimate.setAttribute("aria-live", "polite");
+  wrap.appendChild(estimate);
+  const update = () => {
+    const raw = String(input.value || "").trim().replace(/[,_\s]/g, "");
+    if (!/^\d+$/.test(raw)) { estimate.textContent = "— 株"; return; }
+    const approx = coinApproxText(raw);
+    estimate.textContent = approx ? `約${approx} 株` : `${coinNumText(raw)} 株`;
+    estimate.title = `${coinNumText(raw)} 株`;
+  };
+  input.addEventListener("input", update);
+  update();
+}
 function setCoinCountViews(n) {
   const h = coinHtml(n);
   document.querySelectorAll(".sharedCoinCount").forEach(el => { el.innerHTML = h; });
+  const display = document.getElementById("coinDisplayBalance");
+  const approxDisplay = document.getElementById("coinDisplayApprox");
+  if (display) display.innerHTML = h;
+  if (approxDisplay) {
+    const ap = coinApproxText(n);
+    approxDisplay.textContent = ap ? `約 ${ap} コイン` : `${coinNumText(n)} コイン`;
+  }
 }
 function withTimeout(p, ms) {
   let t;
@@ -1784,7 +1876,7 @@ function setMyCoins(amount) {
   if (currentAccount) {
     saveAccountData({
       coinsExact: decimal,
-      coins: decimal.length < 16 ? Number(decimal) : 999999999999999,
+      coins: Number(decimal),
       purchasedEmojis: getPurchasedEmojis(),
       purchasedTags: getPurchasedTags(),
       purchasedEffects: getPurchasedEffects(),
@@ -1810,7 +1902,7 @@ function getMyShares() {
 function setMyShares(amount) {
   localStorage.setItem("myShares", amount);
   const sharesEl = document.getElementById("mySharesDisplay");
-  if (sharesEl) sharesEl.textContent = `${amount} 株`;
+  if (sharesEl) sharesEl.textContent = shareCountText(amount);
   if (currentAccount) saveAccountData({ shares: amount });
 }
 
@@ -1830,6 +1922,62 @@ function updateCoinButtonDisplay() {
   }
 }
 updateCoinButtonDisplay();
+setupCoinInputEstimates();
+setupStockInputEstimate();
+
+// 全額操作ボタン：入力欄へ残高・保有数を入れ、既存の検証処理をそのまま利用する。
+function setAmountInput(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = String(value);
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+}
+function safeGameBalance() {
+  const coins = getMyCoins();
+  if (coins <= 0n) { alert("所持コインがありません。"); return null; }
+  if (coins > BigInt(Number.MAX_SAFE_INTEGER)) {
+    alert("このゲームは数値の精度上、安全に扱える上限（約9007兆コイン）を超える全額賭けには対応していません。金額を指定してください。");
+    return null;
+  }
+  return coins.toString();
+}
+function bindAllAmountButton(buttonId, inputId, mode="game") {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const value = mode === "send" ? getMyCoins().toString() : safeGameBalance();
+    if (value !== null) setAmountInput(inputId, value);
+  });
+}
+[ ["rouletteBetAllBtn","rouletteBetInput"], ["slotsBetAllBtn","slotsBetInput"], ["rpsBetAllBtn","rpsBetInput"], ["diceBetAllBtn","diceBetInput"], ["othBetAllBtn","othBet"] ].forEach(([b,i]) => bindAllAmountButton(b,i));
+
+const depInAllBtn = document.getElementById("depInAllBtn");
+if (depInAllBtn) depInAllBtn.onclick = () => {
+  if (!currentAccount) return alert("預金を利用するにはアカウントが必要です。");
+  const coins = getMyCoins();
+  if (coins <= 0n) return alert("預け入れできるコインがありません。");
+  setAmountInput("depAmountInput", coins.toString());
+  depositOp("in");
+};
+const buyStockAllBtn = document.getElementById("buyStockAllBtn");
+if (buyStockAllBtn) buyStockAllBtn.onclick = () => {
+  const stock = marketData && marketData[selectedStockId];
+  if (!stock || !Number.isSafeInteger(Number(stock.p)) || Number(stock.p) <= 0) return alert("株価を取得できません。");
+  const qty = getMyCoins() / BigInt(stock.p);
+  if (qty <= 0n) return alert("購入できる株数がありません。");
+  if (qty > BigInt(Number.MAX_SAFE_INTEGER)) return alert("購入可能な株数が安全な数値範囲を超えています。");
+  setAmountInput("tradeShareInput", qty.toString());
+  tradeStock("buy");
+};
+const sellStockAllBtn = document.getElementById("sellStockAllBtn");
+if (sellStockAllBtn) sellStockAllBtn.onclick = () => {
+  const qty = BigInt(Math.max(0, Number(getHoldings()[selectedStockId] || 0)));
+  if (qty <= 0n) return alert("選択中の株を保有していません。");
+  setAmountInput("tradeShareInput", qty.toString());
+  tradeStock("sell");
+};
+bindAllAmountButton("modalSendAllCoinBtn", "modalCoinAmountInput", "send");
+
 
 function updateAccountStatusUI() {
   const statusEl = document.getElementById("currentAccountStatus");
@@ -1887,7 +2035,7 @@ document.getElementById("menuAccountBtn").onclick = () => {
 let marketUnsub = null, tickTimer = null;
 function hideAllSections() {
   headerMenuContent.style.display = "none";
-  ["threadListSection","threadDetailSection","gamesHubSection","storeHubSection","versionInfoSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection","accountListSection","rouletteSection","slotsSection","rpsSection","othelloSection","othelloGameSection"]
+  ["threadListSection","threadDetailSection","gamesHubSection","storeHubSection","coinDisplaySection","versionInfoSection","stockSection","gachaSection","effectShopSection","redeemSection","tagShopSection","emojiShopSection","adminSection","profileSection","favoritesSection","diceSection","dmSection","depositSection","premiumSection","accountListSection","rouletteSection","slotsSection","rpsSection","othelloSection","othelloGameSection"]
     .forEach(id => { document.getElementById(id).style.display = "none"; });
   stopMarket();
   stopDepositUI();
@@ -1906,6 +2054,19 @@ document.getElementById("menuStoreBtn").onclick = () => {
   document.getElementById("storeHubSection").style.display = "block";
   document.getElementById("storeHubCoins").textContent = coinNumText(getMyCoins());
 };
+document.getElementById("menuCoinDisplayBtn").onclick = () => {
+  headerMenuContent.style.display = "none";
+  hideAllSections();
+  const coins = getMyCoins();
+  document.getElementById("coinDisplayBalance").innerHTML = coinHtml(coins);
+  const approx = coinApproxText(coins);
+  document.getElementById("coinDisplayApprox").textContent = approx ? `約 ${approx} コイン` : `${coinNumText(coins)} コイン`;
+  document.getElementById("coinDisplaySection").style.display = "block";
+};
+document.getElementById("coinDisplayCloseBtn").onclick = () => {
+  hideAllSections();
+  document.getElementById("headerMenuContent").style.display = "grid";
+};
 
 // ============================================================
 // AI / 開発者向けバージョン管理メモ（必ず守る）
@@ -1915,8 +2076,12 @@ document.getElementById("menuStoreBtn").onclick = () => {
 // 4) 事実が確認できない過去の番号・変更は捏造しない。「整理版」と明記する。
 // 5) 画面はこの配列から生成されるため、履歴だけを追加すれば画面にも反映される。
 // ============================================================
-const CURRENT_APP_VERSION = "1.9";
+const CURRENT_APP_VERSION = "1.13";
 const VERSION_HISTORY = [
+  { version: "1.13", date: "2026-10-23", title: "全額操作ボタンを追加", changes: ["預金の全額預け入れ、株の全額購入・全株売却を追加", "ゲームの全額賭け・オセロ掛け金・他人への全額送金ボタンを追加"] },
+  { version: "1.12", date: "2026-10-23", title: "コイン残高の上限表示を修正", changes: ["互換用coinsフィールドが999兆9999億9999万9999コインで固定される問題を修正", "正確な残高はcoinsExactを維持し、互換用数値フィールドも上限値に固定しない"] },
+  { version: "1.12", date: "2026-10-23", title: "株の取引数量に単位表示を追加", changes: ["株の取引数量入力欄の右側に概算数量と株の単位を表示"] },
+  { version: "1.11", date: "2026-10-23", title: "コイン表示画面と入力時の目安を追加", changes: ["…メニューにコイン表示を追加し、所持コインを全画面表示", "コイン金額の入力欄の右側に概算額と単位を表示", "プレミアムメニューを…メニューに配置し、ストア一覧から除外"] },
   { version: "1.9", date: "2026-10-23", title: "コイン残高の即時同期を統一", changes: ["支払い・預金・引き出し・送金・株取引後の残高を即時反映", "古いリアルタイム同期データによる残高表示の巻き戻りを防止"] },
   { version: "1.10", date: "2026-10-23", title: "MONEY_LOG_ACTIONS 未定義エラーを修正", changes: ["お金の動きのログ種別を saveLog より前に定義", "預金・引き出しが成功した後に ReferenceError が出る問題を修正"] },
   { version: "1.8", date: "2026-10-23", title: "株の売買反映を高速化", changes: ["売買成功後の追加サーバー読み直しを削減し、取引結果をそのまま画面へ反映", "売買中の表示を即時反映・サーバー同期中の案内に変更"] },
@@ -2539,9 +2704,9 @@ document.getElementById("modalSendCoinBtn").onclick = async () => {
       if (mc < amount) throw new Error("NO_COINS");
       fromAfter = mc - amount; toAfter = tc + amount;
       if (toAfter < 0n) throw new Error("TOO_BIG");
-      tx.update(meRef, { coinsExact: fromAfter.toString(), coins: fromAfter <= 999999999999999n ? Number(fromAfter) : 999999999999999, updated_at: Timestamp.now() });
+      tx.update(meRef, { coinsExact: fromAfter.toString(), coins: Number(fromAfter), updated_at: Timestamp.now() });
       // increment() だと coins が未設定の相手が「1000＋送金額」でなく「送金額だけ」になってしまうため、計算した値をそのまま書く
-      tx.update(toRef, { coinsExact: toAfter.toString(), coins: toAfter <= 999999999999999n ? Number(toAfter) : 999999999999999, pendingTransfers: arrayUnion({...item, amount: amount.toString()}), updated_at: Timestamp.now() });
+      tx.update(toRef, { coinsExact: toAfter.toString(), coins: Number(toAfter), pendingTransfers: arrayUnion({...item, amount: amount.toString()}), updated_at: Timestamp.now() });
     }), 20000);
     applyLocalCoinBalance(fromAfter);   // 送金後の残高を即時反映し、古い同期値による巻き戻りを防止
     syncCoinViews();
@@ -2918,7 +3083,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function holdingsListHtml(acc) {
-  const h = normalizeHoldings(acc), rows = STOCKS.filter(s => h[s.id] > 0).map(s => `<div>${s.emoji} ${s.name}：<strong>${h[s.id]}</strong> 株</div>`);
+  const h = normalizeHoldings(acc), rows = STOCKS.filter(s => h[s.id] > 0).map(s => `<div>${s.emoji} ${s.name}：<strong>${shareCountText(h[s.id])}</strong></div>`);
   return rows.length ? rows.join("") : '<div style="color:#888;">保有株はありません</div>';
 }
 
@@ -2969,9 +3134,9 @@ function renderStockUI() {
       chg = `<span class="${diff > 0 ? "stk-up" : diff < 0 ? "stk-down" : ""}" style="font-size:12px;"> ${diff > 0 ? "▲" : diff < 0 ? "▼" : "−"}${prev ? Math.abs(diff / prev * 100).toFixed(1) : 0}%</span>`;
       range = `最安 ${s.lo} / 最高 ${s.hi}`;
     }
-    return `<div class="stk-card${d.id === selectedStockId ? " sel" : ""}" data-id="${d.id}"><div class="stk-name">${d.emoji} ${d.name}<span class="stk-badge" style="background:${d.color}">リスク${d.risk}</span></div><div class="stk-price">${price}${chg}</div><div class="stk-sub">${range}</div><div class="stk-sub">保有: ${qty} 株</div></div>`;
+    return `<div class="stk-card${d.id === selectedStockId ? " sel" : ""}" data-id="${d.id}"><div class="stk-name">${d.emoji} ${d.name}<span class="stk-badge" style="background:${d.color}">リスク${d.risk}</span></div><div class="stk-price">${price}${chg}</div><div class="stk-sub">${range}</div><div class="stk-sub">保有: ${shareCountText(qty)}</div></div>`;
   }).join("");
-  stkEl("mySharesDisplay").textContent = `${sumHoldings(hold)} 株`;
+  stkEl("mySharesDisplay").textContent = shareCountText(sumHoldings(hold));
   stkEl("stockEvalDisplay").innerHTML = `${coinHtml(evalSum)} コイン`;
   const d = STOCK_MAP[selectedStockId], s = marketData && marketData[selectedStockId];
   stkEl("stockDetailTitle").textContent = `${d.emoji} ${d.name}（${d.desc}）`;
@@ -2980,13 +3145,13 @@ function renderStockUI() {
   const priceHtml = s
     ? `<span style="white-space:nowrap;">💹 現在の株価: <strong style="font-size:17px;">${s.p} コイン</strong><span class="${df > 0 ? "stk-up" : df < 0 ? "stk-down" : ""}" style="font-size:12px;"> ${df > 0 ? "▲" : df < 0 ? "▼" : "−"}${prevP ? Math.abs(df / prevP * 100).toFixed(1) : 0}%</span></span>`
     : `<span style="white-space:nowrap;">💹 現在の株価: <strong>---</strong></span>`;
-  stkEl("stockHoldInfo").innerHTML = `${priceHtml}<span style="margin:0 8px;color:#d9c29a;">｜</span><span style="white-space:nowrap;">📦 ${d.name}の保有: <strong>${q} 株</strong></span>　<span style="white-space:nowrap;">💰 評価額: <strong>${s ? q * s.p : "---"} コイン</strong></span>`;
+  stkEl("stockHoldInfo").innerHTML = `${priceHtml}<span style="margin:0 8px;color:#d9c29a;">｜</span><span style="white-space:nowrap;">📦 ${d.name}の保有: <strong>${shareCountText(q)}</strong></span>　<span style="white-space:nowrap;">💰 評価額: <strong>${s ? q * s.p : "---"} コイン</strong></span>`;
   renderChart(); updateTip();
   updateEstimate();
 }
 function updateEstimate() {
   const s = marketData && marketData[selectedStockId], q = parseInt(stkEl("tradeShareInput").value, 10);
-  stkEl("tradeEstimate").textContent = (s && q > 0) ? `${q}株 × ${s.p}コイン = ${q * s.p}コイン` : "";
+  stkEl("tradeEstimate").textContent = (s && q > 0) ? `${shareCountText(q)} × ${s.p}コイン = ${coinText(BigInt(s.p) * BigInt(q))}` : "";
 }
 stkEl("stockList").onclick = e => { const c = e.target.closest(".stk-card"); if (c) { selectedStockId = c.dataset.id; selTs = null; renderStockUI(); } };
 stkEl("tradeShareInput").oninput = updateEstimate;
@@ -3026,7 +3191,7 @@ function tradeStock(kind) {
   if (kind === "buy") {
     if (coins0 < total) { msg.textContent = `コインが足りません（必要: ${coinText(total)}）`; return; }
   } else if (have < qty) {
-    msg.textContent = `保有している株が足りません（現在: ${have} 株）`; return;
+    msg.textContent = `保有している株が足りません（現在: ${shareCountText(have)}）`; return;
   }
 
   // ① 画面を先に更新
@@ -3035,7 +3200,7 @@ function tradeStock(kind) {
   if (!hold[d.id]) delete hold[d.id];
   setLocalAccountState(coins1, hold);
   syncCoinViews(); renderStockUI();
-  msg.textContent = `⚡ ${d.name} ${qty}株を画面に即時反映しました。サーバーに同期中…（${coinText(total)}）`;
+  msg.textContent = `${d.name} ${qty}株を売買しました。サーバーに同期中…（${coinText(total)}）`;
 
   // ② Firestore取引を直列化し、残高・保有株をトランザクションで更新
   pendingTrades++;
@@ -3055,14 +3220,14 @@ function tradeStock(kind) {
           if (coins < amount) throw new Error(`コインが足りません（必要: ${coinText(amount)}）`);
           coins -= amount; h[stockId] = cur + tradeQty;
         } else {
-          if (cur < tradeQty) throw new Error(`保有している株が足りません（現在: ${cur} 株）`);
+          if (cur < tradeQty) throw new Error(`保有している株が足りません（現在: ${shareCountText(cur)}）`);
           coins += amount; h[stockId] = cur - tradeQty;
           if (!h[stockId]) delete h[stockId];
         }
         tx.update(accRef, {
           coinsExact: coins.toString(),
           // 従来の画面・旧バージョンとの互換用フィールド。正確な値はcoinsExactが優先。
-          coins: coins <= 999999999999999n ? Number(coins) : 999999999999999,
+          coins: Number(coins),
           holdings: h,
           shares: sumHoldings(h),
           updated_at: Timestamp.now()
@@ -3186,7 +3351,7 @@ async function depositOp(kind) {
         if (moved > BigInt(Math.max(0, Math.floor(bal)))) throw new Error(`預金が足りません（引き出せる額: ${coinText(Math.floor(bal))}）`);
         coins += moved; bal -= Number(moved);
       }
-      tx.update(ref, { coinsExact: coins.toString(), coins: coins <= 999999999999999n ? Number(coins) : 999999999999999, deposit: bal, depositAt: now, updated_at: Timestamp.now() });
+      tx.update(ref, { coinsExact: coins.toString(), coins: Number(coins), deposit: bal, depositAt: now, updated_at: Timestamp.now() });
       return { coins: coins.toString(), bal, now, moved: moved.toString() };
     });
     depositCoinWriteAt = Date.now();
@@ -3268,7 +3433,7 @@ async function spinRoulette() {
       if (!((acc.premiumUntil || 0) > Date.now())) throw new Error("プレミアム会員ではありません。");
       if (acc.rouletteDate === today) throw new Error("今日はもう回しました。");
       const coins = coinBigInt(acc.coinsExact !== undefined ? acc.coinsExact : (acc.coins !== undefined ? acc.coins : 1000)) + BigInt(prize);
-      tx.update(ref, { coinsExact: coins.toString(), coins: coins <= 999999999999999n ? Number(coins) : 999999999999999, rouletteDate: today, updated_at: Timestamp.now() });
+      tx.update(ref, { coinsExact: coins.toString(), coins: Number(coins), rouletteDate: today, updated_at: Timestamp.now() });
       return { coins: coins.toString() };
     });
     localStorage.setItem("rouletteDate", today);
@@ -3379,7 +3544,7 @@ async function buyPremium() {
       if (coins < BigInt(cost)) throw new Error(`コインが足りません（必要: ${cost.toLocaleString()} コイン）`);
       const nextCoins = coins - BigInt(cost);
       const until = Math.max(now, acc.premiumUntil || 0) + days * DAY_MS;
-      const upd = { coinsExact: nextCoins.toString(), coins: nextCoins <= 999999999999999n ? Number(nextCoins) : 999999999999999, premiumUntil: until, updated_at: Timestamp.now() };
+      const upd = { coinsExact: nextCoins.toString(), coins: Number(nextCoins), premiumUntil: until, updated_at: Timestamp.now() };
       // 日利が切り替わる前に、ここまでの利子を確定させる
       if ((acc.deposit || 0) > 0) { upd.deposit = calcDeposit(acc.deposit, acc.depositAt, now, acc.premiumUntil || 0); upd.depositAt = now; }
       tx.update(ref, upd);
@@ -5572,8 +5737,8 @@ document.getElementById('accInfoBtn').onclick = async () => {
   if (!accData) return alert("アカウントは削除されました");
   const coins = accData.coinsExact !== undefined ? accData.coinsExact : (accData.coins !== undefined ? accData.coins : 1000);
   const hold = normalizeHoldings(accData);
-  const lines = STOCKS.map(s => `  ${s.name}：${hold[s.id] || 0} 株`).join("\n");
-  showInfoDialog(`【アカウント情報】\n\n・ユーザー名：${accName}\n・所持コイン：${coinHtml(coins)} 枚\n・保有株数：${sumHoldings(hold)} 株\n${lines}`);
+  const lines = STOCKS.map(s => `  ${s.name}：${shareCountText(hold[s.id] || 0)}`).join("\n");
+  showInfoDialog(`【アカウント情報】\n\n・ユーザー名：${accName}\n・所持コイン：${coinHtml(coins)} 枚\n・保有株数：${shareCountText(sumHoldings(hold))}\n${lines}`);
 };
 
 document.getElementById('accCoinBtn').onclick = async () => {
@@ -5592,7 +5757,7 @@ document.getElementById('accCoinBtn').onclick = async () => {
       hideLoading();
       return alert("アカウントは削除されました");
     }
-    await updateDoc(accRef, { coinsExact: newCoins.toString(), coins: newCoins <= 999999999999999n ? Number(newCoins) : 999999999999999, updated_at: Timestamp.now() });
+    await updateDoc(accRef, { coinsExact: newCoins.toString(), coins: Number(newCoins), updated_at: Timestamp.now() });
     await saveLog("admin_edit_account_coins", { targetAccount: accName, newCoins });
     hideLoading();
     alert(`アカウント「${accName}」のコインを ${coinText(newCoins)} に変更しました。`);
@@ -5623,7 +5788,7 @@ document.getElementById('accShareBtn').onclick = async () => {
     });
     await saveLog("admin_edit_account_shares", { targetAccount: accName, newShares });
     hideLoading();
-    alert(`アカウント「${accName}」の「${STOCK_MAP[sid].name}」の保有株数を ${newShares} 株に変更しました。`);
+    alert(`アカウント「${accName}」の「${STOCK_MAP[sid].name}」の保有株数を ${shareCountText(newShares)} に変更しました。`);
     document.getElementById('adminShareEditInput').value = "";
   } catch(e) { hideLoading(); alert("エラーが発生しました"); }
 };
@@ -6194,7 +6359,7 @@ async function bfClaimDailyLogin(){
     const streak=streakDate===yesterdayKey?(Number(a.bfLoginStreak)||0)+1:1;
     bonus=Math.min(100,30+Math.min(streak-1,7)*10);
     const nextCoins = coinBigInt(a.coinsExact !== undefined ? a.coinsExact : (a.coins || 0)) + BigInt(bonus);
-    tx.update(ref,{bfDailyLoginDate:day,bfLoginStreak:streak,coinsExact:nextCoins.toString(),coins:nextCoins <= 999999999999999n ? Number(nextCoins) : 999999999999999,bfXp:Math.max(0,Number(a.bfXp)||0)+10,bfUpdatedAt:serverTimestamp()});
+    tx.update(ref,{bfDailyLoginDate:day,bfLoginStreak:streak,coinsExact:nextCoins.toString(),coins:Number(nextCoins),bfXp:Math.max(0,Number(a.bfXp)||0)+10,bfUpdatedAt:serverTimestamp()});
     claimed=true;
   });
   if(claimed){showTopNotification(`🎁 ログインボーナス +${bonus}コイン`);}
@@ -6225,7 +6390,7 @@ async function bfTrackAction(type, extra={}){
     if(updatedPosts>=50&&!achievements.includes("posts_50"))achievements.push("posts_50");
     if(updatedThreads>=1&&!achievements.includes("first_thread"))achievements.push("first_thread");
     const nextCoins = coinBigInt(a.coinsExact !== undefined ? a.coinsExact : (a.coins || 0)) + BigInt(coinGain);
-    tx.update(ref,{bfXp:xp,bfMissionDate:day,bfMissionProgress:progress,bfMissionClaimed:claimed,bfAchievements:achievements,bfTotalPosts:updatedPosts,bfTotalThreads:updatedThreads,coinsExact:nextCoins.toString(),coins:nextCoins <= 999999999999999n ? Number(nextCoins) : 999999999999999,bfUpdatedAt:serverTimestamp()});
+    tx.update(ref,{bfXp:xp,bfMissionDate:day,bfMissionProgress:progress,bfMissionClaimed:claimed,bfAchievements:achievements,bfTotalPosts:updatedPosts,bfTotalThreads:updatedThreads,coinsExact:nextCoins.toString(),coins:Number(nextCoins),bfUpdatedAt:serverTimestamp()});
     if(coinGain)extra.coinGain=coinGain;
   });
   /* Firestore account listener updates the local coin display after the transaction. */
