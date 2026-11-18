@@ -200,6 +200,26 @@
       .now-tag { font-size: 11.5px; font-weight: 800; color: #fff; background: var(--now); border-radius: 999px; padding: 2px 9px; }
       .chip-dot { width: 12px; height: 12px; border-radius: 4px; flex: none; }
       .row.rest .p-subject { color: var(--ink-soft); font-size: 16px; }
+      .row.break-row {
+        padding: 4px 14px 4px 90px; gap: 6px; min-height: 26px;
+        font-size: 12px; font-weight: 700; color: var(--ink-soft);
+        background: transparent; line-height: 1.3; flex-wrap: wrap;
+      }
+      .row.break-row .break-label { letter-spacing: 0.02em; }
+      .row.break-row .break-time { font-variant-numeric: tabular-nums; opacity: 0.85; }
+      .row.break-row .break-dur { opacity: 0.7; font-size: 11.5px; }
+      @media (max-width: 420px) {
+        .row.break-row { padding-left: 20px; }
+      }
+      .row.activity { background: var(--bg); }
+      .row.activity.now { background: var(--accent-soft); }
+      .row.activity .p-subject { font-size: 16.5px; color: var(--ink-soft); font-weight: 700; }
+      .p-badge.activity-badge { background: #84958c; font-size: 20px; }
+      .p-badge.dismissal-badge { background: #5f7268; font-size: 20px; }
+      @media (prefers-color-scheme: dark) {
+        .p-badge.activity-badge { background: #54665c; }
+        .p-badge.dismissal-badge { background: #43544c; }
+      }
 
       /* ---- Lunch ---- */
       .lunch-card { background: var(--card); border: 1px solid var(--line); border-top: 5px solid var(--lunch); border-radius: 16px; box-shadow: var(--shadow); padding: 16px; }
@@ -241,7 +261,7 @@
           </div>
           <div class="calib-menu" id="calibMenu" hidden>
             <div class="calib-btns">
-              <button type="button" class="calib-btn sync" id="calibSync"> いまチャイムが鳴った！</button>
+              <button type="button" class="calib-btn sync" id="calibSync">🔔 いまチャイムが鳴った！</button>
               <button type="button" class="calib-btn" data-adj="-1000">−1秒</button>
               <button type="button" class="calib-btn" data-adj="-100">−0.1秒</button>
               <button type="button" class="calib-btn" data-adj="100">＋0.1秒</button>
@@ -265,11 +285,11 @@
       <h2>⏰ 時間割 <span class="h2-note" id="ttNote"></span></h2>
       <div class="tt" id="timetable"></div>
 
-      <h2> 給食 <span class="h2-note">12:25〜12:50</span></h2>
+      <h2>🍙 給食 <span class="h2-note">12:25〜12:50</span></h2>
       <div class="lunch-card" id="lunchCard"></div>
 
       <footer>
-        出典：時間割は Google Classroom「Ｒ８ 全校」の学級別時間割（11月13日版）、給食は掛川市立給食文化苑こうようの丘「11月の献立表」より。予定が変わることもあるので、学校からの連絡もあわせて確認してね。
+        出典：時間割は Google Classroom「Ｒ８ 全校」の学級別時間割（11月13日版）、給食は掛川市立給食文化苑こうようの丘「11月の献立表」、朝の会・給食準備・昼休み・清掃・帰りの会・完全下校の時刻は東中学校の日課表より（清掃は火・木・金のみ）。休み時間は各区間と次の区間のあいだの空白を小さく表示したもの（最後の帰りの会から完全下校までは「下校」と表示）。予定が変わることもあるので、学校からの連絡もあわせて確認してね。
       </footer>
     </div>
 
@@ -285,17 +305,17 @@
       ];
 
       var SUBJECT_STYLE = {
-        "国語":     { emoji: "", color: "#d84a4a" },
-        "数学":     { emoji: "", color: "#3b6fd4" },
-        "理科":     { emoji: "", color: "#35a05f" },
-        "社会":     { emoji: "", color: "#e07b39" },
-        "英語":     { emoji: "", color: "#0e9594" },
-        "保健体育": { emoji: "", color: "#7cb342" },
-        "家庭":     { emoji: "", color: "#d45d8f" },
-        "道徳":     { emoji: "", color: "#9a7b4f" },
-        "音楽":     { emoji: "", color: "#b0529e" },
-        "美術":     { emoji: "", color: "#e8a13a" },
-        "総合":     { emoji: "", color: "#607d8b" }
+        "国語":     { emoji: "📕", color: "#d84a4a" },
+        "数学":     { emoji: "📘", color: "#3b6fd4" },
+        "理科":     { emoji: "📗", color: "#35a05f" },
+        "社会":     { emoji: "📙", color: "#e07b39" },
+        "英語":     { emoji: "📙", color: "#0e9594" },
+        "保健体育": { emoji: "📖", color: "#7cb342" },
+        "家庭":     { emoji: "📖", color: "#d45d8f" },
+        "道徳":     { emoji: "📖", color: "#9a7b4f" },
+        "音楽":     { emoji: "📖", color: "#b0529e" },
+        "美術":     { emoji: "📖", color: "#e8a13a" },
+        "総合":     { emoji: "📖", color: "#607d8b" }
       };
 
       var DAYS = [
@@ -380,75 +400,159 @@
         });
       }
 
+      /* ===== 授業以外の区間（日課表より） =====
+         朝の会・朝活動は全日 8:00〜8:15、給食準備は全日 12:15〜12:25、昼休みは全日 12:50〜13:10。
+         清掃は基本 火・木・金のみ（月・水はなし）。
+         清掃の有無で帰りの会の時刻が変わる。完全下校は帰りの会が終わる時刻の15分後：
+           6時間・清掃あり 清掃15:15〜15:25／帰りの会15:35〜15:50／完全下校16:05
+           6時間・清掃なし 帰りの会15:20〜15:35／完全下校15:50
+           5時間・清掃あり 清掃14:15〜14:25／帰りの会14:35〜14:50／完全下校15:05
+           5時間・清掃なし 帰りの会14:20〜14:35／完全下校14:50 */
+      function lessonCount(day) {
+        var c = 0;
+        day.lessons.forEach(function (s) { if (s) c++; });
+        return c;
+      }
+      function isSixPeriodDay(day) { return lessonCount(day) >= 6; }
+      function hasCleaning(day) { return day.dow === "火" || day.dow === "木" || day.dow === "金"; }
+      function extraSegments(day) {
+        var list = [
+          { key: "morning", label: "朝の会・朝活動", emoji: "🌅", start: "08:00", end: "08:15", time: "8:00〜8:15", kind: "morning" },
+          { key: "lunchprep", label: "給食準備", emoji: "🍽️", start: "12:15", end: "12:25", time: "12:15〜12:25", kind: "lunchprep" },
+          { key: "lunchbreak", label: "昼休み", emoji: "🌤️", start: "12:50", end: "13:10", time: "12:50〜13:10", kind: "lunchbreak" }
+        ];
+        var cleaning = hasCleaning(day);
+        if (isSixPeriodDay(day)) {
+          if (cleaning) {
+            list.push({ key: "cleaning", label: "清掃", emoji: "🧹", start: "15:15", end: "15:25", time: "15:15〜15:25", kind: "cleaning" });
+            list.push({ key: "homeroom", label: "帰りの会", emoji: "🎒", start: "15:35", end: "15:50", time: "15:35〜15:50", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", emoji: "🚶", start: "16:05", end: "16:05", time: "16:05", kind: "dismissal" });
+          } else {
+            list.push({ key: "homeroom", label: "帰りの会", emoji: "🎒", start: "15:20", end: "15:35", time: "15:20〜15:35", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", emoji: "🚶", start: "15:50", end: "15:50", time: "15:50", kind: "dismissal" });
+          }
+        } else {
+          if (cleaning) {
+            list.push({ key: "cleaning", label: "清掃", emoji: "🧹", start: "14:15", end: "14:25", time: "14:15〜14:25", kind: "cleaning" });
+            list.push({ key: "homeroom", label: "帰りの会", emoji: "🎒", start: "14:35", end: "14:50", time: "14:35〜14:50", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", emoji: "🚶", start: "15:05", end: "15:05", time: "15:05", kind: "dismissal" });
+          } else {
+            list.push({ key: "homeroom", label: "帰りの会", emoji: "🎒", start: "14:20", end: "14:35", time: "14:20〜14:35", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", emoji: "🚶", start: "14:50", end: "14:50", time: "14:50", kind: "dismissal" });
+          }
+        }
+        return list;
+      }
+      function dismissalTime(day) {
+        var segs = extraSegments(day);
+        for (var i = 0; i < segs.length; i++) { if (segs[i].kind === "dismissal") return segs[i].start; }
+        return "";
+      }
+
       function renderBadges(day) {
         var lastLesson = 0;
         day.lessons.forEach(function (s, i) { if (s) lastLesson = i; });
         var lastPeriod = PERIODS[lastLesson];
-        var html = '<span class="badge"> 学校 <strong>7:40〜</strong></span>';
-        html += '<span class="badge"> 授業は <strong>' + lastPeriod.label + "（" + lastPeriod.end + "）</strong>まで</span>";
-        if (day.lessons.indexOf("保健体育") !== -1) html += '<span class="badge pe"> 体育着の日</span>';
-        if (day.note) html += '<span class="badge"> ' + day.note + "</span>";
+        var html = '<span class="badge">🏫 学校 <strong>7:40〜</strong></span>';
+        html += '<span class="badge">🎒 授業は <strong>' + lastPeriod.label + "（" + lastPeriod.end + "）</strong>まで</span>";
+        html += '<span class="badge">🚶 完全下校 <strong>' + dismissalTime(day) + "</strong></span>";
+        if (day.lessons.indexOf("保健体育") !== -1) html += '<span class="badge pe">👕 体育着の日</span>';
+        if (day.note) html += '<span class="badge">📌 ' + day.note + "</span>";
         badgesEl.innerHTML = html;
       }
 
-      function currentPeriodIndex(day) {
-        if (day.date !== todayStr()) return -1;
-        var now = nowMinutes();
-        for (var i = 0; i < PERIODS.length; i++) {
-          var p = PERIODS[i];
-          if (!day.lessons[i] && !p.lunch) continue;
-          if (now >= hmToMin(p.start) && now < hmToMin(p.end)) return i;
+      // タイムライン（授業＋給食＋授業以外の区間）から「いま」「つぎ」のキーを出す
+      function timelineKeys(day) {
+        var keys = { nowKey: null, nextKey: null };
+        if (day.date !== todayStr()) return keys;
+        var tl = buildTimeline(day);
+        var nowMs = getNowDate().getTime();
+        for (var i = 0; i < tl.length; i++) {
+          var it = tl[i];
+          if (nowMs >= it.startMs && nowMs < it.endMs) keys.nowKey = it.idx;
+          if (keys.nextKey === null && keys.nowKey === null && nowMs < it.startMs) keys.nextKey = it.idx;
         }
-        return -1;
-      }
-
-      function nextPeriodIndex(day) {
-        if (day.date !== todayStr()) return -1;
-        if (currentPeriodIndex(day) !== -1) return -1;
-        var now = nowMinutes();
-        for (var i = 0; i < PERIODS.length; i++) {
-          var p = PERIODS[i];
-          if (!day.lessons[i] && !p.lunch) continue;
-          if (now < hmToMin(p.start)) return i;
-        }
-        return -1;
+        if (keys.nowKey !== null) keys.nextKey = null;
+        return keys;
       }
 
       function renderTimetable(day) {
-        var nowIdx = currentPeriodIndex(day);
-        var nextIdx = nextPeriodIndex(day);
-        var count = 0;
-        day.lessons.forEach(function (s) { if (s) count++; });
+        var keys = timelineKeys(day);
+        var nowKey = keys.nowKey, nextKey = keys.nextKey;
+        var count = lessonCount(day);
         ttNoteEl.textContent = count + "時間授業";
-        var html = "";
+        var lastLesson = 0;
+        day.lessons.forEach(function (s, i) { if (s) lastLesson = i; });
+
+        // 表示リスト：授業・給食・授業以外の区間を時刻順に並べる
+        var items = [];
         PERIODS.forEach(function (p, i) {
-          var isNow = i === nowIdx;
-          var isNext = i === nextIdx;
+          if (p.lunch) { items.push({ key: i, startMin: hmToMin(p.start), endMin: hmToMin(p.end), kind: "lunch", period: p, idx: i }); return; }
+          var subject = day.lessons[i];
+          if (subject) { items.push({ key: i, startMin: hmToMin(p.start), endMin: hmToMin(p.end), kind: "lesson", period: p, idx: i, subject: subject }); return; }
+          if (i < lastLesson) { items.push({ key: i, startMin: hmToMin(p.start), endMin: hmToMin(p.end), kind: "rest", period: p, idx: i }); }
+          // 最後の授業より後の空きコマ（5時間の日の6時間目など）は、
+          // 清掃・帰りの会と重なるので出さない
+        });
+        extraSegments(day).forEach(function (seg) {
+          items.push({ key: seg.key, startMin: hmToMin(seg.start), endMin: hmToMin(seg.end), kind: seg.kind, seg: seg, idx: seg.key });
+        });
+        items.sort(function (a, b) { return a.startMin - b.startMin; });
+
+        function fmtMin(m) { return Math.floor(m / 60) + ":" + pad(m % 60); }
+        var html = "";
+        var prevItem = null;
+        items.forEach(function (item) {
+          // 休み時間：前の区間の終わりとこの区間の始まりのあいだの空白を
+          // 小さい文字の細い行で表示する（表示だけ。カウントダウン対象外）
+          if (prevItem && typeof prevItem.endMin === "number" && item.startMin > prevItem.endMin) {
+            var gapStart = prevItem.endMin, gapEnd = item.startMin, gapDur = gapEnd - gapStart;
+            var isDismissalGap = item.kind === "dismissal";
+            var gapLabel = isDismissalGap ? "下校" : "休み時間";
+            var gapIcon = isDismissalGap ? "🚶" : "☕";
+            html += '<div class="row break-row' + (isDismissalGap ? " dismissal-gap" : "") + '" aria-label="' + gapLabel + " " + fmtMin(gapStart) + "から" + fmtMin(gapEnd) + '">' +
+              '<span aria-hidden="true">' + gapIcon + '</span>' +
+              '<span class="break-label">' + gapLabel + '</span>' +
+              '<span class="break-time">' + fmtMin(gapStart) + "〜" + fmtMin(gapEnd) + '</span>' +
+              '<span class="break-dur">（' + gapDur + '分）</span></div>';
+          }
+          prevItem = item;
+          var isNow = item.key === nowKey;
+          var isNext = item.key === nextKey;
           var rowCls = isNow ? " now" : (isNext ? " next" : "");
           var tag = isNow ? '<span class="now-tag">いま</span>' : (isNext ? '<span class="next-tag">つぎ</span>' : "");
-          var liveLine = (isNow || isNext) ? '<div class="row-count' + (isNext ? " break" : "") + '" id="rowCount-' + i + '"></div>' : "";
-          if (p.lunch) {
+          var liveLine = (isNow || isNext) ? '<div class="row-count' + (isNext ? " break" : "") + '" id="rowCount-' + item.key + '"></div>' : "";
+          if (item.kind === "lunch") {
             html += '<div class="row' + rowCls + '">' +
-              '<div class="p-badge lunch-badge" aria-hidden="true"></div>' +
+              '<div class="p-badge lunch-badge" aria-hidden="true">🍙</div>' +
               '<div class="p-main"><div class="p-subject">給食' + tag +
-              '</div><div class="p-time">' + p.time + "</div>" + liveLine + "</div></div>";
+              '</div><div class="p-time">' + item.period.time + "</div>" + liveLine + "</div></div>";
             return;
           }
-          var subject = day.lessons[i];
-          if (!subject) {
+          if (item.kind === "rest") {
             html += '<div class="row rest">' +
-              '<div class="p-badge" style="background:var(--line);color:var(--ink-soft)">' + p.label + "</div>" +
+              '<div class="p-badge" style="background:var(--line);color:var(--ink-soft)">' + item.period.label + "</div>" +
               '<div class="p-main"><div class="p-subject">授業なし</div>' +
-              '<div class="p-time">' + p.time + "</div></div></div>";
+              '<div class="p-time">' + item.period.time + "</div></div></div>";
             return;
           }
-          var st = SUBJECT_STYLE[subject] || { emoji: "", color: "#607d8b" };
-          html += '<div class="row' + rowCls + '">' +
-            '<div class="p-badge" style="background:' + st.color + '">' + p.label + "</div>" +
-            '<div class="p-main"><div class="p-subject">' +
-            '<span class="chip-dot" style="background:' + st.color + '" aria-hidden="true"></span>' +
-            st.emoji + " " + subject + tag +
-            '</div><div class="p-time">' + p.time + "</div>" + liveLine + "</div></div>";
+          if (item.kind === "lesson") {
+            var st = SUBJECT_STYLE[item.subject] || { emoji: "📖", color: "#607d8b" };
+            html += '<div class="row' + rowCls + '">' +
+              '<div class="p-badge" style="background:' + st.color + '">' + item.period.label + "</div>" +
+              '<div class="p-main"><div class="p-subject">' +
+              '<span class="chip-dot" style="background:' + st.color + '" aria-hidden="true"></span>' +
+              st.emoji + " " + item.subject + tag +
+              '</div><div class="p-time">' + item.period.time + "</div>" + liveLine + "</div></div>";
+            return;
+          }
+          // 授業以外の区間（昼休み・清掃・帰りの会・完全下校）はグレーの見た目
+          var seg = item.seg;
+          var isDismissal = item.kind === "dismissal";
+          html += '<div class="row activity' + rowCls + '">' +
+            '<div class="p-badge ' + (isDismissal ? "dismissal-badge" : "activity-badge") + '" aria-hidden="true">' + seg.emoji + "</div>" +
+            '<div class="p-main"><div class="p-subject">' + seg.emoji + " " + seg.label + tag + "</div>" +
+            '<div class="p-time">' + (isDismissal ? seg.time + " に完全下校" : seg.time) + "</div>" + liveLine + "</div></div>";
         });
         ttEl.innerHTML = html;
       }
@@ -464,7 +568,7 @@
             '<div class="nut"><div class="n-val">' + L.fat + '<small> g</small></div><div class="n-label">脂質</div></div>' +
             '<div class="nut"><div class="n-val">' + L.salt + '<small> g</small></div><div class="n-label">塩分</div></div>' +
           "</div>" +
-          '<p class="lunch-msg"> ' + L.msg + "</p>";
+          '<p class="lunch-msg">📣 ' + L.msg + "</p>";
       }
 
       /* ===== リアルタイム・カウントダウン ===== */
@@ -490,13 +594,53 @@
         PERIODS.forEach(function (p, i) {
           if (!day.lessons[i] && !p.lunch) return;
           list.push({
-            idx: i, period: p,
+            idx: i, kind: p.lunch ? "lunch" : "lesson", period: p,
             subject: p.lunch ? "給食" : day.lessons[i],
             startMs: dayTimeMs(day.date, p.start),
             endMs: dayTimeMs(day.date, p.end)
           });
         });
+        extraSegments(day).forEach(function (seg) {
+          list.push({
+            idx: seg.key, kind: seg.kind,
+            period: { label: seg.label, time: seg.time, start: seg.start, end: seg.end },
+            subject: seg.label,
+            startMs: dayTimeMs(day.date, seg.start),
+            endMs: dayTimeMs(day.date, seg.end)
+          });
+        });
+        list.sort(function (a, b) { return a.startMs - b.startMs; });
         return list;
+      }
+
+      // カウントダウン表示用の名前・絵文字（授業以外も分かるように）
+      function itemKind(item) { return item.kind || (item.period.lunch ? "lunch" : "lesson"); }
+      function itemTitle(item) {
+        var k = itemKind(item);
+        if (k === "lesson") return item.period.label + " " + item.subject;
+        return item.subject; // 給食・昼休み・清掃・帰りの会・完全下校
+      }
+      function itemNowStatus(item) {
+        var k = itemKind(item);
+        if (k === "morning") return "🌅 いまは朝の会・朝活動だよ";
+        if (k === "lunchprep") return "🍽️ いまは給食準備だよ";
+        if (k === "lunch") return "🍙 いまは給食の時間だよ";
+        if (k === "lunchbreak") return "🌤️ いまは昼休みだよ";
+        if (k === "cleaning") return "🧹 いまは清掃の時間だよ";
+        if (k === "homeroom") return "🎒 いまは帰りの会だよ";
+        return "📚 いまは " + item.period.label + "「" + item.subject + "」の時間だよ";
+      }
+      function itemNextStatus(item, isFirst) {
+        var k = itemKind(item);
+        if (k === "morning") return isFirst ? "🌅 今日はこれから — 最初は朝の会・朝活動だよ" : "🌅 つぎは朝の会・朝活動だよ";
+        if (k === "lunchprep") return "🍽️ つぎは給食準備だよ";
+        if (k === "lunch") return "☕ 休み時間 — つぎは給食だよ";
+        if (k === "lunchbreak") return "🍙 つぎは昼休みだよ";
+        if (k === "cleaning") return "🧹 つぎは清掃だよ";
+        if (k === "homeroom") return "🎒 つぎは帰りの会だよ";
+        if (k === "dismissal") return "🚶 つぎは完全下校だよ";
+        if (isFirst) return "🌅 今日はこれから — 最初は " + item.period.label + "「" + item.subject + "」だよ";
+        return "☕ 休み時間 — つぎは " + item.period.label + "「" + item.subject + "」だよ";
       }
 
       function splitMs(rem) {
@@ -637,42 +781,39 @@
 
         if (mode === "in") {
           var remIn = current.endMs - nowMs;
-          statusEl.textContent = current.period.lunch
-            ? " いまは給食の時間だよ"
-            : " いまは " + current.period.label + "「" + current.subject + "」の時間だよ";
-          labelEl.innerHTML = current.period.lunch
-            ? "⏱ <strong>給食</strong>が終わるまで"
-            : "⏱ <strong>" + current.period.label + " " + current.subject + "</strong> が終わるまで（〜" + current.period.end + "）";
+          statusEl.textContent = itemNowStatus(current);
+          labelEl.innerHTML = "⏱ <strong>" + itemTitle(current) + "</strong> が終わるまで（〜" + current.period.end + "）";
           countEl.className = "live-count";
           countEl.innerHTML = countHTML(remIn, "で終わる");
           detailEl.innerHTML = "合計 あと <b>" + splitMs(remIn).totalSec.toFixed(3) + "秒</b> ・ " + current.period.start + "〜" + current.period.end + " のうち、あと少し！";
           var durIn = current.endMs - current.startMs;
-          barEl.style.width = Math.min(100, Math.max(0, (nowMs - current.startMs) / durIn * 100)) + "%";
+          barEl.style.width = durIn > 0 ? Math.min(100, Math.max(0, (nowMs - current.startMs) / durIn * 100)) + "%" : "100%";
           var rcIn = document.getElementById("rowCount-" + current.idx);
           if (rcIn) { rcIn.className = "row-count show"; rcIn.innerHTML = '⏱ <span class="rc-num">' + shortCount(remIn, "で終わる") + "</span>"; }
         } else if (mode === "next") {
           var remNext = next.startMs - nowMs;
           var isFirst = timeline.length && next.idx === timeline[0].idx && !prev;
-          statusEl.textContent = next.period.lunch
-            ? "☕ 休み時間 — つぎは給食だよ"
-            : (isFirst ? " 今日はこれから — 最初は " + next.period.label + "「" + next.subject + "」だよ"
-                       : "☕ 休み時間 — つぎは " + next.period.label + "「" + next.subject + "」だよ");
-          labelEl.innerHTML = next.period.lunch
-            ? "⏱ <strong>給食</strong>が始まるまで"
-            : "⏱ <strong>" + next.period.label + " " + next.subject + "</strong> が始まるまで（" + next.period.start + "〜）";
+          var isDismissal = itemKind(next) === "dismissal";
+          var suffixNext = isDismissal ? "で完全下校" : "で始まる";
+          statusEl.textContent = itemNextStatus(next, isFirst);
+          labelEl.innerHTML = isDismissal
+            ? "⏱ <strong>完全下校</strong>まで（" + next.period.start + "）"
+            : "⏱ <strong>" + itemTitle(next) + "</strong> が始まるまで（" + next.period.start + "〜）";
           countEl.className = "live-count";
-          countEl.innerHTML = countHTML(remNext, "で始まる");
-          detailEl.innerHTML = "合計 あと <b>" + splitMs(remNext).totalSec.toFixed(3) + "秒</b> ・ " + next.period.start + " 開始 — じゅんびしておこう";
+          countEl.innerHTML = countHTML(remNext, suffixNext);
+          detailEl.innerHTML = isDismissal
+            ? "合計 あと <b>" + splitMs(remNext).totalSec.toFixed(3) + "秒</b> ・ " + next.period.start + " 完全下校 — 忘れ物ないかな"
+            : "合計 あと <b>" + splitMs(remNext).totalSec.toFixed(3) + "秒</b> ・ " + next.period.start + " 開始 — じゅんびしておこう";
           var phaseStart = prev ? prev.endMs : (next.startMs - 3600000);
           var durBr = next.startMs - phaseStart;
           barEl.style.width = (durBr > 0 ? Math.min(100, Math.max(0, (nowMs - phaseStart) / durBr * 100)) : 0) + "%";
           var rcNext = document.getElementById("rowCount-" + next.idx);
-          if (rcNext) { rcNext.className = "row-count break show"; rcNext.innerHTML = '⏱ <span class="rc-num">' + shortCount(remNext, "で始まる") + "</span>"; }
+          if (rcNext) { rcNext.className = "row-count break show"; rcNext.innerHTML = '⏱ <span class="rc-num">' + shortCount(remNext, suffixNext) + "</span>"; }
         } else {
-          statusEl.textContent = " 今日の授業は全部おわり";
+          statusEl.textContent = "🎒 今日の学校は全部おわり";
           labelEl.innerHTML = "⏱ <strong>今日の時間割</strong>は終了しました";
           countEl.className = "live-count done";
-          countEl.textContent = "おつかれさま！";
+          countEl.textContent = "おつかれさま！🎉";
           detailEl.textContent = "明日もがんばろう。時間割タブで他の日も見られるよ。";
           barEl.style.width = "100%";
         }
