@@ -118,6 +118,52 @@
       .row-count.break { color: var(--accent); }
       .row-count .rc-num { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: -0.01em; }
 
+      /* ---- Calibration（ずれ補正） ---- */
+      .calib { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); }
+      .calib-head { display: flex; align-items: center; gap: 6px; }
+      .calib-title { font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: var(--ink-soft); white-space: nowrap; }
+      .calib-state { font-size: 11.5px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; flex: 1; min-width: 0; }
+      .calib-state.none { color: var(--ink-soft); }
+      .calib-toggle {
+        appearance: none; font: inherit; cursor: pointer; flex: none; margin-left: auto;
+        border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+        border-radius: 999px; font-size: 12px; font-weight: 800; line-height: 1;
+        padding: 6px 10px; min-height: 30px;
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .calib-toggle:active { transform: scale(0.96); }
+      .calib-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+      .calib-chev { display: inline-block; font-size: 10px; transition: transform 0.15s ease; }
+      .calib-toggle[aria-expanded="true"] .calib-chev { transform: rotate(180deg); }
+      @media (prefers-reduced-motion: reduce) { .calib-chev { transition: none; } }
+      .calib-menu { margin-top: 10px; }
+      .calib-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+      .calib-btn {
+        appearance: none; font: inherit; cursor: pointer; border-radius: 999px;
+        border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+        font-weight: 800; font-size: 12.5px; padding: 5px 11px; min-height: 34px;
+        font-variant-numeric: tabular-nums;
+      }
+      .calib-btn:active { transform: scale(0.97); }
+      .calib-btn.sync {
+        background: var(--accent); border-color: var(--accent); color: #fff;
+        flex: 1 1 100%; font-size: 14px; padding: 8px 12px;
+      }
+      .calib-btn:disabled { opacity: 0.4; cursor: default; }
+      .calib-btn:disabled:active { transform: none; }
+      .calib-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+      .calib-note { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-soft); line-height: 1.6; }
+      .calib-manual { margin-top: 10px; }
+      .calib-manual-label { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; color: var(--ink-soft); margin-bottom: 6px; }
+      .calib-manual-row { display: flex; gap: 6px; flex-wrap: wrap; }
+      .calib-time-input {
+        font: inherit; font-weight: 800; font-size: 14px; color: var(--ink);
+        background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+        padding: 5px 12px; min-height: 34px; flex: 1 1 130px;
+        font-variant-numeric: tabular-nums;
+      }
+      .calib-time-input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
       /* ---- Day tabs ---- */
       .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 18px; }
       .tab {
@@ -142,11 +188,12 @@
       .row + .row { border-top: 1px solid var(--line); }
       .row.now { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--now); }
       .p-badge {
-        flex: none; width: 44px; height: 44px; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 15px; color: #fff; background: var(--accent);
+        flex: none; width: 64px; height: 44px; border-radius: 12px; padding: 0 4px;
+        display: flex; align-items: center; justify-content: center; text-align: center;
+        font-weight: 800; font-size: 13.5px; letter-spacing: -0.02em; white-space: nowrap;
+        color: #fff; background: var(--accent);
       }
-      .p-badge.lunch-badge { background: var(--lunch); font-size: 20px; }
+      .p-badge.lunch-badge { width: 64px; background: var(--lunch); font-size: 20px; }
       .p-main { flex: 1; min-width: 0; }
       .p-subject { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
       .p-time { font-size: 13px; color: var(--ink-soft); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -186,6 +233,31 @@
         <div class="live-count" id="liveCount"></div>
         <div class="live-detail" id="liveDetail"></div>
         <div class="live-bar" aria-hidden="true"><div class="live-bar-fill" id="liveBarFill"></div></div>
+        <div class="calib">
+          <div class="calib-head">
+            <span class="calib-title">⏱ ずれ補正</span>
+            <span class="calib-state none" id="calibState">補正なし</span>
+            <button type="button" class="calib-toggle" id="calibToggle" aria-expanded="false" aria-controls="calibMenu">補正する<span class="calib-chev" aria-hidden="true">▾</span></button>
+          </div>
+          <div class="calib-menu" id="calibMenu" hidden>
+            <div class="calib-btns">
+              <button type="button" class="calib-btn sync" id="calibSync"> いまチャイムが鳴った！</button>
+              <button type="button" class="calib-btn" data-adj="-1000">−1秒</button>
+              <button type="button" class="calib-btn" data-adj="-100">−0.1秒</button>
+              <button type="button" class="calib-btn" data-adj="100">＋0.1秒</button>
+              <button type="button" class="calib-btn" data-adj="1000">＋1秒</button>
+              <button type="button" class="calib-btn" id="calibReset">リセット</button>
+            </div>
+            <div class="calib-manual">
+              <label class="calib-manual-label" for="calibTimeInput">⌨️ 時刻を打って合わせる</label>
+              <div class="calib-manual-row">
+                <input type="time" step="1" id="calibTimeInput" class="calib-time-input" aria-label="正しい時刻" />
+                <button type="button" class="calib-btn" id="calibTimeApply">この時刻にする</button>
+              </div>
+            </div>
+            <p class="calib-note">授業が終わった（始まった）瞬間にチャイムボタンを押すと、このページの時計を学校のチャイムに合わせるよ。＋／−ボタンは表示時計を少しずつずらす調整。正しい時刻が分かるときは、上の欄にその時刻を打って「この時刻にする」を押しても合わせられるよ。補正はクッキーに保存されるので、この端末・このブラウザではページを開き直しても残るよ。</p>
+          </div>
+        </div>
       </div>
 
       <div class="tabs" role="tablist" aria-label="曜日えらび" id="tabs"></div>
@@ -203,13 +275,13 @@
 
     <script>
       var PERIODS = [
-        { label: "1限", time: "8:25〜9:15", start: "08:25", end: "09:15" },
-        { label: "2限", time: "9:25〜10:15", start: "09:25", end: "10:15" },
-        { label: "3限", time: "10:25〜11:15", start: "10:25", end: "11:15" },
-        { label: "4限", time: "11:25〜12:15", start: "11:25", end: "12:15" },
+        { label: "1時間目", time: "8:25〜9:15", start: "08:25", end: "09:15" },
+        { label: "2時間目", time: "9:25〜10:15", start: "09:25", end: "10:15" },
+        { label: "3時間目", time: "10:25〜11:15", start: "10:25", end: "11:15" },
+        { label: "4時間目", time: "11:25〜12:15", start: "11:25", end: "12:15" },
         { label: "給食", time: "12:25〜12:50", start: "12:25", end: "12:50", lunch: true },
-        { label: "5限", time: "13:20〜14:10", start: "13:20", end: "14:10" },
-        { label: "6限", time: "14:20〜15:10", start: "14:20", end: "15:10" }
+        { label: "5時間目", time: "13:20〜14:10", start: "13:20", end: "14:10" },
+        { label: "6時間目", time: "14:20〜15:10", start: "14:20", end: "15:10" }
       ];
 
       var SUBJECT_STYLE = {
@@ -271,7 +343,7 @@
       function pad(n) { return (n < 10 ? "0" : "") + n; }
 
       function nowMinutes() {
-        var d = new Date();
+        var d = getNowDate();
         return d.getHours() * 60 + d.getMinutes();
       }
       function hmToMin(hm) {
@@ -279,7 +351,7 @@
         return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
       }
       function todayStr() {
-        var d = new Date();
+        var d = getNowDate();
         return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
       }
 
@@ -458,6 +530,64 @@
         return "あと " + core + " " + suffix;
       }
 
+      /* ===== ずれ補正（校正） =====
+         offsetMs だけ時計をずらして表示する。補正値はクッキーに保存し、
+         ページを開き直しても同じ端末・同じブラウザでは引き継がれる。 */
+      var CALIB_COOKIE = "jikanwari_calib_offset";
+      function loadCalibCookie() {
+        try {
+          var parts = document.cookie ? document.cookie.split(";") : [];
+          for (var ci = 0; ci < parts.length; ci++) {
+            var kv = parts[ci].split("=");
+            if (kv[0].replace(/^\s+|\s+$/g, "") === CALIB_COOKIE) {
+              var v = parseFloat(decodeURIComponent(kv.slice(1).join("=")));
+              return isNaN(v) ? 0 : clampOffset(v);
+            }
+          }
+        } catch (e) {}
+        return 0;
+      }
+      function saveCalibCookie() {
+        try {
+          var exp = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+          document.cookie = CALIB_COOKIE + "=" + encodeURIComponent(String(offsetMs)) +
+            "; expires=" + exp.toUTCString() + "; path=/; SameSite=Lax";
+        } catch (e) {}
+      }
+      var offsetMs = loadCalibCookie();
+      var calibBoundary = null;
+      var lastCalibText = "__init__";
+
+      function getNowDate() { return new Date(Date.now() + (offsetMs || 0)); }
+      function clampOffset(v) { return Math.max(-1800000, Math.min(1800000, v)); }
+
+      function updateCalibUI() {
+        var st = document.getElementById("calibState");
+        var syncBtn = document.getElementById("calibSync");
+        if (syncBtn) syncBtn.disabled = (calibBoundary === null);
+        if (!st) return;
+        var txt;
+        if (offsetMs === 0) {
+          txt = "補正なし";
+        } else {
+          txt = "補正中：" + (offsetMs > 0 ? "＋" : "−") + (Math.abs(offsetMs) / 1000).toFixed(3) + "秒";
+        }
+        if (txt !== lastCalibText) {
+          lastCalibText = txt;
+          st.textContent = txt;
+          st.className = "calib-state" + (offsetMs === 0 ? " none" : "");
+        }
+      }
+
+      function applyOffset() {
+        // 補正値をクッキーに保存する（リセット時は 0 が保存される）
+        saveCalibCookie();
+        // 補正で「いま／つぎ」が変わることがあるので、時間割のハイライトも付け替える
+        lastPhaseKey = "__calib__";
+        renderTimetable(DAYS[selected]);
+        updateCalibUI();
+      }
+
       var lastPhaseKey = "__init__";
 
       function tickLive() {
@@ -474,7 +604,7 @@
           requestAnimationFrame(tickLive);
           return;
         }
-        var nowDate = new Date();
+        var nowDate = getNowDate();
         var nowMs = nowDate.getTime();
         var clockStr = pad2(nowDate.getHours()) + ":" + pad2(nowDate.getMinutes()) + ":" + pad2(nowDate.getSeconds()) + "." + pad3(nowDate.getMilliseconds());
         clockEl.innerHTML = "いま <b>" + clockStr + "</b>";
@@ -492,6 +622,10 @@
         if (current) { mode = "in"; target = current; phaseKey = "in:" + current.idx; }
         else if (next) { mode = "next"; target = next; phaseKey = "next:" + next.idx; }
         else { mode = "after"; target = null; phaseKey = "after"; }
+
+        // チャイムボタンで合わせる先：授業中はその授業の終わり、休み時間はつぎの始まり
+        calibBoundary = current ? current.endMs : (next ? next.startMs : null);
+        updateCalibUI();
 
         if (phaseKey !== lastPhaseKey) {
           lastPhaseKey = phaseKey;
@@ -555,7 +689,53 @@
         renderLunch(day);
       }
 
+      // 補正メニューの開閉（右端の小さいボタン）
+      var calibToggle = document.getElementById("calibToggle");
+      var calibMenu = document.getElementById("calibMenu");
+      calibToggle.addEventListener("click", function () {
+        var open = calibMenu.hidden;
+        calibMenu.hidden = !open;
+        calibToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+
+      document.getElementById("calibSync").addEventListener("click", function () {
+        if (calibBoundary === null) return;
+        offsetMs = clampOffset(calibBoundary - Date.now());
+        applyOffset();
+      });
+      var adjBtns = document.querySelectorAll("[data-adj]");
+      for (var ai = 0; ai < adjBtns.length; ai++) {
+        adjBtns[ai].addEventListener("click", function () {
+          offsetMs = clampOffset(offsetMs + parseInt(this.getAttribute("data-adj"), 10));
+          applyOffset();
+        });
+      }
+      document.getElementById("calibReset").addEventListener("click", function () {
+        offsetMs = 0;
+        applyOffset();
+      });
+
+      // 時刻を打って合わせる：入力された正しい時刻と端末の時計の差を補正値にする
+      function applyTypedTime() {
+        var v = document.getElementById("calibTimeInput").value;
+        if (!v) return;
+        var parts = v.split(":");
+        var hh = parseInt(parts[0], 10);
+        var mm = parseInt(parts[1], 10);
+        var ss = parts.length > 2 ? parseInt(parts[2], 10) : 0;
+        if (isNaN(hh) || isNaN(mm) || isNaN(ss)) return;
+        var nowReal = new Date();
+        var target = new Date(nowReal.getFullYear(), nowReal.getMonth(), nowReal.getDate(), hh, mm, ss, 0);
+        offsetMs = clampOffset(target.getTime() - Date.now());
+        applyOffset();
+      }
+      document.getElementById("calibTimeApply").addEventListener("click", applyTypedTime);
+      document.getElementById("calibTimeInput").addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); applyTypedTime(); }
+      });
+
       render();
+      updateCalibUI();
       requestAnimationFrame(tickLive);
     </script>
   </body>
