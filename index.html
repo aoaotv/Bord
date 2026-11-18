@@ -1,1 +1,562 @@
-https://ed91fe96.htmltourl.app/
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>今日の時間割・給食</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #eef3f0;
+        --bg-accent: #dcebe2;
+        --card: #ffffff;
+        --ink: #1d2a24;
+        --ink-soft: #4c5d55;
+        --line: #d8e2dc;
+        --accent: #177245;
+        --accent-soft: #e2f2e8;
+        --lunch: #b3541e;
+        --lunch-soft: #fdf0e4;
+        --now: #c22f4e;
+        --shadow: 0 2px 10px rgba(23, 60, 42, 0.08);
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121a16;
+          --bg-accent: #182420;
+          --card: #1c2822;
+          --ink: #e8f0eb;
+          --ink-soft: #a7bab0;
+          --line: #2e4038;
+          --accent: #4cc084;
+          --accent-soft: #1e3529;
+          --lunch: #f0a05c;
+          --lunch-soft: #33261a;
+          --now: #ff7d95;
+          --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        font-family: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        background: linear-gradient(180deg, var(--bg-accent) 0, var(--bg) 220px);
+        color: var(--ink);
+        line-height: 1.55;
+      }
+      .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 40px; }
+
+      /* ---- Header ---- */
+      .date-line { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+      h1 { font-size: 34px; font-weight: 800; margin: 2px 0 4px; line-height: 1.2; }
+      .sub { color: var(--ink-soft); font-size: 15px; margin: 0 0 14px; }
+      .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+      .badge {
+        background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+        padding: 6px 12px; font-size: 13.5px; font-weight: 700; box-shadow: var(--shadow);
+      }
+      .badge strong { color: var(--accent); }
+      .badge.pe { background: #eef6e4; border-color: #b9d69a; color: #3d6216; }
+      @media (prefers-color-scheme: dark) {
+        .badge.pe { background: #26351c; border-color: #4a6636; color: #b7dd8f; }
+      }
+
+      /* ---- Live countdown ---- */
+      .live-card {
+        display: none;
+        background: var(--card); border: 2px solid var(--now); border-radius: 16px;
+        padding: 14px 16px 16px; margin-bottom: 18px; box-shadow: var(--shadow);
+      }
+      .live-card.show { display: block; }
+      .live-card.is-break { border-color: var(--accent); }
+      .live-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .now-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--now); flex: none; animation: pulse 1.6s ease-in-out infinite; }
+      .live-card.is-break .now-dot { background: var(--accent); }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+      @media (prefers-reduced-motion: reduce) { .now-dot { animation: none; } }
+      .live-status { font-weight: 800; font-size: 15.5px; flex: 1; min-width: 0; }
+      .live-clock {
+        font-size: 12.5px; font-weight: 700; color: var(--ink-soft);
+        font-variant-numeric: tabular-nums; white-space: nowrap;
+      }
+      .live-clock b { color: var(--ink); font-weight: 800; }
+      .live-label { margin-top: 10px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink-soft); }
+      .live-label strong { color: var(--ink); }
+      .live-count {
+        margin-top: 2px; line-height: 1.15; font-weight: 800; color: var(--ink);
+        display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 4px;
+      }
+      .live-count .cd-pre { font-size: 20px; margin-right: 2px; }
+      .live-count .cd-num {
+        font-size: 40px; letter-spacing: -0.02em; line-height: 1;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+      }
+      .live-count .cd-unit { font-size: 18px; font-weight: 800; margin-right: 6px; }
+      .live-count .cd-ms { font-size: 28px; }
+      .live-count .cd-suffix { font-size: 20px; margin-left: 2px; }
+      .live-count.done { font-size: 24px; }
+      .live-detail { margin-top: 6px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+      .live-detail b { color: var(--ink); }
+      .live-bar { margin-top: 12px; height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+      .live-bar-fill { height: 100%; width: 0%; border-radius: 999px; background: var(--now); transition: none; }
+      .live-card.is-break .live-bar-fill { background: var(--accent); }
+      .row.next { background: color-mix(in srgb, var(--accent-soft) 55%, transparent); box-shadow: inset 4px 0 0 var(--accent); }
+      .next-tag { font-size: 11.5px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: 2px 9px; }
+      .row-count {
+        display: none; margin-top: 3px; font-size: 13px; font-weight: 800; color: var(--now);
+        font-variant-numeric: tabular-nums; white-space: nowrap;
+      }
+      .row-count.show { display: block; }
+      .row-count.break { color: var(--accent); }
+      .row-count .rc-num { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: -0.01em; }
+
+      /* ---- Day tabs ---- */
+      .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 18px; }
+      .tab {
+        appearance: none; border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+        border-radius: 12px; padding: 8px 2px 7px; font: inherit; cursor: pointer; min-height: 52px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+      }
+      .tab .d-num { font-size: 19px; font-weight: 800; line-height: 1.1; }
+      .tab .d-dow { font-size: 12px; font-weight: 700; }
+      .tab .d-today { font-size: 10.5px; font-weight: 800; color: var(--now); line-height: 1.2; min-height: 13px; }
+      .tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .tab[aria-selected="true"] .d-today { color: #ffd9e0; }
+      .tab:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+      /* ---- Sections ---- */
+      h2 { font-size: 19px; font-weight: 800; margin: 22px 0 10px; display: flex; align-items: baseline; gap: 8px; }
+      h2 .h2-note { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+
+      /* ---- Timetable ---- */
+      .tt { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+      .row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; }
+      .row + .row { border-top: 1px solid var(--line); }
+      .row.now { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--now); }
+      .p-badge {
+        flex: none; width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 15px; color: #fff; background: var(--accent);
+      }
+      .p-badge.lunch-badge { background: var(--lunch); font-size: 20px; }
+      .p-main { flex: 1; min-width: 0; }
+      .p-subject { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .p-time { font-size: 13px; color: var(--ink-soft); font-weight: 700; font-variant-numeric: tabular-nums; }
+      .now-tag { font-size: 11.5px; font-weight: 800; color: #fff; background: var(--now); border-radius: 999px; padding: 2px 9px; }
+      .chip-dot { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+      .row.rest .p-subject { color: var(--ink-soft); font-size: 16px; }
+
+      /* ---- Lunch ---- */
+      .lunch-card { background: var(--card); border: 1px solid var(--line); border-top: 5px solid var(--lunch); border-radius: 16px; box-shadow: var(--shadow); padding: 16px; }
+      .lunch-items { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+      .lunch-items li { background: var(--lunch-soft); color: var(--ink); border-radius: 999px; padding: 7px 14px; font-weight: 700; font-size: 15.5px; }
+      .nutrition { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+      .nut { background: var(--bg); border-radius: 10px; padding: 8px 4px; text-align: center; }
+      .nut .n-val { font-size: 16.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .nut .n-val small { font-size: 11px; font-weight: 700; color: var(--ink-soft); }
+      .nut .n-label { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+      .lunch-msg { margin: 0; font-size: 14.5px; font-weight: 700; color: var(--lunch); }
+
+      footer { margin-top: 30px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="date-line" id="dateLine">2026年11月18日（水）</p>
+      <h1>今日の時間割・給食</h1>
+      <p class="sub">掛川東中学校 1年3組 ／ 11月16日（月）〜20日（金）の週</p>
+
+      <div class="badges" id="badges"></div>
+
+      <div class="live-card" id="liveCard" role="status" aria-live="off">
+        <div class="live-top">
+          <span class="now-dot" aria-hidden="true"></span>
+          <span class="live-status" id="liveStatus">読み込み中…</span>
+          <span class="live-clock" id="liveClock"></span>
+        </div>
+        <div class="live-label" id="liveLabel"></div>
+        <div class="live-count" id="liveCount"></div>
+        <div class="live-detail" id="liveDetail"></div>
+        <div class="live-bar" aria-hidden="true"><div class="live-bar-fill" id="liveBarFill"></div></div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="曜日えらび" id="tabs"></div>
+
+      <h2>⏰ 時間割 <span class="h2-note" id="ttNote"></span></h2>
+      <div class="tt" id="timetable"></div>
+
+      <h2> 給食 <span class="h2-note">12:25〜12:50</span></h2>
+      <div class="lunch-card" id="lunchCard"></div>
+
+      <footer>
+        出典：時間割は Google Classroom「Ｒ８ 全校」の学級別時間割（11月13日版）、給食は掛川市立給食文化苑こうようの丘「11月の献立表」より。予定が変わることもあるので、学校からの連絡もあわせて確認してね。
+      </footer>
+    </div>
+
+    <script>
+      var PERIODS = [
+        { label: "1限", time: "8:25〜9:15", start: "08:25", end: "09:15" },
+        { label: "2限", time: "9:25〜10:15", start: "09:25", end: "10:15" },
+        { label: "3限", time: "10:25〜11:15", start: "10:25", end: "11:15" },
+        { label: "4限", time: "11:25〜12:15", start: "11:25", end: "12:15" },
+        { label: "給食", time: "12:25〜12:50", start: "12:25", end: "12:50", lunch: true },
+        { label: "5限", time: "13:20〜14:10", start: "13:20", end: "14:10" },
+        { label: "6限", time: "14:20〜15:10", start: "14:20", end: "15:10" }
+      ];
+
+      var SUBJECT_STYLE = {
+        "国語":     { emoji: "", color: "#d84a4a" },
+        "数学":     { emoji: "", color: "#3b6fd4" },
+        "理科":     { emoji: "", color: "#35a05f" },
+        "社会":     { emoji: "", color: "#e07b39" },
+        "英語":     { emoji: "", color: "#0e9594" },
+        "保健体育": { emoji: "", color: "#7cb342" },
+        "家庭":     { emoji: "", color: "#d45d8f" },
+        "道徳":     { emoji: "", color: "#9a7b4f" },
+        "音楽":     { emoji: "", color: "#b0529e" },
+        "美術":     { emoji: "", color: "#e8a13a" },
+        "総合":     { emoji: "", color: "#607d8b" }
+      };
+
+      var DAYS = [
+        {
+          date: "2026-11-16", num: 16, dow: "月",
+          lessons: ["国語", "保健体育", "理科", "英語", null, "家庭", null],
+          lunch: { items: ["コッペパン", "牛乳", "ポークチャップ", "フルーツカクテル", "秋野菜の洋風煮"],
+                   kcal: 793, protein: "34.2", fat: "25.1", salt: "3.3", msg: "秋野菜の洋風煮を味わおう" }
+        },
+        {
+          date: "2026-11-17", num: 17, dow: "火",
+          lessons: ["英語", "国語", "理科", "道徳", null, "数学", null],
+          lunch: { items: ["ご飯", "牛乳", "鶏肉とレバーの甘辛和え", "野菜の赤じそ和え", "かきたま汁"],
+                   kcal: 757, protein: "33.0", fat: "24.0", salt: "2.3", msg: "レバーを食べて鉄分をとろう" }
+        },
+        {
+          date: "2026-11-18", num: 18, dow: "水", today: true,
+          lessons: ["数学", "英語", "国語", "社会", null, "家庭", null],
+          lunch: { items: ["麦ご飯", "牛乳", "えびしゅうまい", "ひじきの中華和え", "肉団子入り酢豚"],
+                   kcal: 761, protein: "30.0", fat: "21.6", salt: "2.6", msg: "肉団子入り酢豚を味わおう" },
+          note: "中央委員会②のため学校は14:35まで"
+        },
+        {
+          date: "2026-11-19", num: 19, dow: "木",
+          lessons: ["英語", "数学", "社会", "音楽", null, "保健体育", "総合"],
+          lunch: { items: ["さくらご飯", "牛乳", "あかうおの揚げ煮", "筑前煮", "大根のみそ汁", "みかん（中のみ）"],
+                   kcal: 764, protein: "31.9", fat: "20.1", salt: "4.1", msg: "恵比寿講献立" }
+        },
+        {
+          date: "2026-11-20", num: 20, dow: "金",
+          lessons: ["美術", "数学", "国語", "理科", null, "保健体育", "社会"],
+          lunch: { items: ["ご飯", "牛乳", "鶏肉の唐揚げ", "ごぼうサラダ", "カレースープ"],
+                   kcal: 779, protein: "30.1", fat: "22.4", salt: "2.1", msg: "さつま芋について知ろう" }
+        }
+      ];
+
+      var tabsEl = document.getElementById("tabs");
+      var ttEl = document.getElementById("timetable");
+      var lunchEl = document.getElementById("lunchCard");
+      var badgesEl = document.getElementById("badges");
+      var ttNoteEl = document.getElementById("ttNote");
+      var dateLineEl = document.getElementById("dateLine");
+      var selected = 2; // 11月18日（水）
+
+      function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+      function nowMinutes() {
+        var d = new Date();
+        return d.getHours() * 60 + d.getMinutes();
+      }
+      function hmToMin(hm) {
+        var p = hm.split(":");
+        return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+      }
+      function todayStr() {
+        var d = new Date();
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+      }
+
+      // 初期表示：開いた日が今週の平日ならその日、ちがえば今日（18日）
+      (function initSelected() {
+        var t = todayStr();
+        for (var i = 0; i < DAYS.length; i++) {
+          if (DAYS[i].date === t) { selected = i; return; }
+        }
+      })();
+
+      function renderTabs() {
+        tabsEl.innerHTML = "";
+        DAYS.forEach(function (day, i) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "tab";
+          b.setAttribute("role", "tab");
+          b.setAttribute("aria-selected", i === selected ? "true" : "false");
+          b.innerHTML =
+            '<span class="d-num">' + day.num + "</span>" +
+            '<span class="d-dow">' + day.dow + "曜日</span>" +
+            '<span class="d-today">' + (day.today ? "今日" : "&nbsp;") + "</span>";
+          b.addEventListener("click", function () { selected = i; render(); });
+          tabsEl.appendChild(b);
+        });
+      }
+
+      function renderBadges(day) {
+        var lastLesson = 0;
+        day.lessons.forEach(function (s, i) { if (s) lastLesson = i; });
+        var lastPeriod = PERIODS[lastLesson];
+        var html = '<span class="badge"> 学校 <strong>7:40〜</strong></span>';
+        html += '<span class="badge"> 授業は <strong>' + lastPeriod.label + "（" + lastPeriod.end + "）</strong>まで</span>";
+        if (day.lessons.indexOf("保健体育") !== -1) html += '<span class="badge pe"> 体育着の日</span>';
+        if (day.note) html += '<span class="badge"> ' + day.note + "</span>";
+        badgesEl.innerHTML = html;
+      }
+
+      function currentPeriodIndex(day) {
+        if (day.date !== todayStr()) return -1;
+        var now = nowMinutes();
+        for (var i = 0; i < PERIODS.length; i++) {
+          var p = PERIODS[i];
+          if (!day.lessons[i] && !p.lunch) continue;
+          if (now >= hmToMin(p.start) && now < hmToMin(p.end)) return i;
+        }
+        return -1;
+      }
+
+      function nextPeriodIndex(day) {
+        if (day.date !== todayStr()) return -1;
+        if (currentPeriodIndex(day) !== -1) return -1;
+        var now = nowMinutes();
+        for (var i = 0; i < PERIODS.length; i++) {
+          var p = PERIODS[i];
+          if (!day.lessons[i] && !p.lunch) continue;
+          if (now < hmToMin(p.start)) return i;
+        }
+        return -1;
+      }
+
+      function renderTimetable(day) {
+        var nowIdx = currentPeriodIndex(day);
+        var nextIdx = nextPeriodIndex(day);
+        var count = 0;
+        day.lessons.forEach(function (s) { if (s) count++; });
+        ttNoteEl.textContent = count + "時間授業";
+        var html = "";
+        PERIODS.forEach(function (p, i) {
+          var isNow = i === nowIdx;
+          var isNext = i === nextIdx;
+          var rowCls = isNow ? " now" : (isNext ? " next" : "");
+          var tag = isNow ? '<span class="now-tag">いま</span>' : (isNext ? '<span class="next-tag">つぎ</span>' : "");
+          var liveLine = (isNow || isNext) ? '<div class="row-count' + (isNext ? " break" : "") + '" id="rowCount-' + i + '"></div>' : "";
+          if (p.lunch) {
+            html += '<div class="row' + rowCls + '">' +
+              '<div class="p-badge lunch-badge" aria-hidden="true"></div>' +
+              '<div class="p-main"><div class="p-subject">給食' + tag +
+              '</div><div class="p-time">' + p.time + "</div>" + liveLine + "</div></div>";
+            return;
+          }
+          var subject = day.lessons[i];
+          if (!subject) {
+            html += '<div class="row rest">' +
+              '<div class="p-badge" style="background:var(--line);color:var(--ink-soft)">' + p.label + "</div>" +
+              '<div class="p-main"><div class="p-subject">授業なし</div>' +
+              '<div class="p-time">' + p.time + "</div></div></div>";
+            return;
+          }
+          var st = SUBJECT_STYLE[subject] || { emoji: "", color: "#607d8b" };
+          html += '<div class="row' + rowCls + '">' +
+            '<div class="p-badge" style="background:' + st.color + '">' + p.label + "</div>" +
+            '<div class="p-main"><div class="p-subject">' +
+            '<span class="chip-dot" style="background:' + st.color + '" aria-hidden="true"></span>' +
+            st.emoji + " " + subject + tag +
+            '</div><div class="p-time">' + p.time + "</div>" + liveLine + "</div></div>";
+        });
+        ttEl.innerHTML = html;
+      }
+
+      function renderLunch(day) {
+        var L = day.lunch;
+        var items = L.items.map(function (it) { return "<li>" + it + "</li>"; }).join("");
+        lunchEl.innerHTML =
+          '<ul class="lunch-items">' + items + "</ul>" +
+          '<div class="nutrition">' +
+            '<div class="nut"><div class="n-val">' + L.kcal + '<small> kcal</small></div><div class="n-label">エネルギー</div></div>' +
+            '<div class="nut"><div class="n-val">' + L.protein + '<small> g</small></div><div class="n-label">たんぱく質</div></div>' +
+            '<div class="nut"><div class="n-val">' + L.fat + '<small> g</small></div><div class="n-label">脂質</div></div>' +
+            '<div class="nut"><div class="n-val">' + L.salt + '<small> g</small></div><div class="n-label">塩分</div></div>' +
+          "</div>" +
+          '<p class="lunch-msg"> ' + L.msg + "</p>";
+      }
+
+      /* ===== リアルタイム・カウントダウン ===== */
+      function pad2(n) { return (n < 10 ? "0" : "") + n; }
+      function pad3(n) { return (n < 100 ? (n < 10 ? "00" : "0") : "") + n; }
+
+      function dayTimeMs(dateStr, hm) {
+        var dp = dateStr.split("-");
+        var tp = hm.split(":");
+        var d = new Date(parseInt(dp[0], 10), parseInt(dp[1], 10) - 1, parseInt(dp[2], 10),
+                         parseInt(tp[0], 10), parseInt(tp[1], 10), 0, 0);
+        return d.getTime();
+      }
+
+      function getTodayDay() {
+        var t = todayStr();
+        for (var i = 0; i < DAYS.length; i++) { if (DAYS[i].date === t) return DAYS[i]; }
+        return null;
+      }
+
+      function buildTimeline(day) {
+        var list = [];
+        PERIODS.forEach(function (p, i) {
+          if (!day.lessons[i] && !p.lunch) return;
+          list.push({
+            idx: i, period: p,
+            subject: p.lunch ? "給食" : day.lessons[i],
+            startMs: dayTimeMs(day.date, p.start),
+            endMs: dayTimeMs(day.date, p.end)
+          });
+        });
+        return list;
+      }
+
+      function splitMs(rem) {
+        if (rem < 0) rem = 0;
+        return {
+          h: Math.floor(rem / 3600000),
+          m: Math.floor((rem % 3600000) / 60000),
+          s: Math.floor((rem % 60000) / 1000),
+          ms: Math.floor(rem % 1000),
+          totalSec: (rem / 1000)
+        };
+      }
+
+      function countHTML(rem, suffix) {
+        var p = splitMs(rem);
+        var h = "";
+        if (p.h > 0) h = '<span class="cd-num">' + p.h + '</span><span class="cd-unit">時間</span>';
+        var m = "";
+        if (p.h > 0 || p.m > 0) m = '<span class="cd-num">' + pad2(p.m) + '</span><span class="cd-unit">分</span>';
+        var sec = '<span class="cd-num">' + pad2(p.s) + '</span>' +
+                  '<span class="cd-num cd-ms">.' + pad3(p.ms) + '</span><span class="cd-unit">秒</span>';
+        return '<span class="cd-pre">あと</span>' + h + m + sec + '<span class="cd-suffix">' + suffix + '</span>';
+      }
+
+      function shortCount(rem, suffix) {
+        var p = splitMs(rem);
+        var core = "";
+        if (p.h > 0) core += p.h + "時間 ";
+        if (p.h > 0 || p.m > 0) core += pad2(p.m) + "分 ";
+        core += pad2(p.s) + "." + pad3(p.ms) + "秒";
+        return "あと " + core + " " + suffix;
+      }
+
+      var lastPhaseKey = "__init__";
+
+      function tickLive() {
+        var card = document.getElementById("liveCard");
+        var statusEl = document.getElementById("liveStatus");
+        var clockEl = document.getElementById("liveClock");
+        var labelEl = document.getElementById("liveLabel");
+        var countEl = document.getElementById("liveCount");
+        var detailEl = document.getElementById("liveDetail");
+        var barEl = document.getElementById("liveBarFill");
+        var day = getTodayDay();
+        if (!day) {
+          card.className = "live-card";
+          requestAnimationFrame(tickLive);
+          return;
+        }
+        var nowDate = new Date();
+        var nowMs = nowDate.getTime();
+        var clockStr = pad2(nowDate.getHours()) + ":" + pad2(nowDate.getMinutes()) + ":" + pad2(nowDate.getSeconds()) + "." + pad3(nowDate.getMilliseconds());
+        clockEl.innerHTML = "いま <b>" + clockStr + "</b>";
+
+        var timeline = buildTimeline(day);
+        var current = null, next = null, prev = null;
+        for (var i = 0; i < timeline.length; i++) {
+          var it = timeline[i];
+          if (nowMs >= it.startMs && nowMs < it.endMs) current = it;
+          if (!next && nowMs < it.startMs) next = it;
+          if (nowMs >= it.endMs) prev = it;
+        }
+
+        var mode, target, phaseKey;
+        if (current) { mode = "in"; target = current; phaseKey = "in:" + current.idx; }
+        else if (next) { mode = "next"; target = next; phaseKey = "next:" + next.idx; }
+        else { mode = "after"; target = null; phaseKey = "after"; }
+
+        if (phaseKey !== lastPhaseKey) {
+          lastPhaseKey = phaseKey;
+          // 授業⇔休み時間の切り替わりで、時間割のハイライトも付け替える
+          renderTimetable(DAYS[selected]);
+        }
+
+        card.className = "live-card show" + (mode === "next" ? " is-break" : "");
+
+        if (mode === "in") {
+          var remIn = current.endMs - nowMs;
+          statusEl.textContent = current.period.lunch
+            ? " いまは給食の時間だよ"
+            : " いまは " + current.period.label + "「" + current.subject + "」の時間だよ";
+          labelEl.innerHTML = current.period.lunch
+            ? "⏱ <strong>給食</strong>が終わるまで"
+            : "⏱ <strong>" + current.period.label + " " + current.subject + "</strong> が終わるまで（〜" + current.period.end + "）";
+          countEl.className = "live-count";
+          countEl.innerHTML = countHTML(remIn, "で終わる");
+          detailEl.innerHTML = "合計 あと <b>" + splitMs(remIn).totalSec.toFixed(3) + "秒</b> ・ " + current.period.start + "〜" + current.period.end + " のうち、あと少し！";
+          var durIn = current.endMs - current.startMs;
+          barEl.style.width = Math.min(100, Math.max(0, (nowMs - current.startMs) / durIn * 100)) + "%";
+          var rcIn = document.getElementById("rowCount-" + current.idx);
+          if (rcIn) { rcIn.className = "row-count show"; rcIn.innerHTML = '⏱ <span class="rc-num">' + shortCount(remIn, "で終わる") + "</span>"; }
+        } else if (mode === "next") {
+          var remNext = next.startMs - nowMs;
+          var isFirst = timeline.length && next.idx === timeline[0].idx && !prev;
+          statusEl.textContent = next.period.lunch
+            ? "☕ 休み時間 — つぎは給食だよ"
+            : (isFirst ? " 今日はこれから — 最初は " + next.period.label + "「" + next.subject + "」だよ"
+                       : "☕ 休み時間 — つぎは " + next.period.label + "「" + next.subject + "」だよ");
+          labelEl.innerHTML = next.period.lunch
+            ? "⏱ <strong>給食</strong>が始まるまで"
+            : "⏱ <strong>" + next.period.label + " " + next.subject + "</strong> が始まるまで（" + next.period.start + "〜）";
+          countEl.className = "live-count";
+          countEl.innerHTML = countHTML(remNext, "で始まる");
+          detailEl.innerHTML = "合計 あと <b>" + splitMs(remNext).totalSec.toFixed(3) + "秒</b> ・ " + next.period.start + " 開始 — じゅんびしておこう";
+          var phaseStart = prev ? prev.endMs : (next.startMs - 3600000);
+          var durBr = next.startMs - phaseStart;
+          barEl.style.width = (durBr > 0 ? Math.min(100, Math.max(0, (nowMs - phaseStart) / durBr * 100)) : 0) + "%";
+          var rcNext = document.getElementById("rowCount-" + next.idx);
+          if (rcNext) { rcNext.className = "row-count break show"; rcNext.innerHTML = '⏱ <span class="rc-num">' + shortCount(remNext, "で始まる") + "</span>"; }
+        } else {
+          statusEl.textContent = " 今日の授業は全部おわり";
+          labelEl.innerHTML = "⏱ <strong>今日の時間割</strong>は終了しました";
+          countEl.className = "live-count done";
+          countEl.textContent = "おつかれさま！";
+          detailEl.textContent = "明日もがんばろう。時間割タブで他の日も見られるよ。";
+          barEl.style.width = "100%";
+        }
+
+        requestAnimationFrame(tickLive);
+      }
+
+      function render() {
+        var day = DAYS[selected];
+        dateLineEl.textContent = "2026年11月" + day.num + "日（" + day.dow + "）" + (day.today ? " ・今日" : "");
+        renderTabs();
+        renderBadges(day);
+        renderTimetable(day);
+        renderLunch(day);
+      }
+
+      render();
+      requestAnimationFrame(tickLive);
+    </script>
+  </body>
+</html>
