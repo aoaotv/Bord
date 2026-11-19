@@ -68,6 +68,13 @@
         .badge.pe { background: #26351c; border-color: #4a6636; color: #b7dd8f; }
       }
 
+      /* ---- Icons（絵文字フォントに頼らない埋め込みSVG） ---- */
+      .ic { width: 1.18em; height: 1.18em; display: inline-block; vertical-align: -0.22em; flex: none; }
+      h2 .ic { width: 1.05em; height: 1.05em; vertical-align: -0.14em; }
+      .p-badge .ic { width: 27px; height: 27px; vertical-align: middle; }
+      .row.break-row .ic { width: 15px; height: 15px; vertical-align: -0.18em; }
+      .live-count.done .ic { width: 1em; height: 1em; vertical-align: -0.1em; }
+
       /* ---- Live countdown ---- */
       .live-card {
         display: none;
@@ -164,6 +171,39 @@
       }
       .calib-time-input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+      /* ---- Chime（チャイム） ---- */
+      .chime-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--now); display: inline-block; flex: none; }
+      .chime-line { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 5px; }
+      .chime-chip {
+        display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 800;
+        color: var(--now); background: color-mix(in srgb, var(--now) 10%, transparent);
+        border-radius: 999px; padding: 2px 8px 2px 6px; font-variant-numeric: tabular-nums;
+      }
+      .chime-chip .chime-dot { width: 8px; height: 8px; }
+      .chime-chip.off { color: var(--ink-soft); background: var(--bg); }
+      .row.chime-now { background: color-mix(in srgb, var(--now) 13%, transparent); box-shadow: inset 4px 0 0 var(--now); }
+      .row.chime-now .chime-chip { animation: pulse 1s ease-in-out infinite; }
+      .chime-banner {
+        display: flex; align-items: center; gap: 8px; background: var(--now); color: #fff;
+        font-weight: 800; font-size: 14.5px; border-radius: 12px; padding: 9px 12px; margin-bottom: 10px;
+      }
+      .chime-banner[hidden] { display: none; }
+      .chime-banner-dot { width: 11px; height: 11px; border-radius: 50%; background: #fff; flex: none; animation: pulse 0.8s ease-in-out infinite; }
+      .chime-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .chime-toggle {
+        appearance: none; font: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+        border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+        border-radius: 999px; font-size: 12.5px; font-weight: 800; padding: 6px 12px; min-height: 34px;
+      }
+      .chime-toggle:active { transform: scale(0.97); }
+      .chime-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+      .chime-toggle[aria-pressed="false"] { opacity: 0.6; }
+      .chime-note { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+      .chime-legend { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin: 8px 2px 0; }
+      @media (prefers-reduced-motion: reduce) {
+        .chime-banner-dot, .row.chime-now .chime-chip { animation: none; }
+      }
+
       /* ---- Day tabs ---- */
       .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 18px; }
       .tab {
@@ -244,6 +284,7 @@
       <div class="badges" id="badges"></div>
 
       <div class="live-card" id="liveCard" role="status" aria-live="off">
+        <div class="chime-banner" id="chimeBanner" hidden><span class="chime-banner-dot" aria-hidden="true"></span><span id="chimeBannerText"></span></div>
         <div class="live-top">
           <span class="now-dot" aria-hidden="true"></span>
           <span class="live-status" id="liveStatus">読み込み中…</span>
@@ -253,15 +294,19 @@
         <div class="live-count" id="liveCount"></div>
         <div class="live-detail" id="liveDetail"></div>
         <div class="live-bar" aria-hidden="true"><div class="live-bar-fill" id="liveBarFill"></div></div>
+        <div class="chime-controls">
+          <button type="button" class="chime-toggle" id="chimeSoundToggle" aria-pressed="true"><span class="chime-dot" aria-hidden="true"></span><span id="chimeSoundLabel">チャイム音：オン</span></button>
+          <span class="chime-note">チャイムは各区間の始まり・終わりに25秒鳴るよ（給食の始まりだけ鳴らない）。音は画面を一度タップすると出るようになるよ。</span>
+        </div>
         <div class="calib">
           <div class="calib-head">
-            <span class="calib-title">⏱ ずれ補正</span>
+            <span class="calib-title"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="7.6"/><path d="M12 9.6V13l2.4 1.6"/><path d="M9.5 2.6h5"/><path d="M12 2.6v3"/></svg> ずれ補正</span>
             <span class="calib-state none" id="calibState">補正なし</span>
             <button type="button" class="calib-toggle" id="calibToggle" aria-expanded="false" aria-controls="calibMenu">補正する<span class="calib-chev" aria-hidden="true">▾</span></button>
           </div>
           <div class="calib-menu" id="calibMenu" hidden>
             <div class="calib-btns">
-              <button type="button" class="calib-btn sync" id="calibSync"> いまチャイムが鳴った！</button>
+              <button type="button" class="calib-btn sync" id="calibSync"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 16.2V11a6 6 0 1 1 12 0v5.2l1.3 2.8H4.7Z"/><path d="M10.2 21.2a2 2 0 0 0 3.6 0"/></svg> いまチャイムが鳴った！</button>
               <button type="button" class="calib-btn" data-adj="-1000">−1秒</button>
               <button type="button" class="calib-btn" data-adj="-100">−0.1秒</button>
               <button type="button" class="calib-btn" data-adj="100">＋0.1秒</button>
@@ -269,7 +314,7 @@
               <button type="button" class="calib-btn" id="calibReset">リセット</button>
             </div>
             <div class="calib-manual">
-              <label class="calib-manual-label" for="calibTimeInput">⌨️ 時刻を打って合わせる</label>
+              <label class="calib-manual-label" for="calibTimeInput"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg> 時刻を打って合わせる</label>
               <div class="calib-manual-row">
                 <input type="time" step="1" id="calibTimeInput" class="calib-time-input" aria-label="正しい時刻" />
                 <button type="button" class="calib-btn" id="calibTimeApply">この時刻にする</button>
@@ -282,10 +327,11 @@
 
       <div class="tabs" role="tablist" aria-label="曜日えらび" id="tabs"></div>
 
-      <h2>⏰ 時間割 <span class="h2-note" id="ttNote"></span></h2>
+      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.8"/><path d="M12 7.2V12l3.2 2"/></svg> 時間割 <span class="h2-note" id="ttNote"></span></h2>
       <div class="tt" id="timetable"></div>
+      <p class="chime-legend"><span class="chime-dot" aria-hidden="true"></span> 赤いマークはチャイムが鳴る時刻（25秒間）。給食の始まり（12:25）だけは鳴らないよ。</p>
 
-      <h2> 給食 <span class="h2-note">12:25〜12:50</span></h2>
+      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.6 20.3 19a1.9 1.9 0 0 1-1.7 2.8H5.4A1.9 1.9 0 0 1 3.7 19Z"/><rect x="9.6" y="15.2" width="4.8" height="5.6" rx="0.9" fill="currentColor" stroke="none"/></svg> 給食 <span class="h2-note">12:25〜12:50</span></h2>
       <div class="lunch-card" id="lunchCard"></div>
 
       <footer>
@@ -305,18 +351,46 @@
       ];
 
       var SUBJECT_STYLE = {
-        "国語":     { emoji: "", color: "#d84a4a" },
-        "数学":     { emoji: "", color: "#3b6fd4" },
-        "理科":     { emoji: "", color: "#35a05f" },
-        "社会":     { emoji: "", color: "#e07b39" },
-        "英語":     { emoji: "", color: "#0e9594" },
-        "保健体育": { emoji: "", color: "#7cb342" },
-        "家庭":     { emoji: "", color: "#d45d8f" },
-        "道徳":     { emoji: "", color: "#9a7b4f" },
-        "音楽":     { emoji: "", color: "#b0529e" },
-        "美術":     { emoji: "", color: "#e8a13a" },
-        "総合":     { emoji: "", color: "#607d8b" }
+        "国語":     { color: "#d84a4a" },
+        "数学":     { color: "#3b6fd4" },
+        "理科":     { color: "#35a05f" },
+        "社会":     { color: "#e07b39" },
+        "英語":     { color: "#0e9594" },
+        "保健体育": { color: "#7cb342" },
+        "家庭":     { color: "#d45d8f" },
+        "道徳":     { color: "#9a7b4f" },
+        "音楽":     { color: "#b0529e" },
+        "美術":     { color: "#e8a13a" },
+        "総合":     { color: "#607d8b" }
       };
+
+      /* ===== アイコン（埋め込みSVG。端末の絵文字フォントが無くても必ず表示される） ===== */
+      var IC_OPEN = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">';
+      var ICONS = {
+        school: IC_OPEN + '<path d="M3 21h18"/><path d="M5 21V10.5L12 4l7 6.5V21"/><path d="M10 21v-5h4v5"/><path d="M8.3 13.2h.01M15.7 13.2h.01"/></svg>',
+        backpack: IC_OPEN + '<rect x="5.5" y="4.5" width="13" height="16.5" rx="3.5"/><path d="M9.8 4.5a2.2 2.2 0 0 1 4.4 0"/><path d="M9.2 21v-5h5.6v5"/><path d="M5.5 10h13"/></svg>',
+        walk: IC_OPEN + '<circle cx="13" cy="4.3" r="1.9"/><path d="M12.6 7.2 10 11.8l2.8 2 1 5.7"/><path d="M12.8 13.8 15.8 17l.4 3.8"/><path d="M10 11.8 7.2 9.6"/><path d="M10.8 10.2 14.6 8.4"/></svg>',
+        shirt: IC_OPEN + '<path d="M8.2 3.8 3 6.8l2.3 4L8 9.4V21h8V9.4l2.7 1.4 2.3-4-5.2-3a3.9 3.9 0 0 1-7.6 0Z"/></svg>',
+        pin: IC_OPEN + '<path d="M12 21.5s-6.5-5.8-6.5-10.4a6.5 6.5 0 1 1 13 0C18.5 15.7 12 21.5 12 21.5Z"/><circle cx="12" cy="11" r="2.3"/></svg>',
+        stopwatch: IC_OPEN + '<circle cx="12" cy="13" r="7.6"/><path d="M12 9.6V13l2.4 1.6"/><path d="M9.5 2.6h5"/><path d="M12 2.6v3"/></svg>',
+        sunrise: IC_OPEN + '<path d="M7 17.5a5 5 0 0 1 10 0"/><path d="M12 6.5V4"/><path d="M5.9 9.4 4.6 8.1"/><path d="M18.1 9.4l1.3-1.3"/><path d="M2.5 17.5h19"/><path d="M5 21h14"/></svg>',
+        plate: IC_OPEN + '<circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="4.2"/></svg>',
+        onigiri: IC_OPEN + '<path d="M12 3.6 20.3 19a1.9 1.9 0 0 1-1.7 2.8H5.4A1.9 1.9 0 0 1 3.7 19Z"/><rect x="9.6" y="15.2" width="4.8" height="5.6" rx="0.9" fill="currentColor" stroke="none"/></svg>',
+        sun: IC_OPEN + '<circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.2M12 19v2.2M2.8 12h2.2M19 12h2.2M5 5l1.6 1.6M17.4 17.4 19 19M19 5l-1.6 1.6M6.6 17.4 5 19"/></svg>',
+        broom: IC_OPEN + '<path d="M16 3 10.5 13"/><path d="M10.5 13 6 14.5l1.3 6L13 19l1.5-4.5Z"/><path d="M8.2 15.2 9.3 19.6"/><path d="M11 14.3 11.6 18.8"/></svg>',
+        coffee: IC_OPEN + '<path d="M7.5 3.2c0 1-1 1.3-1 2.3M11.5 3.2c0 1-1 1.3-1 2.3"/><path d="M4 9.5h13V15a4.5 4.5 0 0 1-4.5 4.5h-4A4.5 4.5 0 0 1 4 15Z"/><path d="M17 10.8h.9a2.9 2.9 0 0 1 0 5.8H17"/><path d="M3 21.8h14"/></svg>',
+        megaphone: IC_OPEN + '<path d="M3 10.5v3h3.5L20 18V6L6.5 10.5H3Z"/><path d="M9.8 15.3 10.9 20.5h2.7l-.9-4.4"/></svg>',
+        party: IC_OPEN + '<path d="M12 3.5 14.3 8.6 19.9 9.4 15.8 13.3 16.9 18.9 12 16.2 7.1 18.9 8.2 13.3 4.1 9.4 9.7 8.6Z"/></svg>',
+        book: IC_OPEN + '<path d="M12 6.2C10.2 4.7 7.2 4.2 4 4.7v14c3.2-.5 6.2 0 8 1.5 1.8-1.5 4.8-2 8-1.5v-14c-3.2-.5-6.2 0-8 1.5Z"/><path d="M12 6.2v14"/></svg>'
+      };
+      function ic(name) { return ICONS[name] || ""; }
+      // 教科の本アイコン（教科カラーで塗った閉じた本）
+      function bookIcon(color) {
+        return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+          '<path d="M6 2.8h13.2v18.4H6a1.8 1.8 0 0 1-1.8-1.8V4.6A1.8 1.8 0 0 1 6 2.8Z" fill="' + color + '"/>' +
+          '<path d="M7.5 2.8v18.4" stroke="rgba(0,0,0,0.18)" stroke-width="1.4"/>' +
+          '<path d="M4.2 17.5h15" stroke="rgba(255,255,255,0.65)" stroke-width="1.6"/></svg>';
+      }
 
       var DAYS = [
         {
@@ -417,28 +491,28 @@
       function hasCleaning(day) { return day.dow === "火" || day.dow === "木" || day.dow === "金"; }
       function extraSegments(day) {
         var list = [
-          { key: "morning", label: "朝の会・朝活動", emoji: "", start: "08:00", end: "08:15", time: "8:00〜8:15", kind: "morning" },
-          { key: "lunchprep", label: "給食準備", emoji: "️", start: "12:15", end: "12:25", time: "12:15〜12:25", kind: "lunchprep" },
-          { key: "lunchbreak", label: "昼休み", emoji: "️", start: "12:50", end: "13:10", time: "12:50〜13:10", kind: "lunchbreak" }
+          { key: "morning", label: "朝の会・朝活動", icon: "sunrise", start: "08:00", end: "08:15", time: "8:00〜8:15", kind: "morning" },
+          { key: "lunchprep", label: "給食準備", icon: "plate", start: "12:15", end: "12:25", time: "12:15〜12:25", kind: "lunchprep" },
+          { key: "lunchbreak", label: "昼休み", icon: "sun", start: "12:50", end: "13:10", time: "12:50〜13:10", kind: "lunchbreak" }
         ];
         var cleaning = hasCleaning(day);
         if (isSixPeriodDay(day)) {
           if (cleaning) {
-            list.push({ key: "cleaning", label: "清掃", emoji: "", start: "15:15", end: "15:25", time: "15:15〜15:25", kind: "cleaning" });
-            list.push({ key: "homeroom", label: "帰りの会", emoji: "", start: "15:35", end: "15:50", time: "15:35〜15:50", kind: "homeroom" });
-            list.push({ key: "dismissal", label: "完全下校", emoji: "", start: "16:05", end: "16:05", time: "16:05", kind: "dismissal" });
+            list.push({ key: "cleaning", label: "清掃", icon: "broom", start: "15:15", end: "15:25", time: "15:15〜15:25", kind: "cleaning" });
+            list.push({ key: "homeroom", label: "帰りの会", icon: "backpack", start: "15:35", end: "15:50", time: "15:35〜15:50", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", icon: "walk", start: "16:05", end: "16:05", time: "16:05", kind: "dismissal" });
           } else {
-            list.push({ key: "homeroom", label: "帰りの会", emoji: "", start: "15:20", end: "15:35", time: "15:20〜15:35", kind: "homeroom" });
-            list.push({ key: "dismissal", label: "完全下校", emoji: "", start: "15:50", end: "15:50", time: "15:50", kind: "dismissal" });
+            list.push({ key: "homeroom", label: "帰りの会", icon: "backpack", start: "15:20", end: "15:35", time: "15:20〜15:35", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", icon: "walk", start: "15:50", end: "15:50", time: "15:50", kind: "dismissal" });
           }
         } else {
           if (cleaning) {
-            list.push({ key: "cleaning", label: "清掃", emoji: "", start: "14:15", end: "14:25", time: "14:15〜14:25", kind: "cleaning" });
-            list.push({ key: "homeroom", label: "帰りの会", emoji: "", start: "14:35", end: "14:50", time: "14:35〜14:50", kind: "homeroom" });
-            list.push({ key: "dismissal", label: "完全下校", emoji: "", start: "15:05", end: "15:05", time: "15:05", kind: "dismissal" });
+            list.push({ key: "cleaning", label: "清掃", icon: "broom", start: "14:15", end: "14:25", time: "14:15〜14:25", kind: "cleaning" });
+            list.push({ key: "homeroom", label: "帰りの会", icon: "backpack", start: "14:35", end: "14:50", time: "14:35〜14:50", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", icon: "walk", start: "15:05", end: "15:05", time: "15:05", kind: "dismissal" });
           } else {
-            list.push({ key: "homeroom", label: "帰りの会", emoji: "", start: "14:20", end: "14:35", time: "14:20〜14:35", kind: "homeroom" });
-            list.push({ key: "dismissal", label: "完全下校", emoji: "", start: "14:50", end: "14:50", time: "14:50", kind: "dismissal" });
+            list.push({ key: "homeroom", label: "帰りの会", icon: "backpack", start: "14:20", end: "14:35", time: "14:20〜14:35", kind: "homeroom" });
+            list.push({ key: "dismissal", label: "完全下校", icon: "walk", start: "14:50", end: "14:50", time: "14:50", kind: "dismissal" });
           }
         }
         return list;
@@ -453,11 +527,11 @@
         var lastLesson = 0;
         day.lessons.forEach(function (s, i) { if (s) lastLesson = i; });
         var lastPeriod = PERIODS[lastLesson];
-        var html = '<span class="badge"> 学校 <strong>7:40〜</strong></span>';
-        html += '<span class="badge"> 授業は <strong>' + lastPeriod.label + "（" + lastPeriod.end + "）</strong>まで</span>";
-        html += '<span class="badge"> 完全下校 <strong>' + dismissalTime(day) + "</strong></span>";
-        if (day.lessons.indexOf("保健体育") !== -1) html += '<span class="badge pe"> 体育着の日</span>';
-        if (day.note) html += '<span class="badge"> ' + day.note + "</span>";
+        var html = '<span class="badge">' + ic("school") + ' 学校 <strong>7:40〜</strong></span>';
+        html += '<span class="badge">' + ic("backpack") + ' 授業は <strong>' + lastPeriod.label + "（" + lastPeriod.end + "）</strong>まで</span>";
+        html += '<span class="badge">' + ic("walk") + ' 完全下校 <strong>' + dismissalTime(day) + "</strong></span>";
+        if (day.lessons.indexOf("保健体育") !== -1) html += '<span class="badge pe">' + ic("shirt") + ' 体育着の日</span>';
+        if (day.note) html += '<span class="badge">' + ic("pin") + ' ' + day.note + "</span>";
         badgesEl.innerHTML = html;
       }
 
@@ -500,6 +574,24 @@
         items.sort(function (a, b) { return a.startMin - b.startMin; });
 
         function fmtMin(m) { return Math.floor(m / 60) + ":" + pad(m % 60); }
+        // チャイムの赤いマーク：始まり・終わりに付ける（給食の始まり12:25だけ付けない）
+        function chimeChip(min, label) {
+          return '<span class="chime-chip"><span class="chime-dot" aria-hidden="true"></span>' + fmtMin(min) + (label ? " " + label : "") + " チャイム</span>";
+        }
+        function chimeChips(sMin, eMin, single, isLunchRow) {
+          var h = '<div class="chime-line">';
+          if (single) {
+            h += chimeChip(sMin, "");
+          } else {
+            if (sMin === LUNCH_START_MIN) {
+              if (isLunchRow) h += '<span class="chime-chip off">12:25 始まりは鳴らない</span>';
+            } else {
+              h += chimeChip(sMin, "始まり");
+            }
+            if (eMin !== LUNCH_START_MIN) h += chimeChip(eMin, "終わり");
+          }
+          return h + "</div>";
+        }
         var html = "";
         var prevItem = null;
         items.forEach(function (item) {
@@ -509,7 +601,7 @@
             var gapStart = prevItem.endMin, gapEnd = item.startMin, gapDur = gapEnd - gapStart;
             var isDismissalGap = item.kind === "dismissal";
             var gapLabel = isDismissalGap ? "下校" : "休み時間";
-            var gapIcon = isDismissalGap ? "" : "☕";
+            var gapIcon = isDismissalGap ? ic("walk") : ic("coffee");
             html += '<div class="row break-row' + (isDismissalGap ? " dismissal-gap" : "") + '" aria-label="' + gapLabel + " " + fmtMin(gapStart) + "から" + fmtMin(gapEnd) + '">' +
               '<span aria-hidden="true">' + gapIcon + '</span>' +
               '<span class="break-label">' + gapLabel + '</span>' +
@@ -519,40 +611,43 @@
           prevItem = item;
           var isNow = item.key === nowKey;
           var isNext = item.key === nextKey;
-          var rowCls = isNow ? " now" : (isNext ? " next" : "");
+          var isChimeNow = activeChimeMin !== null && day.date === todayStr() &&
+            (item.startMin === activeChimeMin || item.endMin === activeChimeMin);
+          var rowCls = (isNow ? " now" : (isNext ? " next" : "")) + (isChimeNow ? " chime-now" : "");
           var tag = isNow ? '<span class="now-tag">いま</span>' : (isNext ? '<span class="next-tag">つぎ</span>' : "");
           var liveLine = (isNow || isNext) ? '<div class="row-count' + (isNext ? " break" : "") + '" id="rowCount-' + item.key + '"></div>' : "";
+          var chips = chimeChips(item.startMin, item.endMin, item.kind === "dismissal", item.kind === "lunch");
           if (item.kind === "lunch") {
             html += '<div class="row' + rowCls + '">' +
-              '<div class="p-badge lunch-badge" aria-hidden="true"></div>' +
+              '<div class="p-badge lunch-badge" aria-hidden="true">' + ic("onigiri") + '</div>' +
               '<div class="p-main"><div class="p-subject">給食' + tag +
-              '</div><div class="p-time">' + item.period.time + "</div>" + liveLine + "</div></div>";
+              '</div><div class="p-time">' + item.period.time + "</div>" + chips + liveLine + "</div></div>";
             return;
           }
           if (item.kind === "rest") {
             html += '<div class="row rest">' +
               '<div class="p-badge" style="background:var(--line);color:var(--ink-soft)">' + item.period.label + "</div>" +
               '<div class="p-main"><div class="p-subject">授業なし</div>' +
-              '<div class="p-time">' + item.period.time + "</div></div></div>";
+              '<div class="p-time">' + item.period.time + "</div>" + chips + "</div></div>";
             return;
           }
           if (item.kind === "lesson") {
-            var st = SUBJECT_STYLE[item.subject] || { emoji: "", color: "#607d8b" };
+            var st = SUBJECT_STYLE[item.subject] || { color: "#607d8b" };
             html += '<div class="row' + rowCls + '">' +
               '<div class="p-badge" style="background:' + st.color + '">' + item.period.label + "</div>" +
               '<div class="p-main"><div class="p-subject">' +
               '<span class="chip-dot" style="background:' + st.color + '" aria-hidden="true"></span>' +
-              st.emoji + " " + item.subject + tag +
-              '</div><div class="p-time">' + item.period.time + "</div>" + liveLine + "</div></div>";
+              bookIcon(st.color) + " " + item.subject + tag +
+              '</div><div class="p-time">' + item.period.time + "</div>" + chips + liveLine + "</div></div>";
             return;
           }
           // 授業以外の区間（昼休み・清掃・帰りの会・完全下校）はグレーの見た目
           var seg = item.seg;
           var isDismissal = item.kind === "dismissal";
           html += '<div class="row activity' + rowCls + '">' +
-            '<div class="p-badge ' + (isDismissal ? "dismissal-badge" : "activity-badge") + '" aria-hidden="true">' + seg.emoji + "</div>" +
-            '<div class="p-main"><div class="p-subject">' + seg.emoji + " " + seg.label + tag + "</div>" +
-            '<div class="p-time">' + (isDismissal ? seg.time + " に完全下校" : seg.time) + "</div>" + liveLine + "</div></div>";
+            '<div class="p-badge ' + (isDismissal ? "dismissal-badge" : "activity-badge") + '" aria-hidden="true">' + ic(seg.icon) + "</div>" +
+            '<div class="p-main"><div class="p-subject">' + ic(seg.icon) + " " + seg.label + tag + "</div>" +
+            '<div class="p-time">' + (isDismissal ? seg.time + " に完全下校" : seg.time) + "</div>" + chips + liveLine + "</div></div>";
         });
         ttEl.innerHTML = html;
       }
@@ -568,7 +663,7 @@
             '<div class="nut"><div class="n-val">' + L.fat + '<small> g</small></div><div class="n-label">脂質</div></div>' +
             '<div class="nut"><div class="n-val">' + L.salt + '<small> g</small></div><div class="n-label">塩分</div></div>' +
           "</div>" +
-          '<p class="lunch-msg"> ' + L.msg + "</p>";
+          '<p class="lunch-msg">' + ic("megaphone") + ' ' + L.msg + "</p>";
       }
 
       /* ===== リアルタイム・カウントダウン ===== */
@@ -613,6 +708,88 @@
         return list;
       }
 
+      /* ===== チャイム =====
+         各区間の始まり・終わりにすべて鳴る。鳴動時間は25秒。
+         ただし給食の始まり（12:25）だけは鳴らない（給食準備の終わりも同じ時刻なので鳴らない）。
+         鳴っている間はライブカードに赤いバナー、時間割のその行に赤いマークの点滅が出る。 */
+      var CHIME_DURATION_MS = 25000;
+      var LUNCH_START_MIN = 12 * 60 + 25; // 12:25
+      var lastChimeKey = null;
+      var activeChimeMin = null;
+
+      function chimeTimesForDay(day) {
+        var tl = buildTimeline(day);
+        var lunchStartMs = null;
+        tl.forEach(function (it) { if (itemKind(it) === "lunch") lunchStartMs = it.startMs; });
+        var seen = {}, out = [];
+        function add(ms, label) {
+          if (ms === lunchStartMs) return; // 給食の始まりは鳴らさない
+          if (seen[ms]) return;
+          seen[ms] = true;
+          var d = new Date(ms);
+          out.push({ ms: ms, min: d.getHours() * 60 + d.getMinutes(), label: label });
+        }
+        // 同じ時刻に終わりと始まりが重なるときは「終わり」の名前を優先する
+        tl.forEach(function (it) { if (itemKind(it) !== "dismissal") add(it.endMs, itemTitle(it) + "の終わり"); });
+        tl.forEach(function (it) { if (itemKind(it) !== "dismissal") add(it.startMs, itemTitle(it) + "の始まり"); });
+        tl.forEach(function (it) { if (itemKind(it) === "dismissal") add(it.startMs, itemTitle(it)); });
+        out.sort(function (a, b) { return a.ms - b.ms; });
+        return out;
+      }
+
+      /* チャイム音（Web Audioで作る学校チャイムのメロディ）。
+         ブラウザの決まりで、音は画面を一度タップしてからでないと出ない。 */
+      var chimeSoundOn = true;
+      var audioCtx = null;
+      var chimeNodes = [];
+      var chimeMaster = null;
+      var soundStartedForKey = null;
+
+      function bellNote(freq, when, dur) {
+        var o1 = audioCtx.createOscillator(); o1.type = "sine"; o1.frequency.value = freq;
+        var o2 = audioCtx.createOscillator(); o2.type = "sine"; o2.frequency.value = freq * 2.76;
+        var g2 = audioCtx.createGain(); g2.gain.value = 0.22;
+        var g = audioCtx.createGain();
+        g.gain.setValueAtTime(0.0001, when);
+        g.gain.exponentialRampToValueAtTime(0.85, when + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+        o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(chimeMaster);
+        o1.start(when); o2.start(when);
+        o1.stop(when + dur + 0.1); o2.stop(when + dur + 0.1);
+        chimeNodes.push(o1); chimeNodes.push(o2);
+      }
+      function stopChimeSound() {
+        for (var i = 0; i < chimeNodes.length; i++) { try { chimeNodes[i].stop(); } catch (e) {} }
+        chimeNodes = [];
+        if (chimeMaster) { try { chimeMaster.disconnect(); } catch (e) {} chimeMaster = null; }
+      }
+      function startChimeSound() {
+        if (!chimeSoundOn || !audioCtx) return;
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        stopChimeSound();
+        soundStartedForKey = lastChimeKey;
+        chimeMaster = audioCtx.createGain();
+        chimeMaster.gain.value = 0.5;
+        chimeMaster.connect(audioCtx.destination);
+        var t0 = audioCtx.currentTime + 0.05;
+        // ウェストミンスターの鐘のメロディ（ミ・ド・レ・ソ／ソ・レ・ミ・ド）を2回＋最後の1音で約25秒
+        var melody = [329.63, 261.63, 293.66, 196.00, 196.00, 293.66, 329.63, 261.63];
+        var noteLen = 1.5;
+        for (var rep = 0; rep < 2; rep++) {
+          for (var n = 0; n < melody.length; n++) {
+            bellNote(melody[n], t0 + (rep * melody.length + n) * noteLen, 2.4);
+          }
+        }
+        bellNote(261.63, t0 + 24.0, 0.95);
+      }
+      function ensureAudioCtx() {
+        if (!audioCtx) {
+          try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+        }
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      }
+
       // カウントダウン表示用の名前・絵文字（授業以外も分かるように）
       function itemKind(item) { return item.kind || (item.period.lunch ? "lunch" : "lesson"); }
       function itemTitle(item) {
@@ -622,25 +799,25 @@
       }
       function itemNowStatus(item) {
         var k = itemKind(item);
-        if (k === "morning") return " いまは朝の会・朝活動だよ";
-        if (k === "lunchprep") return "️ いまは給食準備だよ";
-        if (k === "lunch") return " いまは給食の時間だよ";
-        if (k === "lunchbreak") return "️ いまは昼休みだよ";
-        if (k === "cleaning") return " いまは清掃の時間だよ";
-        if (k === "homeroom") return " いまは帰りの会だよ";
-        return " いまは " + item.period.label + "「" + item.subject + "」の時間だよ";
+        if (k === "morning") return ic("sunrise") + " いまは朝の会・朝活動だよ";
+        if (k === "lunchprep") return ic("plate") + " いまは給食準備だよ";
+        if (k === "lunch") return ic("onigiri") + " いまは給食の時間だよ";
+        if (k === "lunchbreak") return ic("sun") + " いまは昼休みだよ";
+        if (k === "cleaning") return ic("broom") + " いまは清掃の時間だよ";
+        if (k === "homeroom") return ic("backpack") + " いまは帰りの会だよ";
+        return ic("book") + " いまは " + item.period.label + "「" + item.subject + "」の時間だよ";
       }
       function itemNextStatus(item, isFirst) {
         var k = itemKind(item);
-        if (k === "morning") return isFirst ? " 今日はこれから — 最初は朝の会・朝活動だよ" : " つぎは朝の会・朝活動だよ";
-        if (k === "lunchprep") return "️ つぎは給食準備だよ";
-        if (k === "lunch") return "☕ 休み時間 — つぎは給食だよ";
-        if (k === "lunchbreak") return " つぎは昼休みだよ";
-        if (k === "cleaning") return " つぎは清掃だよ";
-        if (k === "homeroom") return " つぎは帰りの会だよ";
-        if (k === "dismissal") return " つぎは完全下校だよ";
-        if (isFirst) return " 今日はこれから — 最初は " + item.period.label + "「" + item.subject + "」だよ";
-        return "☕ 休み時間 — つぎは " + item.period.label + "「" + item.subject + "」だよ";
+        if (k === "morning") return isFirst ? ic("sunrise") + " 今日はこれから — 最初は朝の会・朝活動だよ" : ic("sunrise") + " つぎは朝の会・朝活動だよ";
+        if (k === "lunchprep") return ic("plate") + " つぎは給食準備だよ";
+        if (k === "lunch") return ic("coffee") + " 休み時間 — つぎは給食だよ";
+        if (k === "lunchbreak") return ic("onigiri") + " つぎは昼休みだよ";
+        if (k === "cleaning") return ic("broom") + " つぎは清掃だよ";
+        if (k === "homeroom") return ic("backpack") + " つぎは帰りの会だよ";
+        if (k === "dismissal") return ic("walk") + " つぎは完全下校だよ";
+        if (isFirst) return ic("sunrise") + " 今日はこれから — 最初は " + item.period.label + "「" + item.subject + "」だよ";
+        return ic("coffee") + " 休み時間 — つぎは " + item.period.label + "「" + item.subject + "」だよ";
       }
 
       function splitMs(rem) {
@@ -742,6 +919,8 @@
         var countEl = document.getElementById("liveCount");
         var detailEl = document.getElementById("liveDetail");
         var barEl = document.getElementById("liveBarFill");
+        var bannerEl = document.getElementById("chimeBanner");
+        var bannerTextEl = document.getElementById("chimeBannerText");
         var day = getTodayDay();
         if (!day) {
           card.className = "live-card";
@@ -771,6 +950,28 @@
         calibBoundary = current ? current.endMs : (next ? next.startMs : null);
         updateCalibUI();
 
+        // チャイム判定：境界の時刻から25秒間が鳴動中（給食の始まりは chimeTimesForDay で除外済み）
+        var chimeList = chimeTimesForDay(day);
+        var activeChime = null;
+        for (var ci2 = 0; ci2 < chimeList.length; ci2++) {
+          if (nowMs >= chimeList[ci2].ms && nowMs < chimeList[ci2].ms + CHIME_DURATION_MS) { activeChime = chimeList[ci2]; break; }
+        }
+        var chimeKey = activeChime ? activeChime.ms : null;
+        if (chimeKey !== lastChimeKey) {
+          lastChimeKey = chimeKey;
+          activeChimeMin = activeChime ? activeChime.min : null;
+          if (activeChime) startChimeSound(); else stopChimeSound();
+          renderTimetable(DAYS[selected]);
+        }
+        if (bannerEl && bannerTextEl) {
+          if (activeChime) {
+            bannerEl.hidden = false;
+            bannerTextEl.textContent = "チャイム鳴動中 — " + activeChime.label + "（あと " + ((activeChime.ms + CHIME_DURATION_MS - nowMs) / 1000).toFixed(1) + "秒）";
+          } else {
+            bannerEl.hidden = true;
+          }
+        }
+
         if (phaseKey !== lastPhaseKey) {
           lastPhaseKey = phaseKey;
           // 授業⇔休み時間の切り替わりで、時間割のハイライトも付け替える
@@ -781,24 +982,24 @@
 
         if (mode === "in") {
           var remIn = current.endMs - nowMs;
-          statusEl.textContent = itemNowStatus(current);
-          labelEl.innerHTML = "⏱ <strong>" + itemTitle(current) + "</strong> が終わるまで（〜" + current.period.end + "）";
+          statusEl.innerHTML = itemNowStatus(current);
+          labelEl.innerHTML = ic("stopwatch") + " <strong>" + itemTitle(current) + "</strong> が終わるまで（〜" + current.period.end + "）";
           countEl.className = "live-count";
           countEl.innerHTML = countHTML(remIn, "で終わる");
           detailEl.innerHTML = "合計 あと <b>" + splitMs(remIn).totalSec.toFixed(3) + "秒</b> ・ " + current.period.start + "〜" + current.period.end + " のうち、あと少し！";
           var durIn = current.endMs - current.startMs;
           barEl.style.width = durIn > 0 ? Math.min(100, Math.max(0, (nowMs - current.startMs) / durIn * 100)) + "%" : "100%";
           var rcIn = document.getElementById("rowCount-" + current.idx);
-          if (rcIn) { rcIn.className = "row-count show"; rcIn.innerHTML = '⏱ <span class="rc-num">' + shortCount(remIn, "で終わる") + "</span>"; }
+          if (rcIn) { rcIn.className = "row-count show"; rcIn.innerHTML = ic("stopwatch") + ' <span class="rc-num">' + shortCount(remIn, "で終わる") + "</span>"; }
         } else if (mode === "next") {
           var remNext = next.startMs - nowMs;
           var isFirst = timeline.length && next.idx === timeline[0].idx && !prev;
           var isDismissal = itemKind(next) === "dismissal";
           var suffixNext = isDismissal ? "で完全下校" : "で始まる";
-          statusEl.textContent = itemNextStatus(next, isFirst);
+          statusEl.innerHTML = itemNextStatus(next, isFirst);
           labelEl.innerHTML = isDismissal
-            ? "⏱ <strong>完全下校</strong>まで（" + next.period.start + "）"
-            : "⏱ <strong>" + itemTitle(next) + "</strong> が始まるまで（" + next.period.start + "〜）";
+            ? ic("stopwatch") + " <strong>完全下校</strong>まで（" + next.period.start + "）"
+            : ic("stopwatch") + " <strong>" + itemTitle(next) + "</strong> が始まるまで（" + next.period.start + "〜）";
           countEl.className = "live-count";
           countEl.innerHTML = countHTML(remNext, suffixNext);
           detailEl.innerHTML = isDismissal
@@ -808,12 +1009,12 @@
           var durBr = next.startMs - phaseStart;
           barEl.style.width = (durBr > 0 ? Math.min(100, Math.max(0, (nowMs - phaseStart) / durBr * 100)) : 0) + "%";
           var rcNext = document.getElementById("rowCount-" + next.idx);
-          if (rcNext) { rcNext.className = "row-count break show"; rcNext.innerHTML = '⏱ <span class="rc-num">' + shortCount(remNext, suffixNext) + "</span>"; }
+          if (rcNext) { rcNext.className = "row-count break show"; rcNext.innerHTML = ic("stopwatch") + ' <span class="rc-num">' + shortCount(remNext, suffixNext) + "</span>"; }
         } else {
-          statusEl.textContent = " 今日の学校は全部おわり";
-          labelEl.innerHTML = "⏱ <strong>今日の時間割</strong>は終了しました";
+          statusEl.innerHTML = ic("backpack") + " 今日の学校は全部おわり";
+          labelEl.innerHTML = ic("stopwatch") + " <strong>今日の時間割</strong>は終了しました";
           countEl.className = "live-count done";
-          countEl.textContent = "おつかれさま！";
+          countEl.innerHTML = "おつかれさま！" + ic("party");
           detailEl.textContent = "明日もがんばろう。時間割タブで他の日も見られるよ。";
           barEl.style.width = "100%";
         }
@@ -875,8 +1076,35 @@
         if (e.key === "Enter") { e.preventDefault(); applyTypedTime(); }
       });
 
+      // チャイム音のオン・オフ
+      var chimeSoundToggle = document.getElementById("chimeSoundToggle");
+      var chimeSoundLabel = document.getElementById("chimeSoundLabel");
+      function updateChimeToggle() {
+        chimeSoundToggle.setAttribute("aria-pressed", chimeSoundOn ? "true" : "false");
+        chimeSoundLabel.textContent = chimeSoundOn ? "チャイム音：オン" : "チャイム音：オフ";
+      }
+      chimeSoundToggle.addEventListener("click", function () {
+        chimeSoundOn = !chimeSoundOn;
+        if (chimeSoundOn) {
+          ensureAudioCtx();
+          if (lastChimeKey !== null) startChimeSound();
+        } else {
+          stopChimeSound();
+          soundStartedForKey = null;
+        }
+        updateChimeToggle();
+      });
+      // 音はブラウザの決まりでタップ後にしか出せないので、最初のタップで AudioContext を用意する。
+      // 鳴動中にタップされたら、そのチャイムの音も出す。
+      document.addEventListener("pointerdown", function () {
+        if (!chimeSoundOn) return;
+        if (!ensureAudioCtx()) return;
+        if (lastChimeKey !== null && soundStartedForKey !== lastChimeKey) startChimeSound();
+      }, true);
+
       render();
       updateCalibUI();
+      updateChimeToggle();
       requestAnimationFrame(tickLive);
     </script>
   </body>
