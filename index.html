@@ -189,17 +189,6 @@
       }
       .chime-banner[hidden] { display: none; }
       .chime-banner-dot { width: 11px; height: 11px; border-radius: 50%; background: #fff; flex: none; animation: pulse 0.8s ease-in-out infinite; }
-      .chime-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-      .chime-toggle {
-        appearance: none; font: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-        border: 1px solid var(--line); background: var(--bg); color: var(--ink);
-        border-radius: 999px; font-size: 12.5px; font-weight: 800; padding: 6px 12px; min-height: 34px;
-      }
-      .chime-toggle:active { transform: scale(0.97); }
-      .chime-toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-      .chime-toggle[aria-pressed="false"] { opacity: 0.6; }
-      .chime-note { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
-      .chime-legend { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin: 8px 2px 0; }
       @media (prefers-reduced-motion: reduce) {
         .chime-banner-dot, .row.chime-now .chime-chip { animation: none; }
       }
@@ -294,10 +283,6 @@
         <div class="live-count" id="liveCount"></div>
         <div class="live-detail" id="liveDetail"></div>
         <div class="live-bar" aria-hidden="true"><div class="live-bar-fill" id="liveBarFill"></div></div>
-        <div class="chime-controls">
-          <button type="button" class="chime-toggle" id="chimeSoundToggle" aria-pressed="true"><span class="chime-dot" aria-hidden="true"></span><span id="chimeSoundLabel">チャイム音：オン</span></button>
-          <span class="chime-note">チャイムは各区間の始まり・終わりに25秒鳴るよ（給食の始まりだけ鳴らない）。音は画面を一度タップすると出るようになるよ。</span>
-        </div>
         <div class="calib">
           <div class="calib-head">
             <span class="calib-title"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="13" r="7.6"/><path d="M12 9.6V13l2.4 1.6"/><path d="M9.5 2.6h5"/><path d="M12 2.6v3"/></svg> ずれ補正</span>
@@ -329,7 +314,6 @@
 
       <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.8"/><path d="M12 7.2V12l3.2 2"/></svg> 時間割 <span class="h2-note" id="ttNote"></span></h2>
       <div class="tt" id="timetable"></div>
-      <p class="chime-legend"><span class="chime-dot" aria-hidden="true"></span> 赤いマークはチャイムが鳴る時刻（25秒間）。給食の始まり（12:25）だけは鳴らないよ。</p>
 
       <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.6 20.3 19a1.9 1.9 0 0 1-1.7 2.8H5.4A1.9 1.9 0 0 1 3.7 19Z"/><rect x="9.6" y="15.2" width="4.8" height="5.6" rx="0.9" fill="currentColor" stroke="none"/></svg> 給食 <span class="h2-note">12:25〜12:50</span></h2>
       <div class="lunch-card" id="lunchCard"></div>
@@ -708,10 +692,11 @@
         return list;
       }
 
-      /* ===== チャイム =====
-         各区間の始まり・終わりにすべて鳴る。鳴動時間は25秒。
-         ただし給食の始まり（12:25）だけは鳴らない（給食準備の終わりも同じ時刻なので鳴らない）。
-         鳴っている間はライブカードに赤いバナー、時間割のその行に赤いマークの点滅が出る。 */
+      /* ===== チャイム（表示だけ） =====
+         学校で実際に鳴るチャイムに合わせて、このページは音を出さず表示だけする。
+         各区間の始まり・終わりの時刻から25秒間が「鳴動中」の表示になる。
+         ただし給食の始まり（12:25）だけは対象にしない（給食準備の終わりも同じ時刻なので含めない）。
+         鳴動中はライブカードに赤いバナー、時間割のその行に赤いマークの点滅が出る。 */
       var CHIME_DURATION_MS = 25000;
       var LUNCH_START_MIN = 12 * 60 + 25; // 12:25
       var lastChimeKey = null;
@@ -735,59 +720,6 @@
         tl.forEach(function (it) { if (itemKind(it) === "dismissal") add(it.startMs, itemTitle(it)); });
         out.sort(function (a, b) { return a.ms - b.ms; });
         return out;
-      }
-
-      /* チャイム音（Web Audioで作る学校チャイムのメロディ）。
-         ブラウザの決まりで、音は画面を一度タップしてからでないと出ない。 */
-      var chimeSoundOn = true;
-      var audioCtx = null;
-      var chimeNodes = [];
-      var chimeMaster = null;
-      var soundStartedForKey = null;
-
-      function bellNote(freq, when, dur) {
-        var o1 = audioCtx.createOscillator(); o1.type = "sine"; o1.frequency.value = freq;
-        var o2 = audioCtx.createOscillator(); o2.type = "sine"; o2.frequency.value = freq * 2.76;
-        var g2 = audioCtx.createGain(); g2.gain.value = 0.22;
-        var g = audioCtx.createGain();
-        g.gain.setValueAtTime(0.0001, when);
-        g.gain.exponentialRampToValueAtTime(0.85, when + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-        o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(chimeMaster);
-        o1.start(when); o2.start(when);
-        o1.stop(when + dur + 0.1); o2.stop(when + dur + 0.1);
-        chimeNodes.push(o1); chimeNodes.push(o2);
-      }
-      function stopChimeSound() {
-        for (var i = 0; i < chimeNodes.length; i++) { try { chimeNodes[i].stop(); } catch (e) {} }
-        chimeNodes = [];
-        if (chimeMaster) { try { chimeMaster.disconnect(); } catch (e) {} chimeMaster = null; }
-      }
-      function startChimeSound() {
-        if (!chimeSoundOn || !audioCtx) return;
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        stopChimeSound();
-        soundStartedForKey = lastChimeKey;
-        chimeMaster = audioCtx.createGain();
-        chimeMaster.gain.value = 0.5;
-        chimeMaster.connect(audioCtx.destination);
-        var t0 = audioCtx.currentTime + 0.05;
-        // ウェストミンスターの鐘のメロディ（ミ・ド・レ・ソ／ソ・レ・ミ・ド）を2回＋最後の1音で約25秒
-        var melody = [329.63, 261.63, 293.66, 196.00, 196.00, 293.66, 329.63, 261.63];
-        var noteLen = 1.5;
-        for (var rep = 0; rep < 2; rep++) {
-          for (var n = 0; n < melody.length; n++) {
-            bellNote(melody[n], t0 + (rep * melody.length + n) * noteLen, 2.4);
-          }
-        }
-        bellNote(261.63, t0 + 24.0, 0.95);
-      }
-      function ensureAudioCtx() {
-        if (!audioCtx) {
-          try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
-        }
-        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-        return audioCtx;
       }
 
       // カウントダウン表示用の名前・絵文字（授業以外も分かるように）
@@ -960,7 +892,6 @@
         if (chimeKey !== lastChimeKey) {
           lastChimeKey = chimeKey;
           activeChimeMin = activeChime ? activeChime.min : null;
-          if (activeChime) startChimeSound(); else stopChimeSound();
           renderTimetable(DAYS[selected]);
         }
         if (bannerEl && bannerTextEl) {
@@ -1076,35 +1007,8 @@
         if (e.key === "Enter") { e.preventDefault(); applyTypedTime(); }
       });
 
-      // チャイム音のオン・オフ
-      var chimeSoundToggle = document.getElementById("chimeSoundToggle");
-      var chimeSoundLabel = document.getElementById("chimeSoundLabel");
-      function updateChimeToggle() {
-        chimeSoundToggle.setAttribute("aria-pressed", chimeSoundOn ? "true" : "false");
-        chimeSoundLabel.textContent = chimeSoundOn ? "チャイム音：オン" : "チャイム音：オフ";
-      }
-      chimeSoundToggle.addEventListener("click", function () {
-        chimeSoundOn = !chimeSoundOn;
-        if (chimeSoundOn) {
-          ensureAudioCtx();
-          if (lastChimeKey !== null) startChimeSound();
-        } else {
-          stopChimeSound();
-          soundStartedForKey = null;
-        }
-        updateChimeToggle();
-      });
-      // 音はブラウザの決まりでタップ後にしか出せないので、最初のタップで AudioContext を用意する。
-      // 鳴動中にタップされたら、そのチャイムの音も出す。
-      document.addEventListener("pointerdown", function () {
-        if (!chimeSoundOn) return;
-        if (!ensureAudioCtx()) return;
-        if (lastChimeKey !== null && soundStartedForKey !== lastChimeKey) startChimeSound();
-      }, true);
-
       render();
       updateCalibUI();
-      updateChimeToggle();
       requestAnimationFrame(tickLive);
     </script>
   </body>
