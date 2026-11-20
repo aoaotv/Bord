@@ -266,9 +266,9 @@
   </head>
   <body>
     <div class="wrap">
-      <p class="date-line" id="dateLine">2026年11月18日（水）</p>
+      <p class="date-line" id="dateLine">2026年11月23日（月）</p>
       <h1>今日の時間割・給食</h1>
-      <p class="sub">掛川東中学校 1年3組 ／ 11月16日（月）〜20日（金）の週</p>
+      <p class="sub">掛川東中学校 1年3組 ／ 11月23日（月）〜27日（金）の週</p>
 
       <div class="badges" id="badges"></div>
 
@@ -319,7 +319,7 @@
       <div class="lunch-card" id="lunchCard"></div>
 
       <footer>
-        出典：時間割は Google Classroom「Ｒ８ 全校」の学級別時間割（11月13日版）、給食は掛川市立給食文化苑こうようの丘「11月の献立表」、朝の会・給食準備・昼休み・清掃・帰りの会・完全下校の時刻は東中学校の日課表より（清掃は火・木・金のみ）。休み時間は各区間と次の区間のあいだの空白を小さく表示したもの（最後の帰りの会から完全下校までは「下校」と表示）。予定が変わることもあるので、学校からの連絡もあわせて確認してね。
+        出典：時間割は Google Classroom「Ｒ８ 全校」の学級別時間割、給食は掛川市立給食文化苑こうようの丘「11月の献立表」、朝の会・給食準備・昼休み・清掃・帰りの会・完全下校の時刻は東中学校の日課表より（清掃は火・木・金のみ）。休み時間は各区間と次の区間のあいだの空白を小さく表示したもの（最後の帰りの会から完全下校までは「下校」と表示）。予定が変わることもあるので、学校からの連絡もあわせて確認してね。
       </footer>
     </div>
 
@@ -345,7 +345,8 @@
         "道徳":     { color: "#9a7b4f" },
         "音楽":     { color: "#b0529e" },
         "美術":     { color: "#e8a13a" },
-        "総合":     { color: "#607d8b" }
+        "総合":     { color: "#607d8b" },
+        "総合（B1）": { color: "#607d8b" }
       };
 
       /* ===== アイコン（埋め込みSVG。端末の絵文字フォントが無くても必ず表示される） ===== */
@@ -378,35 +379,33 @@
 
       var DAYS = [
         {
-          date: "2026-11-16", num: 16, dow: "月",
-          lessons: ["国語", "保健体育", "理科", "英語", null, "家庭", null],
-          lunch: { items: ["コッペパン", "牛乳", "ポークチャップ", "フルーツカクテル", "秋野菜の洋風煮"],
-                   kcal: 793, protein: "34.2", fat: "25.1", salt: "3.3", msg: "秋野菜の洋風煮を味わおう" }
+          date: "2026-11-23", num: 23, dow: "月", holiday: true, holidayName: "勤労感謝の日",
+          lessons: [null, null, null, null, null, null, null],
+          lunch: null
         },
         {
-          date: "2026-11-17", num: 17, dow: "火",
-          lessons: ["英語", "国語", "理科", "道徳", null, "数学", null],
-          lunch: { items: ["ご飯", "牛乳", "鶏肉とレバーの甘辛和え", "野菜の赤じそ和え", "かきたま汁"],
-                   kcal: 757, protein: "33.0", fat: "24.0", salt: "2.3", msg: "レバーを食べて鉄分をとろう" }
+          date: "2026-11-24", num: 24, dow: "火",
+          lessons: ["英語", "国語", "理科", "道徳", null, "数学", "保健体育"],
+          lunch: { items: ["掛川産のご飯", "牛乳", "さわらのみりん醤油焼き", "肉じゃが", "豆腐と油揚げのみそ汁"],
+                   kcal: 738, msg: "だしで味わう和食の日" }
         },
         {
-          date: "2026-11-18", num: 18, dow: "水",
-          lessons: ["数学", "英語", "国語", "社会", null, "家庭", null],
-          lunch: { items: ["麦ご飯", "牛乳", "えびしゅうまい", "ひじきの中華和え", "肉団子入り酢豚"],
-                   kcal: 761, protein: "30.0", fat: "21.6", salt: "2.6", msg: "肉団子入り酢豚を味わおう" },
-          note: "中央委員会②のため学校は14:35まで"
+          date: "2026-11-25", num: 25, dow: "水",
+          lessons: ["国語", "英語", "家庭", "家庭", null, "理科", null],
+          lunch: { items: ["ご飯", "牛乳", "ヤンニョムチキン", "野菜のナムル", "キムチチゲ"],
+                   kcal: 843, msg: "西中リクエスト献立" }
         },
         {
-          date: "2026-11-19", num: 19, dow: "木",
-          lessons: ["英語", "数学", "社会", "音楽", null, "保健体育", "総合"],
-          lunch: { items: ["さくらご飯", "牛乳", "あかうおの揚げ煮", "筑前煮", "大根のみそ汁", "みかん（中のみ）"],
-                   kcal: 764, protein: "31.9", fat: "20.1", salt: "4.1", msg: "恵比寿講献立" }
+          date: "2026-11-26", num: 26, dow: "木",
+          lessons: ["英語", "数学", "社会", "音楽", null, "総合（B1）", null],
+          lunch: { items: ["ご飯", "牛乳", "のり入り厚焼玉子", "野菜の塩昆布和え", "みそおでん"],
+                   kcal: 733, msg: "味噌おでんを味わおう" }
         },
         {
-          date: "2026-11-20", num: 20, dow: "金",
-          lessons: ["美術", "数学", "国語", "理科", null, "保健体育", "社会"],
-          lunch: { items: ["ご飯", "牛乳", "鶏肉の唐揚げ", "ごぼうサラダ", "カレースープ"],
-                   kcal: 779, protein: "30.1", fat: "22.4", salt: "2.1", msg: "さつま芋について知ろう" }
+          date: "2026-11-27", num: 27, dow: "金",
+          lessons: ["美術", "数学", "理科", "保健体育", null, "社会", null],
+          lunch: { items: ["麦ご飯", "牛乳", "厚揚げの中華炒め", "華風和え", "卵入りわかめスープ", "杏仁豆腐（中のみ）"],
+                   kcal: 728, msg: "ほうれん草について知ろう" }
         }
       ];
 
@@ -474,6 +473,7 @@
       function isSixPeriodDay(day) { return lessonCount(day) >= 6; }
       function hasCleaning(day) { return day.dow === "火" || day.dow === "木" || day.dow === "金"; }
       function extraSegments(day) {
+        if (day.holiday) return [];
         var list = [
           { key: "morning", label: "朝の会・朝活動", icon: "sunrise", start: "08:00", end: "08:15", time: "8:00〜8:15", kind: "morning" },
           { key: "lunchprep", label: "給食準備", icon: "plate", start: "12:15", end: "12:25", time: "12:15〜12:25", kind: "lunchprep" },
@@ -508,6 +508,11 @@
       }
 
       function renderBadges(day) {
+        if (day.holiday) {
+          badgesEl.innerHTML = '<span class="badge">' + ic("party") + ' ' + day.holidayName + '</span>' +
+            '<span class="badge">' + ic("school") + ' 学校はお休み（授業・給食なし）</span>';
+          return;
+        }
         var lastLesson = 0;
         day.lessons.forEach(function (s, i) { if (s) lastLesson = i; });
         var lastPeriod = PERIODS[lastLesson];
@@ -535,6 +540,14 @@
       }
 
       function renderTimetable(day) {
+        if (day.holiday) {
+          ttNoteEl.textContent = "お休み";
+          ttEl.innerHTML = '<div class="row activity">' +
+            '<div class="p-badge activity-badge" aria-hidden="true">' + ic("party") + "</div>" +
+            '<div class="p-main"><div class="p-subject">' + ic("party") + " " + day.holidayName + "</div>" +
+            '<div class="p-time">学校はお休みです。授業はありません。</div></div></div>';
+          return;
+        }
         var keys = timelineKeys(day);
         var nowKey = keys.nowKey, nextKey = keys.nextKey;
         var count = lessonCount(day);
@@ -638,16 +651,20 @@
 
       function renderLunch(day) {
         var L = day.lunch;
+        if (!L) {
+          lunchEl.innerHTML = '<p class="lunch-msg" style="margin:0">' + ic("party") + ' ' + (day.holidayName || "お休み") + 'のため、給食はありません。</p>';
+          return;
+        }
         var items = L.items.map(function (it) { return "<li>" + it + "</li>"; }).join("");
+        var nuts = "";
+        nuts += '<div class="nut"><div class="n-val">' + L.kcal + '<small> kcal</small></div><div class="n-label">エネルギー</div></div>';
+        if (L.protein != null) nuts += '<div class="nut"><div class="n-val">' + L.protein + '<small> g</small></div><div class="n-label">たんぱく質</div></div>';
+        if (L.fat != null) nuts += '<div class="nut"><div class="n-val">' + L.fat + '<small> g</small></div><div class="n-label">脂質</div></div>';
+        if (L.salt != null) nuts += '<div class="nut"><div class="n-val">' + L.salt + '<small> g</small></div><div class="n-label">塩分</div></div>';
         lunchEl.innerHTML =
           '<ul class="lunch-items">' + items + "</ul>" +
-          '<div class="nutrition">' +
-            '<div class="nut"><div class="n-val">' + L.kcal + '<small> kcal</small></div><div class="n-label">エネルギー</div></div>' +
-            '<div class="nut"><div class="n-val">' + L.protein + '<small> g</small></div><div class="n-label">たんぱく質</div></div>' +
-            '<div class="nut"><div class="n-val">' + L.fat + '<small> g</small></div><div class="n-label">脂質</div></div>' +
-            '<div class="nut"><div class="n-val">' + L.salt + '<small> g</small></div><div class="n-label">塩分</div></div>' +
-          "</div>" +
-          '<p class="lunch-msg">' + ic("megaphone") + ' ' + L.msg + "</p>";
+          '<div class="nutrition">' + nuts + "</div>" +
+          '<p class="lunch-msg">' + ic("megaphone") + ' おしらせ：' + L.msg + "</p>";
       }
 
       /* ===== リアルタイム・カウントダウン ===== */
@@ -669,6 +686,7 @@
       }
 
       function buildTimeline(day) {
+        if (day.holiday) return [];
         var list = [];
         PERIODS.forEach(function (p, i) {
           if (!day.lessons[i] && !p.lunch) return;
@@ -854,7 +872,7 @@
         var bannerEl = document.getElementById("chimeBanner");
         var bannerTextEl = document.getElementById("chimeBannerText");
         var day = getTodayDay();
-        if (!day) {
+        if (!day || day.holiday) {
           card.className = "live-card";
           requestAnimationFrame(tickLive);
           return;
